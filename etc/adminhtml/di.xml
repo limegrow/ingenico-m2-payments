@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Config\Model\Config\Structure\Data">
+        <plugin name="ingenico_dynamic_payment_method_fields" type="Ingenico\Payment\Plugin\MagentoConfigModelConfigStructureData" />
+    </type>
+    <type name="Magento\Config\Block\System\Config\Edit">
+        <plugin name="ingenico_account_registration_button" type="Ingenico\Payment\Plugin\MagentoConfigBlockSystemConfigEdit" />
+    </type>
+    <type name="Magento\Config\Controller\Adminhtml\System\Config\Save">
+        <plugin name="ingenico_account_registration_save_interceptor" type="Ingenico\Payment\Plugin\MagentoConfigControllerAdminhtmlSystemConfigSave" />
+    </type>
+    <type name="Magento\MediaStorage\Model\File\Uploader">
+        <plugin name="ingenico_template_file_extension_check_interceptor" type="Ingenico\Payment\Plugin\MagentoMediaStorageModelFileUploader" />
+    </type>
+    <type name="Magento\Config\Block\System\Config\Form">
+        <plugin name="ingenico_support_email_value" type="Ingenico\Payment\Plugin\MagentoConfigBlockSystemConfigForm" />
+    </type>
+</config>

@@ -1,0 +1,250 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ingenico ePayments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-08T16:11:23+00:00\n"
+"PO-Revision-Date: 2020-03-24 15:44+0600\n"
+"Last-Translator: main <main@localhost>\n"
+"Language-Team: Ingenico Team\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: messages\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.6\n"
+"X-Poedit-KeywordsList: $this->__;__\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+msgid "ingenico.settings.label1"
+msgstr "dagen"
+
+msgid "ingenico.settings.label2"
+msgstr "afbetalingstermijnen"
+
+msgid "ingenico.settings.label3"
+msgstr "in basisvaluta"
+
+msgid "ingenico.settings.comment3"
+msgstr "Een referentie downloaden"
+
+msgid "ingenico.settings.comment4"
+msgstr "Bewerk de sjabloon al naar behoefte."
+
+msgid "ingenico.exception.message1"
+msgstr "Vereiste parameters ontbreken"
+
+msgid "ingenico.exception.message2"
+msgstr "Directe aanvragen zijn niet toegestaan"
+
+msgid "ingenico.exception.message3"
+msgstr "Order #%1 is niet beschikbaar voor betaling"
+
+msgid "ingenico.settings.label4"
+msgstr "--Maak een keuze--"
+
+msgid "ingenico.settings.option1"
+msgstr "Logo's actieve betalingsmethoden"
+
+msgid "ingenico.settings.option2"
+msgstr "Namen actieve betalingsmethoden"
+
+msgid "ingenico.settings.option3"
+msgstr "Aangepaste tekst"
+
+msgid "ingenico.exception.message4"
+msgstr "Onbekende betalingsfout"
+
+msgid "ingenico.exception.message5"
+msgstr "De autorisatie-actie is niet beschikbaar."
+
+msgid "ingenico.exception.message6"
+msgstr "De capture-actie is niet beschikbaar."
+
+msgid "ingenico.exception.message7"
+msgstr "De restitutie-actie is niet beschikbaar."
+
+msgid "ingenico.exception.message8"
+msgstr "Kan increment_id voor de order niet vinden"
+
+msgid "ingenico.notification.message1"
+msgstr "Kan order met increment_id %1 niet laden"
+
+msgid "ingenico.notification.message2"
+msgstr ""
+"Kan de orderstatus niet in \"%1\" veranderen omdat deze momenteel de status "
+"\"%2\" heeft"
+
+msgid "ingenico.notification.message3"
+msgstr "Betaling geautoriseerd"
+
+msgid "ingenico.notification.message4"
+msgstr "Kan betaling niet vastleggen omdat order al is betaald."
+
+msgid "ingenico.notification.message5"
+msgstr "Kan betaling niet vastleggen omdat order is geannuleerd."
+
+msgid "ingenico.notification.message6"
+msgstr "Capture betaling voltooid"
+
+msgid "ingenico.notification.message7"
+msgstr "Kan order niet annuleren, %1"
+
+msgid "ingenico.notification.message8"
+msgstr "De order is geannuleerd"
+
+msgid "ingenico.button.label1"
+msgstr "Order plaatsen"
+
+msgid "ingenico.button.label2"
+msgstr "Sluiten"
+
+msgid "ingenico.settings.label5"
+msgstr "Inschakelen"
+
+msgid "ingenico.settings.label6"
+msgstr "Titel in betaalproces weergeven als"
+
+msgid "ingenico.settings.label7"
+msgstr "Titel"
+
+msgid "ingenico.settings.label8"
+msgstr "E-mail met orderbevestiging onderdrukken"
+
+msgid "ingenico.settings.comment1"
+msgstr ""
+"Indien dit is ingeschakeld, ontvangen klanten geen email met "
+"orderbevestiging wanneer ze via deze betalingsmethode betalen."
+
+msgid "ingenico.settings.label9"
+msgstr "Betaling vanuit toepasselijke landen"
+
+msgid "ingenico.settings.label10"
+msgstr "Betaling vanuit specifieke landen"
+
+msgid "ingenico.settings.label11"
+msgstr "Minimum ordertotaal"
+
+msgid "ingenico.settings.label12"
+msgstr "Maximum ordertotaal"
+
+msgid "ingenico.settings.label13"
+msgstr "Sorteervolgorde"
+
+msgid "ingenico.settings.label14"
+msgstr "Ingenico ePayments"
+
+msgid "ingenico.settings.label15"
+msgstr "Land van uw bedrijfsentiteit"
+
+msgid "ingenico.settings.label16"
+msgstr "Modus"
+
+msgid "ingenico.settings.label17"
+msgstr "Algemeen"
+
+msgid "ingenico.settings.label18"
+msgstr "Instellingenmodus"
+
+msgid "ingenico.settings.label19"
+msgstr "Naderhand verzenden"
+
+msgid "ingenico.settings.label20"
+msgstr "Geselecteerde landen"
+
+msgid "ingenico.settings.comment2"
+msgstr ""
+"Selecteer landen in het bovenstaande vak als u de beschikbare "
+"betalingsmethoden wilt weergeven"
+
+msgid "ingenico.settings.label21"
+msgstr "Logboek inschakelen"
+
+msgid "ingenico.settings.comment5"
+msgstr ""
+"Zodra dit is ingeschakeld, wordt alle communicatie vastgelegd in var/log/"
+"ingenico.log"
+
+msgid "ingenico.settings.comment6"
+msgstr ""
+"HINT: Als je meerdere landen wilt selecteren, houdt je op de pc de toets "
+"\"Ctrl\" ingedrukt en op de Mac de toets \"Command\""
+
+msgid "form.support.hint.local"
+msgstr ""
+"Als je problemen hebt bij het instellen van je account, kun je een verzoek "
+"indienen bij Ingenico waarin <b>je winkelinstellingen automatisch zijn "
+"opgenomen</b>. Geef je ticket-id op als je al in gesprek bent met onze "
+"support."
+
+msgid "ingenico.settings.label22"
+msgstr "Nieuwe Ingenico-account maken"
+
+msgid "ingenico.settings.label23"
+msgstr "Door dit formulier in te dienen, stem je ermee in dat Ingenico je persoonsgegevens verwerkt volgens het Privacybeleid van Ingenico, om je verzoek af te handelen en je andere commerciële aanbiedingen te sturen in verband met Ingenico's producten en diensten. Je kunt deze instemming op elk gewenst tijdstip intrekken door de optie “unsubscribe” (uitschrijven) te gebruiken in een e-mailbericht dat je ontvangt of door contact op te nemen met een Data Privacy Officer van Ingenico."
+
+msgid "ingenico.notification.message9"
+msgstr ""
+"Je kunt niet meer dan één \"Openstaande factuur\"-betalingsmethode "
+"ingeschakeld hebben."
+
+msgid "ingenico.notification.message10"
+msgstr "De configuratie is niet opgeslagen!"
+
+msgid "ingenico.notification.message11"
+msgstr "PSPID field is required"
+
+msgid "ingenico.notification.message12"
+msgstr "Signature field is required"
+
+msgid "ingenico.notification.message13"
+msgstr "User field is required"
+
+msgid "ingenico.notification.message14"
+msgstr "Password field is required"
+
+msgid "modal.openinvoice.additional_data_required"
+msgstr "Geef aanvullende informatie op die voor deze betalingsmethode nodig is"
+
+msgid "modal.openinvoice.proceed"
+msgstr "Proceed"
+
+msgid "Billing state"
+msgstr "Staat/provincie facturering"
+
+msgid "Billing street number"
+msgstr "Huisnummer facturering"
+
+msgid "Shipping state"
+msgstr "Staat/provincie verzending"
+
+msgid "Shipping street number"
+msgstr "Huisnummer verzending"
+
+msgid "Shipping company"
+msgstr "Bedrijf verzending"
+
+msgid "Shipping customer title"
+msgstr "Titel klant verzending"
+
+msgid "Shipping fax"
+msgstr "Fax verzending"
+
+msgid "Customer dob"
+msgstr "Geboortedatum klant"
+
+msgid "Customer gender"
+msgstr "Geslacht klant"
+
+msgid "Value is required"
+msgstr "Waarde is verplicht"
+
+msgid "Customer civility"
+msgstr "Aanspreekvorm klant"
+
+msgid "Male"
+msgstr "Man"
+
+msgid "Female"
+msgstr "Vrouw"

@@ -1,0 +1,66 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Method\View
+ */
+?>
+
+<div class="ingenico-return">
+    <div class="ingenico-loader">
+        <img src="<?php /* @noEscape */ echo $block->getLoaderUrl(); ?>" alt="<?= /* @noEscape */ __('checkout.please_wait'); ?>">
+    </div>
+</div>
+
+<script>
+require(['jquery'], function($){
+    'use strict';
+
+    function ingRedirect(url) {
+        let ingenico_redirect = url;
+        let isInIframe = (window.location != window.parent.location) ? true : false;
+        if (isInIframe) {
+            window.top.location.href = ingenico_redirect;
+        } else {
+            window.location.href = ingenico_redirect;
+        }
+    }
+
+    function processPayment() {
+        $.ajax({
+            type: 'POST',
+            url: '<?= /* @noEscape */ $block->getAjaxUrl(); ?>',
+            data: {
+                order_id: '<?= /* @noEscape */ $block->getLoaderParam('order_id'); ?>',
+                alias_id: '<?= /* @noEscape */ $block->getLoaderParam('alias_id'); ?>',
+                card_brand: '<?= /* @noEscape */ $block->getLoaderParam('card_brand'); ?>',
+            },
+            dataType: 'json'
+        }).always(function(response) {
+            //console.log(response);
+        }).done(function(response) {
+            switch (response.status) {
+                case 'success':
+                case 'cancelled':
+                case 'error':
+                    ingRedirect(response.redirect);
+                    break;
+                case '3ds_required':
+                    $('.ingenico-loader').hide();
+                    $(response.html).insertAfter($('.ingenico-return'));
+                    break;
+                case 'show_warning':
+                    $('.ingenico-return').replaceWith(response.html);
+                    break;
+            }
+        });
+    }
+
+<?php if ($block->getResultRedirectUrl()): ?>
+    ingRedirect('<?= $block->getResultRedirectUrl() ?>');
+<?php else: ?>
+    $(document).ready(function(){
+        processPayment();
+    });
+<?php endif; ?>
+});
+</script>

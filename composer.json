@@ -1,0 +1,42 @@
+{
+    "name": "ingenico/m2-payment",
+    "description": "Ingenico ePayments Module",
+    "require": {
+        "monolog/monolog": "*",
+        "league/iso3166": "~2.1",
+        "graylog2/gelf-php": "~1.5",
+        "symfony/translation": ">=4.2",
+        "ingenico/ogone-client": "^2.0.0"
+    },
+    "type": "magento2-module",
+    "version": "2.0.0",
+    "license": [
+        "OSL-3.0"
+    ],
+    "authors": [
+        {
+            "name": "Konstantin Zhilin",
+            "email": "info@limegrow.com",
+            "homepage": "https://limegrow.com/"
+        },
+        {
+            "name": "Limegrow",
+            "email": "info@limegrow.com",
+            "homepage": "https://limegrow.com/"
+        }
+    ],
+    "support": {
+        "email": "support.ecom@ingenico.com"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Ingenico\\Payment\\": ""
+        }
+    },
+    "require-dev": {
+        "magento/magento-coding-standard": "^5.0"
+    }
+}

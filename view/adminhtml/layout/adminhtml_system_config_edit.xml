@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Ingenico_Payment::css/config.css"/>
+        <link src="Ingenico_Payment::js/ogone.js" />
+        <link src="Ingenico_Payment::js/form.js" />
+    </head>
+    <body>
+        <referenceContainer name="before.body.end">
+			<block class="Ingenico\Payment\Block\Adminhtml\System\Config\HelpContent" name="ingenico.help.content" template="Ingenico_Payment::help_content.phtml">
+			</block>
+        </referenceContainer>
+    </body>
+</page>

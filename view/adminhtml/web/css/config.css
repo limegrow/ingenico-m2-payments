@@ -1,0 +1,112 @@
+.main-col a {
+	color: #ef672f;
+	white-space: nowrap;
+}
+div.field-actions {
+	padding: 5px 0 0;
+}
+div.field-actions:after {
+	display: block;
+	clear: both;
+	content: "";
+}
+div.copy-response {
+	display: none;
+}
+button.action-generate-signature,
+button.action-display {
+	float: right;
+	margin-left: 8px;
+}
+.group-hint,
+.config span.hint {
+	background: url('../images/help.svg');
+	cursor: pointer;
+	height: 28px;
+	width: 28px;
+	display: inline-block;
+	margin: 0 10px -9px;
+	position: relative;
+	z-index: 100;
+}
+
+.config span.warning {
+    background: url('../images/warning.svg');
+    cursor: pointer;
+    height: 28px;
+    width: 28px;
+    display: inline-block;
+    margin: 0 10px -9px;
+    position: relative;
+    z-index: 100;
+}
+
+.modal-content {
+	padding-top: 3rem!important;
+}
+.modal-popup .modal-inner-wrap {
+	width: 50%;
+}
+.modal-content p {
+	margin-bottom: 20px;
+}
+.ingenico-method-title {
+	display: inline-block;
+	line-height: 35px;
+}
+.ingenico-method-title img {
+	vertical-align: middle;
+	margin-right: 20px;
+}
+.range-bar-container {
+	width: 70%;
+	float: left;
+	margin: 5px 25px 25px 0;
+}
+.range-bar-label {
+	line-height: 1;
+}
+.ui-slider-handle {
+	height: 25px;
+	width: 25px;
+	border-radius: 2px;
+	top: -8px;
+	line-height: 25px;
+	text-align: center;
+	font-weight: 600;
+	cursor: pointer!important;
+	background-color: #eb5202;
+	color: #fff!important;
+}
+.ui-slider-handle:hover {
+	text-decoration: none;
+}
+.ui-slider-horizontal {
+	background-color: #e3e3e3;
+}
+
+.paypal-warn .icon-span {
+    background: url(../images/warning.svg);
+    cursor: pointer;
+    width: 28px;
+    display: inline-block;
+    height: 28px;
+    margin-left: 15px;
+}
+
+#paypal_warning_content .modal-title {
+    margin-bottom: 20px;
+}
+
+#paypal_warning_content .highlight-color1 {
+    background: rgba(232, 38, 53, 0.05);
+}
+
+#paypal_warning_content .highlight-color2 {
+    background: rgba(38, 171, 42, 0.05);
+}
+
+#connection_directlink_content ul {
+    padding: 0 0 0 15px;
+    list-style: none;
+}

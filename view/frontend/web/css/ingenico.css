@@ -1,0 +1,187 @@
+.saved-cards {
+    padding: 10px 0 20px;
+}
+.saved-cards .card .label {
+    display: block;
+    padding: 5px 0;
+}
+.ingenico-loader {
+    text-align:center;
+    padding:30px;
+}
+
+.ingenico-loader img {
+    width:75px;
+    height:75px;
+    -webkit-animation-name:spin;
+    -webkit-animation-duration:1000ms;
+    -webkit-animation-iteration-count:infinite;
+    -webkit-animation-timing-function:linear;
+    -moz-animation-name:spin;
+    -moz-animation-duration:1000ms;
+    -moz-animation-iteration-count:infinite;
+    -moz-animation-timing-function:linear;
+    -ms-animation-name:spin;
+    -ms-animation-duration:1000ms;
+    -ms-animation-iteration-count:infinite;
+    -ms-animation-timing-function:linear;
+    animation-name:spin;
+    animation-duration:1000ms;
+    animation-iteration-count:infinite;
+    animation-timing-function :linear;
+}
+
+.ingenico-return .message {
+    text-align:center;
+}
+
+.ingenico-return .ingenico-button {
+    height:50px;
+    padding:0 27px;
+    background:#2a6baa;
+    border-radius:30px;
+    text-align:center;
+    line-height:50px;
+    font-size:15px;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+/* float: left; */
+    border:0;
+}
+
+.ingenico-return .ingenico-button.disabled {
+    background:#989898;
+}
+
+.ingenico-return .ingenico-button.connect-existing {
+    float:initial;
+    margin-top:30px;
+}
+
+.ingenico-return .ingenico-payment-warning {
+    font-family:Open Sans,sans-serif;
+    width:100%;
+    min-height:130px;
+    background-color:#fdeaeb;
+    padding-top:15px;
+    text-align:center;
+}
+
+.ingenico-return .ingenico-info {
+    width:80%;
+    margin:0 auto;
+    text-align:center;
+}
+
+.ingenico-confirmation li {
+    border:solid 1px #ddd;
+    /*max-width:695px;*/
+    margin-bottom:16px;
+    cursor:pointer;
+    list-style:none;
+}
+
+.ingenico-confirmation li a {
+    text-decoration: none;
+}
+
+.ingenico-confirmation li h2 {
+    margin-bottom:16px;
+}
+
+.ingenico-confirmation li .payment-logo {
+    position:relative;
+    display:flex;
+    padding:16px;
+}
+
+.ingenico-confirmation li .payment-logo img {
+    float:left;
+    max-width:50px;
+    height:50px;
+    margin-right:10px;
+}
+
+.ingenico-confirmation li .payment-logo h3 {
+    float:left;
+    margin: auto 20px;
+}
+
+.ingenico-confirmation li a {
+    color:#000;
+    display:inline-block;
+    width:100%;
+/*height: 100%;*/
+}
+
+.ingenico-confirmation .form-container {
+    max-width: 500px;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.ingenico-confirmation iframe {
+    width:100%;
+    height:360px;
+    border:0;
+    display:none;
+}
+
+#ingenico-payment-form img {
+    padding:6px;
+}
+
+#ingenico-error p {
+    text-align:center;
+    background:#fde9eb;
+    padding:20px;
+    color:#000;
+    margin:0;
+}
+
+table.ncoltable3 {
+    min-height:170px;
+}
+
+@-ms-keyframes spin {
+    from {
+        -ms-transform:rotate();
+    }
+
+    to {
+        -ms-transform:rotate(360deg);
+    }
+}
+
+@-moz-keyframes spin {
+    from {
+        -moz-transform:rotate(0deg);
+    }
+
+    to {
+        -moz-transform:rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    from {
+        -webkit-transform:rotate(0deg);
+    }
+
+    to {
+        -webkit-transform:rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+
+    to {
+        transform:rotate(360deg);
+    }
+}
+
+/*# sourceMappingURL=front.css.map */

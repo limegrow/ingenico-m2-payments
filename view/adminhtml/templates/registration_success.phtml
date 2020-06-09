@@ -1,0 +1,35 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Magento\Config\Block\System\Config\Edit
+ */
+?>
+<div class="ingenico-registration-success">
+	<p><?= /* @noEscape */ __('form.create_account.label.done.label1') ?>!</p>
+	<p><?= /* @noEscape */ __('form.create_account.label.done.label2') ?><?= /* @noEscape */ __('form.create_account.label.done.label3') ?></p>
+    <button class="primary scalable" type="button" id="account_register_continue">
+        <span><?= /* @noEscape */ __('form.create_account.button.connect-existing'); ?></span>
+    </button>
+</div>
+
+<script>
+require(['jquery'], function($){
+	'use strict';
+
+	$('#account_register_continue').click(function(){
+		window.location.href = '<?= /* @noEscape */ $block->getUrl('*/*/*', ['section' => 'ingenico_connection']) ?>';
+	});
+});
+</script>
+
+<style type="text/css">
+
+.ingenico-registration-success {
+	padding: 30px 0;
+	text-align: center;
+	font-size: 1.2em;
+}
+.ingenico-registration-success button {
+	margin-top: 40px;
+}
+</style>

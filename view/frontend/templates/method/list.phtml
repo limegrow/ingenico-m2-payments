@@ -1,0 +1,131 @@
+<?php
+// @codingStandardsIgnoreFile
+/** @var \Ingenico\Payment\Block\Method\View $block */
+?>
+
+<?php if ($html = $block->getSecurityHTMLAnswer()): ?>
+    <?php // 3DSec HTML data ?>
+    <?php echo /* @noEscape */ $html; ?>
+<?php else: ?>
+    <div class="ingenico-confirmation">
+        <ul>
+            <?php foreach ($block->getPaymentMethods() as $categoryName => $methods): ?>
+                <h2><?php echo $categoryName; ?></h2>
+                <?php foreach ($methods as $code => $method): ?>
+                    <li>
+                    <?php // AFTERPAY & KLARNA ?>
+                    <?php if (in_array($method->getId(), ['afterpay', 'klarna'])): ?>
+                        <div class="payment-logo">
+                            <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo $method->getName() ?>" title="<?php echo $method->getName() ?>" width="50" />
+                            <h3><?php echo $block->escapeHtmlAttr($method->getName()) ?></h3>
+                        </div>
+                        <div class="form-container" style="display: none">
+                            <h4 class="subtitle"><?= __('modal.openinvoice.additional_data_required'); ?></h4>
+                            <form
+                                action="<?php echo $block->escapeHtmlAttr($block->getOpenInvoicePostUrl()) ?>"
+                                method="post"
+                                id="open-invoice"
+                                data-hasrequired="<?php echo $block->escapeHtmlAttr(__('* Required Fields')) ?>"
+                                data-mage-init='{"validation":{}}'>
+
+                                <input type="hidden" name="payment_id" value="<?php echo $block->escapeHtmlAttr($method->getId()) ?>" />
+                                <input type="hidden" name="pm" value="<?php echo $block->escapeHtmlAttr($method->getPM()) ?>" />
+                                <input type="hidden" name="brand" value="<?php echo $block->escapeHtmlAttr($method->getBrand()) ?>" />
+
+                                <fieldset class="fieldset">
+                                    <?php foreach ($method->getMissingFields() as $field):
+                                        $name = $field->getFieldName();
+                                        $type = $field->getFieldType();
+                                        $required = $field->getRequired() ? ' required' : '';
+                                        $value = $field->getValue();
+                                        $length = $field->getLength();
+                                        ?>
+                                        <div class="field <?php echo $block->escapeHtmlAttr($name) ?><?php echo $block->escapeHtmlAttr($required); ?>">
+                                            <label class="label" for="<?php echo $block->escapeHtmlAttr($name) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>
+                                            <div class="control">
+                                                <?php if($type == 'radio'): ?>
+                                                    <?php foreach($field->getValues() as $key => $value): ?>
+                                                        <input
+                                                            name="<?php echo $block->escapeHtmlAttr($name); ?>"
+                                                            id="<?php echo $block->escapeHtmlAttr(implode('-', [$type, $name, $value])) ?>"
+                                                            title="<?php echo $block->escapeHtmlAttr($value) ?>"
+                                                            value="<?php echo $block->escapeHtmlAttr($key) ?>"
+                                                            class="input-radio"
+                                                            type="<?php echo $block->escapeHtmlAttr($type) ?>"
+                                                            data-validate="{required:true}" >
+                                                        <label class="label" for="<?php echo $block->escapeHtmlAttr(implode('-', [$type, $name, $value])) ?>">
+                                                            <span><?php echo $block->escapeHtmlAttr($value) ?></span>
+                                                        </label>
+                                                        <br/>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <input
+                                                        name="<?php echo $block->escapeHtmlAttr($name); ?>"
+                                                        id="<?php echo $block->escapeHtmlAttr($name); ?>"
+                                                        title="Email"
+                                                        value="<?php echo $block->escapeHtmlAttr($field->getValue()); ?>"
+                                                        class="input-<?php echo $block->escapeHtmlAttr($type); ?><?php echo $length ? $block->escapeHtmlAttr(' validate-length maximum-length-'.$length) : '' ?>"
+                                                        type="<?php echo $type == 'date' ? 'text' : $block->escapeHtmlAttr($type); ?>"
+                                                        data-validate="{<?php echo $field->getRequired() ? 'required:true' : ''; ?>}" >
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </fieldset>
+                                <div class="actions-toolbar">
+                                    <div class="primary">
+                                        <input type="hidden" name="hideit" id="hideit" value="" />
+                                        <button type="submit" title="<?php echo $block->escapeHtmlAttr(__('modal.openinvoice.proceed')) ?>" class="action submit primary">
+                                            <span><?= __('modal.openinvoice.proceed'); ?></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <?php // REDIRECT PMs ?>
+                    <?php elseif ($method->isRedirectOnly()): ?>
+                        <a href="<?php echo $method->getIFrameUrl(); ?>">
+                            <div class="payment-logo">
+                                <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo $block->escapeHtmlAttr($method->getName()) ?>" width="50" />
+                                <h3><?php echo $block->escapeHtmlAttr($method->getName()); ?></h3>
+                            </div>
+                        </a>
+                        <?php // IFRAME PMs ?>
+                    <?php else: ?>
+                        <?php if ($method->getSubmethodLogos()){ ?>
+                            <div class="payment-logo">
+                            <?php foreach ($method->getSubmethodLogos() as $name => $logoSrc){ ?>
+                                <img src="<?php echo $logoSrc; ?>" alt="<?php echo $block->escapeHtmlAttr($name); ?>" title="<?php echo $block->escapeHtmlAttr($name); ?>" width="50" />
+                            <?php } } else { ?>
+                            <div class="payment-logo">
+                            <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo $block->escapeHtmlAttr($method->getName()) ?>" title="<?php echo $block->escapeHtmlAttr($method->getName()) ?>" width="50" />
+                            <h3><?php echo $block->escapeHtmlAttr($method->getName()) ?></h3>
+                        <?php } ?>
+                        </div>
+                        <iframe data-src="<?php echo $block->escapeHtmlAttr($method->getIFrameUrl()); ?>" title="Payment Form" lazyload="on"></iframe>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
+    <script>
+        require(["jquery", "mage/calendar"], function($){
+            $("[name='customer_dob']").datepicker({
+                showMonthAfterYear: false,
+                dateFormat:'dd.mm.yy',
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '<?php echo '1940:' . date('Y'); ?>',
+                defaultDate: '-1y'
+            });
+            $("#shipping_date_time").datepicker({
+                showMonthAfterYear: false,
+                dateFormat:'dd.mm.yy',
+                changeMonth: true,
+                changeYear: true
+            });
+        });
+    </script>
+<?php endif; ?>

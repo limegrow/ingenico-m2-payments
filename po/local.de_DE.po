@@ -1,0 +1,256 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ingenico ePayments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-08T16:11:23+00:00\n"
+"PO-Revision-Date: 2020-03-24 15:03+0600\n"
+"Last-Translator: main <main@localhost>\n"
+"Language-Team: Ingenico Team\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: messages\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.6\n"
+"X-Poedit-KeywordsList: $this->__;__\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+msgid "ingenico.settings.label1"
+msgstr "Tage"
+
+msgid "ingenico.settings.label2"
+msgstr "Ratenzahlungen"
+
+msgid "ingenico.settings.label3"
+msgstr "in Basiswährung"
+
+msgid "ingenico.settings.comment3"
+msgstr "Eine Referenz herunterladen"
+
+msgid "ingenico.settings.comment4"
+msgstr "Die Vorlage nach Ihren Wünschen bearbeiten."
+
+msgid "ingenico.exception.message1"
+msgstr "Fehlende erforderliche Parameter"
+
+msgid "ingenico.exception.message2"
+msgstr "Direkte Anfragen nicht erlaubt"
+
+msgid "ingenico.exception.message3"
+msgstr "Bestellung #%1 ist nicht zur Zahlung verfügbar"
+
+msgid "ingenico.settings.label4"
+msgstr "--Bitte Auswählen--"
+
+msgid "ingenico.settings.option1"
+msgstr "Logos für aktive Zahlungsmethoden"
+
+msgid "ingenico.settings.option2"
+msgstr "Bezeichnungen für aktive Zahlungsmethoden"
+
+msgid "ingenico.settings.option3"
+msgstr "Benutzerdefinierter Text"
+
+msgid "ingenico.exception.message4"
+msgstr "Unbekannter Zahlungsfehler"
+
+msgid "ingenico.exception.message5"
+msgstr "Die Genehmigungsaktion ist nicht verfügbar."
+
+msgid "ingenico.exception.message6"
+msgstr "Die Erfassungsaktion ist nicht verfügbar."
+
+msgid "ingenico.exception.message7"
+msgstr "Die Rückerstattungsaktion ist nicht verfügbar."
+
+msgid "ingenico.exception.message8"
+msgstr "Bestellung increment_id nicht gefunden"
+
+msgid "ingenico.notification.message1"
+msgstr "Fehlgeschlagene Ladebestellung mit increment_id %1"
+
+msgid "ingenico.notification.message2"
+msgstr ""
+"Kann den Bestellstatus nicht auf „%1“ ändern, da er sich aktuell im Status "
+"„%2“ befindet"
+
+msgid "ingenico.notification.message3"
+msgstr "Zahlung autorisiert"
+
+msgid "ingenico.notification.message4"
+msgstr "Kann keine Zahlung erfassen, da die Bestellung bereits bezahlt wurde."
+
+msgid "ingenico.notification.message5"
+msgstr "Kann keine Zahlung erfassen, da die Bestellung storniert wurde."
+
+msgid "ingenico.notification.message6"
+msgstr "Zahlung erfasst"
+
+msgid "ingenico.notification.message7"
+msgstr "Kann die Bestellung nicht stornieren. %1"
+
+msgid "ingenico.notification.message8"
+msgstr "Bestellung storniert"
+
+msgid "ingenico.button.label1"
+msgstr "Bestellung aufgeben"
+
+msgid "ingenico.button.label2"
+msgstr "Schließen"
+
+msgid "ingenico.settings.label5"
+msgstr "Aktivieren"
+
+msgid "ingenico.settings.label6"
+msgstr "Im Checkout Titel anzeigen als"
+
+msgid "ingenico.settings.label7"
+msgstr "Titel"
+
+msgid "ingenico.settings.label8"
+msgstr "E-Mail zur Auftragsbestätigung unterdrücken"
+
+msgid "ingenico.settings.comment1"
+msgstr ""
+"Wenn eingeschaltet, erhalten Kunden bei der Zahlung mit dieser "
+"Zahlungsmethode keine E-Mail mit der Auftragsbestätigung."
+
+msgid "ingenico.settings.label9"
+msgstr "Zahlung aus Betreffenden Ländern"
+
+msgid "ingenico.settings.label10"
+msgstr "Zahlung aus Bestimmten Ländern"
+
+msgid "ingenico.settings.label11"
+msgstr "Mindestbestellsumme"
+
+msgid "ingenico.settings.label12"
+msgstr "Maximale Bestellsumme"
+
+msgid "ingenico.settings.label13"
+msgstr "Bestellung sortieren"
+
+msgid "ingenico.settings.label14"
+msgstr "Ingenico ePayments"
+
+msgid "ingenico.settings.label15"
+msgstr "Land Ihrer Geschäftseinheit"
+
+msgid "ingenico.settings.label16"
+msgstr "Modus"
+
+msgid "ingenico.settings.label17"
+msgstr "Allgemein"
+
+msgid "ingenico.settings.label18"
+msgstr "Einstellungs-Modus"
+
+msgid "ingenico.settings.label19"
+msgstr "Später senden"
+
+msgid "ingenico.settings.label20"
+msgstr "Ausgewählte Länder"
+
+msgid "ingenico.settings.comment2"
+msgstr ""
+"Bitte Länder im obenstehenden Feld auswählen, um die verfügbaren "
+"Zahlungsmethoden anzuzeigen"
+
+msgid "ingenico.settings.label21"
+msgstr "Logging aktivieren"
+
+msgid "ingenico.settings.comment5"
+msgstr ""
+"Wenn diese Option aktiviert ist, wird die gesamte Kommunikation in „var/log/"
+"ingenico.log“ protokolliert"
+
+msgid "ingenico.settings.comment6"
+msgstr ""
+"HINWEIS: Mit der Strg-Taste auf dem PC und der Befehlstaste auf dem Mac "
+"können Sie mehrere Länder auswählen"
+
+msgid "form.support.hint.local"
+msgstr ""
+"Senden Sie bei Problemen mit der Einrichtung Ihres Kontos eine Anfrage an "
+"Ingenico, die automatisch <b>Ihre Geschäftseinstellungen enthält</b>. Wenn "
+"Sie bereits mit unserem Support in Verbindung stehen, geben Sie Ihre Ticket-"
+"ID an."
+
+msgid "ingenico.settings.label22"
+msgstr "Neues Ingenico-Konto erstellen"
+
+msgid "ingenico.settings.label23"
+msgstr ""
+"Mit diesem ausgefüllten Formular stimme ich der Verarbeitung und Nutzung "
+"meiner personenbezogenen Daten durch Ingenico gemäß der "
+"Datenschutzerklärung von Ingenico zu, um meine Anfrage zu bearbeiten und "
+"mir kommerzielle Angebote zu Ingenico-Produkten und -Dienstleistungen "
+"zuzusenden. Ich wurde darüber informiert, dass ich meine Einwilligung "
+"jederzeit mit der Option „Abbestellen“ in der E-Mail, die ich erhalten "
+"habe, widerrufen kann oder indem ich mich an einen Datenschutzbeauftragten "
+"von Ingenico wende."
+
+msgid "ingenico.notification.message9"
+msgstr "Sie dürfen nur eine Zahlungsmethode für „Offene Rechnung“ aktivieren."
+
+msgid "ingenico.notification.message10"
+msgstr "Die Konfiguration wurde nicht gespeichert!"
+
+msgid "ingenico.notification.message11"
+msgstr "PSPID field is required"
+
+msgid "ingenico.notification.message12"
+msgstr "Signature field is required"
+
+msgid "ingenico.notification.message13"
+msgstr "User field is required"
+
+msgid "ingenico.notification.message14"
+msgstr "Password field is required"
+
+msgid "modal.openinvoice.additional_data_required"
+msgstr "Bitte geben Sie zusätzliche Daten an, die für diese Zahlungsmethode erforderlich sind"
+
+msgid "modal.openinvoice.proceed"
+msgstr "Vorgehen"
+
+msgid "Billing state"
+msgstr "Land der Rechnungsadresse"
+
+msgid "Billing street number"
+msgstr "Hausnummer der Rechnungsadresse"
+
+msgid "Shipping state"
+msgstr "Land der Lieferadresse"
+
+msgid "Shipping street number"
+msgstr "Hausnummer der Lieferadresse"
+
+msgid "Shipping company"
+msgstr "Unternehmen der Lieferadresse"
+
+msgid "Shipping customer title"
+msgstr "Kundentitel der Lieferadresse"
+
+msgid "Shipping fax"
+msgstr "Faxnummer der Lieferadresse"
+
+msgid "Customer dob"
+msgstr "Geburtsdatum des Kunden"
+
+msgid "Customer gender"
+msgstr "Geschlecht des Kunden"
+
+msgid "Value is required"
+msgstr "Wert erforderlich"
+
+msgid "Customer civility"
+msgstr "Anrede"
+
+msgid "Male"
+msgstr "Männlich"
+
+msgid "Female"
+msgstr "Weiblich"

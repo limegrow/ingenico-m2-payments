@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+	<event name="order_cancel_after">
+		<observer name="ingenico_cancel_authorisation" instance="Ingenico\Payment\Observer\CancelPaymentAuthorisation" />
+	</event>
+    <event name="checkout_submit_all_after">
+        <observer name="ingenico_multishipping_checkout_submit" instance="Ingenico\Payment\Observer\MultishippingCheckoutSubmitAllAfter" />
+    </event>
+    <event name="multishipping_checkout_controller_success_action">
+        <observer name="ingenico_multishipping_checkout_controller_success_action" instance="Ingenico\Payment\Observer\MultishippingCheckoutControllerSuccessAction" />
+    </event>
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="ingenico_checkout_onepage_controller_success_action" instance="Ingenico\Payment\Observer\CheckoutOnepageControllerSuccessAction" />
+    </event>
+    <event name="sales_order_save_after">
+        <observer name="ingenico_multishipping_sync_related_orders" instance="Ingenico\Payment\Observer\SalesOrderSaveAfter" />
+    </event>
+</config>

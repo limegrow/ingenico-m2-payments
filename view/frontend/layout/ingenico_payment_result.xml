@@ -1,0 +1,14 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="empty" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Ingenico_Payment::css/ingenico.css"/>
+        <link src="Ingenico_Payment::js/ingenico.js" />
+    </head>
+    <body>
+        <referenceBlock name="global.notices" remove="true"/>
+        <referenceBlock name="footer-container" remove="true"/>
+        <referenceBlock name="copyright" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Ingenico\Payment\Block\Method\View" name="ingenico_payment_result" template="Ingenico_Payment::payment/result.phtml" cacheable="false" />
+        </referenceContainer>
+    </body>
+</page>

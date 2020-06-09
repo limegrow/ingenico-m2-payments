@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="ingenico_empty" label="Ingenico Empty" file="empty.html" type="html" module="Ingenico_Payment" area="frontend" />
+    <template id="ingenico_formatted" label="Ingenico Formatted" file="formatted.html" type="html" module="Ingenico_Payment" area="frontend" />
+</config>

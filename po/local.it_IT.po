@@ -1,0 +1,249 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ingenico ePayments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-08T16:11:23+00:00\n"
+"PO-Revision-Date: 2020-03-24 15:43+0600\n"
+"Last-Translator: main <main@localhost>\n"
+"Language-Team: Ingenico Team\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: messages\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.6\n"
+"X-Poedit-KeywordsList: $this->__;__\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+msgid "ingenico.settings.label1"
+msgstr "giorni"
+
+msgid "ingenico.settings.label2"
+msgstr "rate"
+
+msgid "ingenico.settings.label3"
+msgstr "valuta di base"
+
+msgid "ingenico.settings.comment3"
+msgstr "Scaricare il riferimento"
+
+msgid "ingenico.settings.comment4"
+msgstr "Modificare il modello secondo le proprie necessità."
+
+msgid "ingenico.exception.message1"
+msgstr "Mancanza dei parametri necessari"
+
+msgid "ingenico.exception.message2"
+msgstr "Richiesta diretta non consentita"
+
+msgid "ingenico.exception.message3"
+msgstr "Ordine #%1 non disponibile per il pagamento"
+
+msgid "ingenico.settings.label4"
+msgstr "--Selezionare--"
+
+msgid "ingenico.settings.option1"
+msgstr "Logo del metodo di pagamento attivo"
+
+msgid "ingenico.settings.option2"
+msgstr "Nomi del metodo di pagamento attivi"
+
+msgid "ingenico.settings.option3"
+msgstr "Testo personalizzato"
+
+msgid "ingenico.exception.message4"
+msgstr "Errore di pagamento sconosciuto"
+
+msgid "ingenico.exception.message5"
+msgstr "Azione di autorizzazione non disponibile."
+
+msgid "ingenico.exception.message6"
+msgstr "Azione di cattura non disponibile."
+
+msgid "ingenico.exception.message7"
+msgstr "Azione di rimborso non disponibile."
+
+msgid "ingenico.exception.message8"
+msgstr "ID aumento ordine non trovato"
+
+msgid "ingenico.notification.message1"
+msgstr "Caricamento ordine con ID aumento %1 non riuscito"
+
+msgid "ingenico.notification.message2"
+msgstr ""
+"Impossibile modificare lo stato dell’ordine su “%1”, perché in questo "
+"momento si trova nello stato “%2”"
+
+msgid "ingenico.notification.message3"
+msgstr "Pagamento autorizzato"
+
+msgid "ingenico.notification.message4"
+msgstr "Pagamento non registrabile, perché l’ordine è già stato pagato."
+
+msgid "ingenico.notification.message5"
+msgstr "Pagamento non registrabile, perché l’ordine è stato cancellato."
+
+msgid "ingenico.notification.message6"
+msgstr "Pagamento catturato"
+
+msgid "ingenico.notification.message7"
+msgstr "Impossibile cancellare l’ordine. %1"
+
+msgid "ingenico.notification.message8"
+msgstr "Ordine cancellato"
+
+msgid "ingenico.button.label1"
+msgstr "Acquistare"
+
+msgid "ingenico.button.label2"
+msgstr "Chiusura"
+
+msgid "ingenico.settings.label5"
+msgstr "Attivare"
+
+msgid "ingenico.settings.label6"
+msgstr "Al pagamento mostra il titolo come"
+
+msgid "ingenico.settings.label7"
+msgstr "Titolo"
+
+msgid "ingenico.settings.label8"
+msgstr "E-mail di conferma annullamento ordine"
+
+msgid "ingenico.settings.comment1"
+msgstr ""
+"Se attivato, i clienti che pagano con questo metodo di pagamento non "
+"riceveranno la E-mail di conferma ordine."
+
+msgid "ingenico.settings.label9"
+msgstr "Pagamento dalle Nazioni interessate"
+
+msgid "ingenico.settings.label10"
+msgstr "Pagamento da Nazioni specifiche"
+
+msgid "ingenico.settings.label11"
+msgstr "Totale minimo da ordinare"
+
+msgid "ingenico.settings.label12"
+msgstr "Totale massimo da ordinare"
+
+msgid "ingenico.settings.label13"
+msgstr "Ordinamento"
+
+msgid "ingenico.settings.label14"
+msgstr "ePayments di Ingenico"
+
+msgid "ingenico.settings.label15"
+msgstr "Nazione dell’attività aziendale"
+
+msgid "ingenico.settings.label16"
+msgstr "Modalità"
+
+msgid "ingenico.settings.label17"
+msgstr "Generale"
+
+msgid "ingenico.settings.label18"
+msgstr "Impostazioni modalità"
+
+msgid "ingenico.settings.label19"
+msgstr "Invio successivo"
+
+msgid "ingenico.settings.label20"
+msgstr "Nazioni selezionate"
+
+msgid "ingenico.settings.comment2"
+msgstr ""
+"Selezionare le nazioni nella casella precedente per vedere i metodi di "
+"pagamento disponibili"
+
+msgid "ingenico.settings.label21"
+msgstr "Attivare la registrazione"
+
+msgid "ingenico.settings.comment5"
+msgstr "Attivare la registrazione"
+
+msgid "ingenico.settings.comment6"
+msgstr ""
+"SUGGERIMENTO: Per selezionare più Paesi, tenere premuto il tasto "
+"“Ctrl” sul PC e il tasto “Comando” su Mac"
+
+msgid "form.support.hint.local"
+msgstr ""
+"In caso di difficoltà nella configurazione del proprio account, "
+"inviare una richiesta a Ingenico in cui saranno <b>contenute "
+"automaticamente le proprie impostazioni memorizzate</b>. Se si è già "
+"in comunicazione con il nostro team di supporto, includere il proprio "
+"ticket identificativo."
+
+msgid "ingenico.settings.label22"
+msgstr "Creare un nuovo account Ingenico"
+
+msgid "ingenico.settings.label23"
+msgstr "Selezionare le nazioni nella casella precedente per vedere i metodi di pagamento disponibili"
+
+msgid "ingenico.notification.message9"
+msgstr ""
+"È possibile abilitare un solo metodo di pagamento con “Fattura "
+"scoperta”."
+
+msgid "ingenico.notification.message10"
+msgstr "La configurazione non è stata salvata!"
+
+msgid "ingenico.notification.message11"
+msgstr "PSPID field is required"
+
+msgid "ingenico.notification.message12"
+msgstr "Signature field is required"
+
+msgid "ingenico.notification.message13"
+msgstr "User field is required"
+
+msgid "ingenico.notification.message14"
+msgstr "Password field is required"
+
+msgid "modal.openinvoice.additional_data_required"
+msgstr "Fornire i dati aggiuntivi richiesti per questo metodo di pagamento"
+
+msgid "modal.openinvoice.proceed"
+msgstr "Procedere"
+
+msgid "Billing state"
+msgstr "Paese di fatturazione"
+
+msgid "Billing street number"
+msgstr "Indirizzo di fatturazione"
+
+msgid "Shipping state"
+msgstr "Paese di spedizione"
+
+msgid "Shipping street number"
+msgstr "Indirizzo di spedizione"
+
+msgid "Shipping company"
+msgstr "Società di spedizione"
+
+msgid "Shipping customer title"
+msgstr "Titolo della spedizione al cliente"
+
+msgid "Shipping fax"
+msgstr "Fax di spedizione"
+
+msgid "Customer dob"
+msgstr "Data di nascita del cliente"
+
+msgid "Customer gender"
+msgstr "Genere del cliente"
+
+msgid "Value is required"
+msgstr "Valore obbligatorio"
+
+msgid "Customer civility"
+msgstr "Titolo di cortesia del cliente"
+
+msgid "Male"
+msgstr "Uomo"
+
+msgid "Female"
+msgstr "Donna"

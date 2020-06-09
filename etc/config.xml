@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+	<default>
+    	<payment>
+            <ingenico_e_payments>
+                <active>0</active>
+                <model>Ingenico\Payment\Model\Method\Ingenico</model>
+                <payment_action>authorize_capture</payment_action>
+                <title_mode>logos</title_mode>
+                <title>Ingenico ePayments</title>
+                <order_status>pending</order_status>
+                <supress_order_email>1</supress_order_email>
+                <allowspecific>0</allowspecific>
+            </ingenico_e_payments>
+    	</payment>
+        <carriers>
+            <ingenico_dummy>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>Ingenico\Payment\Model\Carrier\Dummy</model>
+                <name>Shipping</name>
+                <title>Shipping</title>
+            </ingenico_dummy>
+        </carriers>
+        <ingenico_settings>
+            <general>
+                <mode>basic</mode>
+                <logging_enabled>0</logging_enabled>
+            </general>
+            <tokenization>
+	            <direct_sales>1</direct_sales>
+	            <capture_request_notify>0</capture_request_notify>
+            </tokenization>
+            <orders>
+	            <payment_reminder_email_send>1</payment_reminder_email_send>
+	            <payment_reminder_email_timeout>2</payment_reminder_email_timeout>
+            </orders>
+        </ingenico_settings>
+        <ingenico_instalments>
+	        <general>
+		        <enabled>0</enabled>
+		        <count_flexible>2-5</count_flexible>
+		        <interval_flexible>30-45</interval_flexible>
+		        <downpayment_flexible>30-70</downpayment_flexible>
+	        </general>
+        </ingenico_instalments>
+	</default>
+</config>

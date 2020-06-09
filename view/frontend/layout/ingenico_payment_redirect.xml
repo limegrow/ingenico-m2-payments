@@ -1,0 +1,11 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Ingenico_Payment::css/ingenico.css"/>
+        <link src="Ingenico_Payment::js/ingenico.js" />
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Ingenico\Payment\Block\Method\View" name="ingenico_method_redirect" template="Ingenico_Payment::method/redirect.phtml" cacheable="false" />
+        </referenceContainer>
+    </body>
+</page>

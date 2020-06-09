@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <update handle="empty"/>
+    <referenceContainer name="page.wrapper">
+        <container name="ingenico.header.container" as="ingenico_header_container" label="Ingenico Payment Page Header Container" htmlTag="header" htmlClass="page-header" before="main.content">
+            <container name="ingenico.header.wrapper" label="Ingenico Page Header" as="ingenico_header_wrapper" htmlTag="div" htmlClass="header content"/>
+        </container>
+    </referenceContainer>
+    <move element="logo" destination="ingenico.header.wrapper"/>
+</layout>

@@ -1,0 +1,28 @@
+<?php
+// @codingStandardsIgnoreFile
+/** @var $block \Ingenico\Payment\Block\Method\View */
+?>
+
+<?php if ($html = $block->getSecurityHTMLAnswer()): ?>
+    <?php // 3DSec HTML data ?>
+    <?php echo /* @noEscape */ $html; ?>
+<?php else: ?>
+    <?php $data = $block->getRedirectPaymentData(); ?>
+    <div class="ingenico-confirmation">
+        <div class="ingenico-loader">
+            <img src="<?php echo $block->escapeHtmlAttr($block->getLoaderUrl()); ?>" alt="<?= __('checkout.please_wait'); ?>">
+        </div>
+        <form id="ingenico-hosted-checkout-form" method="post" action="<?= $block->escapeHtmlAttr($data['url']); ?>" accept-charset="utf-8" style="display:none">
+            <?php foreach ($data['fields'] as $key => $value): ?>
+                <input type="hidden" name="<?php echo $block->escapeHtmlAttr($key); ?>" value="<?php echo $block->escapeHtmlAttr($value); ?>">
+            <?php endforeach; ?>
+        </form>
+    </div>
+
+    <script>
+        // Submit form
+        window.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("ingenico-hosted-checkout-form").submit();
+        });
+    </script>
+<?php endif; ?>

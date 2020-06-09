@@ -1,0 +1,185 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Adminhtml\System\Config\HelpContent
+ */
+?>
+
+<div class="hidden">
+
+    <!-- PSPID Help -->
+    <div id="connection_pspid_live_content">
+        <p><?= /* @noEscape */  __('modal.psp.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.psp.label2') ?></p>
+    </div>
+
+    <div id="connection_pspid_test_content">
+        <p><?= /* @noEscape */ __('modal.psp.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.psp.youcan') ?> <a target="_blank" href="https://secure.ogone.com/Ncol/Test/BackOffice/accountcreation/create?Branding=ogone&ISP=OIT&SubId=2&MODE=STD&SOLPRO=&ACOUNTRY=&Lang=1"><?= __('modal.psp.request') ?></a>.</p>
+    </div>
+
+    <!-- Signature Help -->
+    <div id="connection_signature_content">
+        <p><?= /* @noEscape */ __('modal.signature.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.signature.label2') ?></p>
+        <p><?= /* @noEscape */ __('modal.signature.label3') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('signature-value-1.png'); ?>" alt="Signature Illustration">
+        <p><?= /* @noEscape */ __('modal.signature.label4') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('signature-value-2.png'); ?>" alt="Signature Illustration">
+        <p><?= /* @noEscape */ __('modal.signature.label5') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('signature-value-3.png'); ?>" alt="Signature Illustration">
+    </div>
+
+    <!-- Webhook Help -->
+    <div id="connection_webhook_content">
+        <p><?= /* @noEscape */ __('modal.webhook.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.webhook.label2') ?></p>
+        <p><?= /* @noEscape */ __('modal.webhook.label3') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('webhook.png'); ?>"  alt="Webhook Illustration">
+        <p><?= /* @noEscape */ __('modal.webhook.label4') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('webhook-2.png'); ?>" alt="Webhook Illustration">
+
+    </div>
+
+    <!-- DirectLink Help -->
+    <div id="connection_directlink_content">
+        <p><?= /* @noEscape */ __('modal.directlink.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.directlink.label2') ?></p>
+        <ul>
+            <li><?= /* @noEscape */ __('modal.directlink.label3') ?></li>
+            <li><?= /* @noEscape */ __('modal.directlink.label4') ?></li>
+            <li><?= /* @noEscape */ __('modal.directlink.label5') ?></li>
+            <li><?= /* @noEscape */__('modal.directlink.label6') ?></li>
+        </ul>
+    </div>
+
+    <!-- DirectLink User -->
+    <div id="connection_user_content">
+        <p><?= /* @noEscape */ __('modal.directlink.label8') ?></p>
+        <p><?= /* @noEscape */ __('modal.directlink.label9') ?> "<?= /* @noEscape */ __('modal.directlink.label10') ?>"<br/>
+            <?= /* @noEscape */ __('modal.directlink.label11') ?><br/>
+            <?= /* @noEscape */ __('modal.directlink.label12') ?>
+        </p>
+        <p><?= /* @noEscape */ __('modal.directlink.label13') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('direct-user.png'); ?>" alt="DirecLink Illustration">
+    </div>
+
+    <!-- Tokenization -->
+    <div id="settings_tokenization_content">
+        <p><?= /* @noEscape */ __('modal.tokenization.label1') ?></p>
+    </div>
+
+    <!-- One Click Payment -->
+    <div id="settings_oneclickpayment_content">
+        <p><?= /* @noEscape */ __('modal.oneclick.label1') ?></p>
+    </div>
+
+    <!-- Delayed Payment Capture -->
+    <div id="settings_delayedpaymentcapture_content">
+        <p><?= /* @noEscape */ __('modal.delayed_payment.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.delayed_payment.label2') ?></p>
+    </div>
+
+    <!-- Payment Reminder Email -->
+    <div id="settings_paymentreminderemail_content">
+        <p><?= /* @noEscape */ __('modal.reminder.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.reminder.label2') ?></p>
+    </div>
+
+    <!-- Store Cards Warning -->
+    <div id="settings_inline_store_cards_content">
+        <p>
+            <?= /* @noEscape */ __('modal.inline_store_cards.label1') ?><br>
+            <?= /* @noEscape */ __('modal.inline_store_cards.label2') ?><br>
+            <img src="<?php /* @noEscape */ echo $block->getImageUrl('hosted-tokenization.png'); ?>" alt="Redirect Settings Illustration"><br>
+            <?= /* @noEscape */ __('modal.inline_store_cards.label3') ?>
+        </p>
+    </div>
+
+    <!-- Payment Type -->
+    <div id="payment_presentation_content">
+        <h2><?= /* @noEscape */ __('modal.payment-page.inline') ?></h2>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('inline_on.png'); ?>" alt="Payment Type Illustration">
+        <h2><?= /* @noEscape */ __('form.payment_page.label.redirect') ?></h2>
+        <img src="<?php echo /* @noEscape */ $block->getImageUrl('inline_ingenico.png'); ?>" alt="Payment Type Illustration">
+    </div>
+
+    <!-- Optional Customisation -->
+    <div id="payment_optional_customisation_content">
+        <p><?= /* @noEscape */ __('modal.optional-customisation.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.optional-customisation.label2') ?></p>
+    </div>
+
+    <!-- Redirect Payment Page Template -->
+    <div id="payment_templatemanagerinfo_redirect_content">
+        <p><?= /* @noEscape */ __('modal.template.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.template.label2') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('template-manager.png'); ?>" alt="Redirect Settings Illustration">
+        <p><?= /* @noEscape */ __('modal.template.label3') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('template-manager-2.png'); ?>" alt="Redirect Settings Illustration">
+        <p><?= /* @noEscape */ __('modal.template.label4') ?></p>
+    </div>
+
+    <!-- Inline Payment Page Styles -->
+    <div id="payment_templatemanagerinfo_inline_content">
+        <p><?= /* @noEscape */ __('modal.template.label1') ?></p>
+        <p><?=  /* @noEscape */ __('modal.template.label2') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('template-manager.png'); ?>" alt="Inline Settings Illustration">
+        <p><?= /* @noEscape */ __('modal.template.label3') ?></p>
+        <img src="<?php /* @noEscape */ echo $block->getImageUrl('template-manager-2-inline.png'); ?>" alt="Inline Settings Illustration">
+        <!-- <p><?= /* @noEscape */ __('modal.template.label4') ?></p> -->
+    </div>
+
+    <!-- Payment Methods -->
+    <div id="payment_methods_title_content">
+        <p><?= /* @noEscape */ __('modal.payment-methods-modal.label1') ?></p>
+        <p><?= /* @noEscape */ __('modal.payment-methods-modal.label2') ?></p>
+        <p><?= /* @noEscape */ __('modal.payment-methods-modal.label3') ?></p>
+    </div>
+
+    <!-- Instalments Rules -->
+    <div id="instalments_rules_content">
+        <p><?= /* @noEscape */ __("Using fixed rules, you would setup common parameters applicable for any customer who wants to pay for the order in multiple instalments. Customers wouldn't be able to take any decision concerning the number of payments, the time between them and the amount of the first payment.") ?></p>
+        <p><?= /* @noEscape */ __('WIth the flexible rules, you give a possibility to choose those parameters between the specific values that you set up. This option gives more freedom to your customers at the same time keeping them within the borders that you define.') ?></p>
+    </div>
+
+    <div id="countries_list_content">
+        <p><?php /* @noEscape */ echo $block->getChildHtml('ingenico.countries.list'); ?></p>
+    </div>
+
+    <div id="paypal_warning_content">
+        <?php if ($block->isTestMode()): ?>
+            <h1 class="modal-title"><?= /* @noEscape */ __('modal.paypal_test.label1') ?></h1>
+            <p>
+                <?= /* @noEscape */ __('modal.paypal_test.label2') ?><br>
+                <?= /* @noEscape */ __('modal.paypal_test.label3') ?><br>
+                <?= /* @noEscape */ __('modal.paypal_test.label4') ?><br>
+            </p>
+        <?php else: ?>
+            <h1 class="modal-title"><?= /* @noEscape */ __('modal.paypal.howto') ?></h1>
+            <p>
+                <?= /* @noEscape */ __('modal.paypal.label1') ?>
+            </p>
+            <p>
+                <?= /* @noEscape */ __('modal.paypal.label2') ?><br>
+                <?= /* @noEscape */ __('modal.paypal.label3') ?><br><br>
+                <img src="<?php /* @noEscape */ echo $block->getImageUrl('paypal.png'); ?>" alt="Inline Settings Illustration">
+            </p>
+            <p>
+                <?= /* @noEscape */ __('modal.paypal.label4') ?><br><br>
+                <img src="<?php /* @noEscape */ echo $block->getImageUrl('paypal2.png'); ?>" alt="Inline Settings Illustration"><br>
+            </p>
+            <p>
+                <?= /* @noEscape */ __('modal.paypal.label5') ?><br>
+            </p>
+            <p class="highlight-color1">
+                <?= /* @noEscape */ __('modal.paypal.label6') ?>
+            </p>
+            <p class="highlight-color2">
+                <?= /* @noEscape */ __('modal.paypal.label7') ?> <a target="_blank" href="https://epayments-support.ingenico.com/en/payment-methods/wallets/paypal-express-checkout/guide#paypal-account-configuration">
+                    <?= /* @noEscape */ __('modal.paypal.label8') ?>
+                </a>
+            </p>
+        <?php endif; ?>
+    </div>
+</div>
