@@ -1,17 +1,4 @@
-# Manual Installation/Removal from Downloaded ZIP Archive
-
 ## Installation
-
-1. In Magento root directory create folder named "ingenico_src"
-
-2. Upload module ZIP archive into that folder. DO NOT extract archive!
-
-3. Log in via SSH, go to Magento root folder and execute:
-
-```bash
-php composer config repositories.ingenico artifact /full/server/path/to/ingenico_src/
-```
-Where given path is a full server path of the folder containing ZIP archive with module.
 
 ```bash
 php composer require ingenico/m2-payment
