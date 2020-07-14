@@ -233,14 +233,17 @@ class Ingenico extends \Magento\Payment\Model\Method\AbstractMethod
             $trxId = $this->_connector->getIngenicoPayIdByOrderId($order->getIncrementId());
             $this->_connector->setOrderId($order->getIncrementId());
             $result = $this->_connector->getCoreLibrary()->capture($order->getIncrementId(), $trxId, $amount);
-
-            $payment->setStatus(self::STATUS_APPROVED)
+            if ($result->getPaymentStatus() == $this->_connector->getCoreLibrary()::STATUS_CAPTURE_PROCESSING) {
+                $payment->setIsTransactionPending(true);
+            }
+            $payment
+                ->setStatus(self::STATUS_APPROVED)
                 ->setTransactionId($result->getPayId() . '-' . $result->getPayIdSub())
                 ->setIsTransactionClosed(0)
                 ->setAdditionalInformation(Transaction::RAW_DETAILS, $result->getData());
+                
         } catch (\Exception $e) {
             $this->_connector->log($e->getMessage(), 'crit');
-
             throw new LocalizedException(__($e->getMessage()));
         }
 
@@ -275,6 +278,9 @@ class Ingenico extends \Magento\Payment\Model\Method\AbstractMethod
             $trxId = $this->_connector->getIngenicoPayIdByOrderId($order->getIncrementId());
             $this->_connector->setOrderId($order->getIncrementId());
             $result = $this->_connector->getCoreLibrary()->refund($order->getIncrementId(), $trxId, $amount);
+            if ($result->getPaymentStatus() == $this->_connector->getCoreLibrary()::STATUS_REFUND_PROCESSING) {
+                $payment->setIsTransactionPending(true);
+            }
 
             // Add Credit Transaction
             $payment->setAnetTransType(Transaction::TYPE_REFUND)

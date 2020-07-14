@@ -11,6 +11,8 @@
                 <title>Ingenico ePayments</title>
                 <order_status>pending</order_status>
                 <supress_order_email>1</supress_order_email>
+                <order_confirmation_email>0</order_confirmation_email>
+                <order_status>processing</order_status>
                 <allowspecific>0</allowspecific>
             </ingenico_e_payments>
     	</payment>
@@ -27,6 +29,8 @@
             <general>
                 <mode>basic</mode>
                 <logging_enabled>0</logging_enabled>
+                <order_status_authorize>pending_payment</order_status_authorize>
+                <order_status_capture>processing</order_status_capture>
             </general>
             <tokenization>
 	            <direct_sales>1</direct_sales>

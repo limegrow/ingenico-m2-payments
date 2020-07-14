@@ -15,13 +15,6 @@ mkdir $SOURCE_DIR > /dev/null
 rsync -av --progress "../" "$SOURCE_DIR" --exclude "$CURRENT_DIR" > /dev/null
 cd "$SOURCE_DIR" > /dev/null
 
-# Remove unnecessary files
-
-#rm -rf "$SOURCE_DIR/WhiteLabelsScripts"
-rm -rf "$SOURCE_DIR/.git" > /dev/null
-rm -rf "$SOURCE_DIR/vendor/ingenico/ogone-sdk-php/.git" > /dev/null
-rm -rf "$SOURCE_DIR/vendor/ingenico/ogone-client/.git" > /dev/null
-
 # Install composer dependencies
 if [ ! -d "$SOURCE_DIR/Vendor" ]; then
     mkdir $SOURCE_DIR/Vendor
@@ -60,6 +53,11 @@ EOF
     rm -rf ./.git > /dev/null
     cd $SOURCE_DIR
 fi
+
+# Remove unnecessary files
+rm -rf "$SOURCE_DIR/.git" > /dev/null
+rm -rf "$SOURCE_DIR/Vendor/ogone-sdk-php/.git" > /dev/null
+rm -rf "$SOURCE_DIR/Vendor/ogone-client/.git" > /dev/null
 
 # Install gulp dependencies
 npm install

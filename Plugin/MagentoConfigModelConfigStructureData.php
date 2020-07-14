@@ -114,6 +114,10 @@ class MagentoConfigModelConfigStructureData
                         ]
                     ]
                 ];
+                
+                if ('pay_pal' == $methodId) {
+                    $methodsConfData[$methodId]['frontend_model'] = 'Ingenico\Payment\Block\Adminhtml\System\Config\PaymentMethods\PayPalTitle';
+                }
             }
 
             // create config data for payment method groups

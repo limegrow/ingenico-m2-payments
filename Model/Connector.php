@@ -18,6 +18,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
     const REGISTRY_KEY_REDIRECT_URL = 'ingenico_payment_redirect_url';
     const REGISTRY_KEY_ERROR_MESSAGE = 'ingenico_payment_error_message';
+    const REGISTRY_KEY_CAN_SEND_AUTH_EMAIL = 'can_send_auth_email';
 
     const CNF_SCOPE = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
     const CNF_SCOPE_PARAM_NAME = '_scope';
@@ -95,7 +96,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         \Ingenico\Payment\Model\ResourceModel\Alias\CollectionFactory $aliasCollectionFactory,
         \Ingenico\Payment\Model\ReminderFactory $reminderFactory,
         \Ingenico\Payment\Model\ResourceModel\Reminder\CollectionFactory $reminderCollectionFactory,
-        \Ingenico\Payment\Model\Email\Template\TransportBuilder $transportBuilder,
+        \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
         \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
         \Magento\Framework\Registry $registry,
         \Magento\Catalog\Helper\Image $productImageHelper,
@@ -390,31 +391,35 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Matches Ingenico payment statuses to the platform's order statuses.
      *
      * @param mixed $orderId
-     * @param string $paymentStatus
+     * @param object $paymentResult
      * @param string|null $message
      * @return void
      */
-    public function updateOrderStatus($orderId, $paymentStatus, $message = null)
+    public function updateOrderStatus($orderId, $paymentResult, $message = null)
     {
-        switch ($paymentStatus) {
+        switch ($paymentResult->getPaymentStatus()) {
             case $this->_coreLibrary::STATUS_PENDING:
                 break;
             case $this->_coreLibrary::STATUS_AUTHORIZED:
-                $this->_processor->processOrderAuthorization($orderId, $message);
+                $this->_processor->processOrderAuthorization($orderId, $paymentResult, $message);
                 if (!$this->_cnf->isDirectSalesMode() && $this->_cnf->getMode() == 'test') {
                     $this->_messageManager->addNotice(__('checkout.test_mode_warning').' '.__('checkout.manual_capture_required'));
                 }
                 break;
-
+            case $this->_coreLibrary::STATUS_CAPTURE_PROCESSING:
+                $this->_processor->processOrderCaptureProcessing($orderId, $paymentResult, $message);
+                break;
             case $this->_coreLibrary::STATUS_CAPTURED:
-                $this->_processor->processOrderPayment($orderId, $message);
+                $this->_processor->processOrderPayment($orderId, $paymentResult, $message);
                 break;
-
             case $this->_coreLibrary::STATUS_CANCELLED:
-                $this->_processor->processOrderCancellation($orderId, $message);
+                $this->_processor->processOrderCancellation($orderId, $paymentResult, $message);
                 break;
-
+            case $this->_coreLibrary::STATUS_REFUND_PROCESSING:
+                $this->_processor->processOrderRefundProcessing($orderId, $paymentResult, $message);
+                break;
             case $this->_coreLibrary::STATUS_REFUNDED:
+                $this->_processor->processOrderRefund($orderId, $paymentResult, $message);
                 break;
             case $this->_coreLibrary::STATUS_ERROR:
                 break;
@@ -719,13 +724,25 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 ->setFrom($sender)
                 ->addTo($to)
                 ;
-
-            // add attachments to email
-            foreach ($attachedFiles as $attachedFile) {
-                $transport->addAttachment($attachedFile['content'], $attachedFile['name'], $attachedFile['mime']);
+            
+            $transport = $transport->getTransport();
+            
+            if (count($attachedFiles)) {
+                $parts = $transport->getMessage()->getBody()->getParts();
+                foreach ($attachedFiles as $attachedFile) {
+                    $parts[] = (new \Zend\Mime\Part())
+                        ->setContent($attachedFile['content'])
+                        ->setType($attachedFile['mime'])
+                        ->setFileName($attachedFile['name'])
+                        ->setDisposition(\Zend\Mime\Mime::DISPOSITION_ATTACHMENT)
+                        ->setEncoding(\Zend\Mime\Mime::ENCODING_BASE64)
+                        ;
+                }
+                $mimeMessage = (new \Zend\Mime\Message())->setParts($parts);
+                $transport->getMessage()->setBody($mimeMessage);
             }
-
-            $transport->getTransport()->sendMessage();
+            
+            $transport->sendMessage();
             $this->_inlineTranslation->resume();
             return true;
 
@@ -850,6 +867,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $order = $this->_processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
 
+        if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
+            return null;
+        }
+
         try {
             return $this->_coreLibrary->sendMailNotificationAuthorization(
                 $order->getCustomerEmail(),
@@ -882,6 +903,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $order = $this->_processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
+        
+        if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
+            return null;
+        }
+        
         $recipient = $this->_cnf->getPaymentAuthorisationNotificationEmail();
         if (!$recipient) {
             $recipient = $this->_cnf->getValue('trans_email/ident_general/email', self::CNF_SCOPE);
@@ -992,12 +1018,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $locale = $this->getLocale($orderId);
 
         try {
-            return $this->coreLibrary->sendMailNotificationRefundFailed(
+            return $this->_coreLibrary->sendMailNotificationRefundFailed(
                 $order->getCustomerEmail(),
                 null,
                 null,
                 null,
-                $this->coreLibrary->__('refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->_coreLibrary->__('refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
                     self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
                     self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
@@ -1027,12 +1053,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         try {
             $this->setEmailTemplate('ingenico_empty');
-            return $this->coreLibrary->sendMailNotificationAdminRefundFailed(
+            return $this->_coreLibrary->sendMailNotificationAdminRefundFailed(
                 $recipient,
                 $this->_cnf->getStoreName(),
                 null,
                 null,
-                $this->coreLibrary->__('admin_refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->_coreLibrary->__('admin_refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
                     self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
                     self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
@@ -1154,23 +1180,37 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         } catch (\Exception $e) {
             $this->_logger->crit('Failed saving payment transaction: ' . $e->getMessage());
         }
-
-        // Add Magento Transaction
-        /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->orderFactory->create()->loadByIncrementId($orderId);
-        if (!$order->getId()) {
-            throw new \Exception('Order doesn\'t exists in store');
+        
+        // process Magento Transaction if needed
+        $transactionStatus = $this->_coreLibrary->getStatusByCode($data->getStatus());
+        $transactionTypeMap = [
+            $this->_coreLibrary::STATUS_AUTHORIZED => Transaction::TYPE_AUTH,
+            $this->_coreLibrary::STATUS_CAPTURED => Transaction::TYPE_CAPTURE,
+            $this->_coreLibrary::STATUS_CANCELLED => Transaction::TYPE_VOID,
+            $this->_coreLibrary::STATUS_REFUNDED => Transaction::TYPE_REFUND
+        ];
+        
+        // only create relevant Magento Transactions
+        if (isset($transactionTypeMap[$transactionStatus])) {
+            
+            $trxType = $transactionTypeMap[$transactionStatus];
+            
+            /** @var \Magento\Sales\Model\Order $order */
+            $order = $this->orderFactory->create()->loadByIncrementId($orderId);
+            if (!$order->getId()) {
+                throw new \Exception('Order doesn\'t exists in store');
+            }
+            
+            // Register Magento Transaction
+            $order->getPayment()->setTransactionId($data->getPayId() . '-' . $data->getPayIdSub());
+            
+            /** @var \Magento\Sales\Model\Order\Payment\Transaction $transaction */
+            $transaction = $order->getPayment()->addTransaction($trxType, null, true);
+            $transaction
+                ->setIsClosed(0)
+                ->setAdditionalInformation(Transaction::RAW_DETAILS, $data->getData())
+                ->save();
         }
-
-        // Register Transaction
-        $order->getPayment()->setTransactionId($data->getPayId() . '-' . $data->getPayIdSub());
-
-        /** @var \Magento\Sales\Model\Order\Payment\Transaction $transaction */
-        $transaction = $order->getPayment()->addTransaction(Transaction::TYPE_PAYMENT, null, true);
-
-        $transaction->setIsClosed(0)
-            ->setAdditionalInformation(Transaction::RAW_DETAILS, $data->getData())
-            ->save();
 
         return true;
     }

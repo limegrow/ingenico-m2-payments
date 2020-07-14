@@ -23,12 +23,12 @@ class MagentoSalesModelOrder
      */
     public function afterGetCanSendNewEmailFlag(\Magento\Sales\Model\Order $subject, $result)
     {
-        if ($subject->getPayment()->getMethod() == \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE
-            && $this->_cnf->isOrderConfirmationEmailSuppressed()
-        ) {
+        if ($subject->getPayment()->getMethod() == \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
+            if ($this->_cnf->getOrderConfirmationEmailMode() == '0') {
+                return $result;
+            }
             return false;
         }
-
         return $result;
     }
 }

@@ -39,10 +39,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://payments.epdq.co.uk/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://mdepayments.epdq.co.uk/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://payments.epdq.co.uk/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://mdepayments.epdq.co.uk/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://payments.epdq.co.uk/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://mdepayments.epdq.co.uk/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://payments.epdq.co.uk/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://mdepayments.epdq.co.uk/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://payments.epdq.co.uk/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://mdepayments.epdq.co.uk/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://payments.epdq.co.uk/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://mdepayments.epdq.co.uk/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://payments.epdq.co.uk/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-barclays"
+          COMPOSER_CLIENT="ingenico/ogone-client-barclays"
           ;;
      postfinance)
           echo "Selected: Postfinance."
@@ -76,10 +83,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://e-payment.postfinance.ch/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://postfinance.test.v-psp.com/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://e-payment.postfinance.ch/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://e-payment.postfinance.ch/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://e-payment.postfinance.ch/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://e-payment.postfinance.ch/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://e-payment.postfinance.ch/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://e-payment.postfinance.ch/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://e-payment.postfinance.ch/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://e-payment.postfinance.ch/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://e-payment.postfinance.ch/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://e-payment.postfinance.ch/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://e-payment.postfinance.ch/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-postfinance"
+          COMPOSER_CLIENT="ingenico/ogone-client-postfinance"
           ;;
      kbc)
           echo "Selected: KBC."
@@ -94,7 +108,7 @@ case $1 in
 
           TEMPLATE_GUIDE_ECOM="https://support-paypage.v-psp.com/en/en/guides/integration%20guides/e-commerce/payment-page-look-and-feel#adapt-upload-customized-template/";
           TEMPLATE_GUIDE_FLEX="https://support-paypage.ecom-psp.com/en/integration/all-sales-channels/flexcheckout/guide#customization"
-          TEMPLATE_GUIDE_PAYPAL="#"
+          TEMPLATE_GUIDE_PAYPAL="https://support-paypage.ecom-psp.com/en/payment-methods/wallets/paypal-express-checkout/guide#paypal-account-configuration"
 
           SUPPORT_EMAIL="epay@kbc.be";
           SUPPORT_NAME="KBC Support";
@@ -113,10 +127,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://secure.paypage.be/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://paypage.test.v-psp.com/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://secure.paypage.be/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://secure.paypage.be/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://secure.paypage.be/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://secure.paypage.be/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://secure.paypage.be/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://secure.paypage.be/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://secure.paypage.be/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://secure.paypage.be/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://secure.paypage.be/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://secure.paypage.be/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://secure.paypage.be/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-kbc"
+          COMPOSER_CLIENT="ingenico/ogone-client-kbc"
           ;;
      concardis)
           echo "Selected: Concardis."
@@ -150,10 +171,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://secure.payengine.de/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://payengine.test.v-psp.com/Tokenization/Hostedpage";
           API_FLEXCHECKOUT_PROD="https://secure.payengine.de/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://secure.payengine.de/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://secure.payengine.de/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://secure.payengine.de/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://secure.payengine.de/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://secure.payengine.de/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://secure.payengine.de/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://secure.payengine.de/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://secure.payengine.de/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://secure.payengine.de/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://secure.payengine.de/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-concardis"
+          COMPOSER_CLIENT="ingenico/ogone-client-concardis"
           ;;
      viveum)
           echo "Selected: Viveum."
@@ -187,10 +215,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://viveum.v-psp.com/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://viveum.test.v-psp.com/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://viveum.v-psp.com/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://viveum.v-psp.com/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://viveum.v-psp.com/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://viveum.v-psp.com/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://viveum.v-psp.com/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://viveum.v-psp.com/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://viveum.v-psp.com/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://viveum.v-psp.com/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://viveum.v-psp.com/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://viveum.v-psp.com/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://viveum.v-psp.com/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-viveum"
+          COMPOSER_CLIENT="ingenico/ogone-client-viveum"
           ;;
      payglobe)
           echo "Selected: Payglobe."
@@ -224,10 +259,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://securepay.eupayglobe.com/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://test-securepay.eupayglobe.com/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://securepay.eupayglobe.com/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://test-securepay.eupayglobe.com/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://securepay.eupayglobe.com/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://test-securepay.eupayglobe.com/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://securepay.eupayglobe.com/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://test-securepay.eupayglobe.com/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://securepay.eupayglobe.com/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://test-securepay.eupayglobe.com/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://securepay.eupayglobe.com/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://test-securepay.eupayglobe.com/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://securepay.eupayglobe.com/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-payglobe"
+          COMPOSER_CLIENT="ingenico/ogone-client-payglobe"
           ;;
      santander)
           echo "Selected: Santander."
@@ -261,10 +303,17 @@ case $1 in
           API_ECOMMERCE_PROD="https://secure.tpvecommerce.es/ncol/prod/orderstandard_utf8.asp";
           API_FLEXCHECKOUT_TEST="https://test-secure.tpvecommerce.es/Tokenization/HostedPage";
           API_FLEXCHECKOUT_PROD="https://secure.tpvecommerce.es/Tokenization/HostedPage";
-          API_DIRECTLINK_TEST="https://test-secure.tpvecommerce.es/ncol/test/querydirect.asp";
-          API_DIRECTLINK_PROD="https://secure.tpvecommerce.es/ncol/prod/querydirect.asp";
+          API_DIRECTLINK_TEST="https://test-secure.tpvecommerce.es/ncol/test/querydirect_utf8.asp";
+          API_DIRECTLINK_PROD="https://secure.tpvecommerce.es/ncol/prod/querydirect_utf8.asp";
+          API_DIRECTLINK_ORDER_TEST="https://test-secure.tpvecommerce.es/ncol/test/orderdirect_utf8.asp";
+          API_DIRECTLINK_ORDER_PROD="https://secure.tpvecommerce.es/ncol/prod/orderdirect_utf8.asp";
           API_MAINTENANCE_TEST="https://test-secure.tpvecommerce.es/ncol/test/maintenancedirect_utf8.asp";
           API_MAINTENANCE_PROD="https://secure.tpvecommerce.es/ncol/prod/maintenancedirect_utf8.asp";
+          API_ALIAS_REQUEST_TEST="https://test-secure.tpvecommerce.es/ncol/test/alias_gateway_utf8.asp";
+          API_ALIAS_REQUEST_PROD="https://secure.tpvecommerce.es/ncol/prod/alias_gateway_utf8.asp";
+
+          COMPOSER_SDK="ingenico/ogone-sdk-php-santander"
+          COMPOSER_CLIENT="ingenico/ogone-client-santander"
           ;;
      *)
           echo "Please select template."
@@ -349,21 +398,37 @@ sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/v
 sed -i -e "s/ingenico_e_payments/$MODULE_NAME/g" $MODULE_DIR/view/frontend/layout/checkout_index_index.xml
 
 # Change APIs in core library
-find $MODULE_DIR/Vendor/ -name '*.php' -type f|while read fname; do
-  sed -i -e "s@https://ogone.test.v-psp.com/ncol/test/orderstandard_utf8.asp@$API_ECOMMERCE_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp@$API_ECOMMERCE_PROD@g" "$fname"
-  sed -i -e "s@https://ogone.test.v-psp.com/Tokenization/HostedPage@$API_FLEXCHECKOUT_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/Tokenization/HostedPage@$API_FLEXCHECKOUT_PROD@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/test/querydirect.asp@$API_DIRECTLINK_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/prod/querydirect.asp@$API_DIRECTLINK_PROD@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/test/maintenancedirect_utf8.asp@$API_MAINTENANCE_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/prod/maintenancedirect_utf8.asp@$API_MAINTENANCE_PROD@g" "$fname"
+if [ -d "$MODULE_DIR/Vendor" ]; then
+    find $MODULE_DIR/Vendor/ -name '*.php' -type f|while read fname; do
+        sed -i -e "s@https://ogone.test.v-psp.com/ncol/test/orderstandard_utf8.asp@$API_ECOMMERCE_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp@$API_ECOMMERCE_PROD@g" "$fname"
+        sed -i -e "s@https://ogone.test.v-psp.com/Tokenization/HostedPage@$API_FLEXCHECKOUT_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/Tokenization/HostedPage@$API_FLEXCHECKOUT_PROD@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/test/querydirect_utf8.asp@$API_DIRECTLINK_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/prod/querydirect_utf8.asp@$API_DIRECTLINK_PROD@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/test/orderdirect_utf8.asp@$API_DIRECTLINK_ORDER_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/prod/orderdirect_utf8.asp@$API_DIRECTLINK_ORDER_PROD@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/test/alias_gateway_utf8.asp@$API_ALIAS_REQUEST_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/prod/alias_gateway_utf8.asp@$API_ALIAS_REQUEST_PROD@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/test/maintenancedirect_utf8.asp@$API_MAINTENANCE_TEST@g" "$fname"
+        sed -i -e "s@https://secure.ogone.com/ncol/prod/maintenancedirect_utf8.asp@$API_MAINTENANCE_PROD@g" "$fname"
+    done
 
-  sed -i -e "s@https://ogone.test.v-psp.com/ncol/test/querydirect.asp@$API_DIRECTLINK_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/prod/orderdirect.asp@$API_DIRECTLINK_PROD@g" "$fname"
-  sed -i -e "s@https://ogone.test.v-psp.com/ncol/test/maintenancedirect.asp@$API_MAINTENANCE_TEST@g" "$fname"
-  sed -i -e "s@https://secure.ogone.com/ncol/prod/maintenancedirect.asp@$API_MAINTENANCE_PROD@g" "$fname"
-done
+    # Update composer names of Vendor
+    sed -i -e "s@ingenico/ogone-sdk-php@$COMPOSER_SDK@g" "$MODULE_DIR/Vendor/ogone-sdk-php/composer.json"
+    sed -i -e "s@ingenico/ogone-client@$COMPOSER_CLIENT@g" "$MODULE_DIR/Vendor/ogone-sdk-php/composer.json"
+    sed -i -e "s@ingenico/ogone-sdk-php@$COMPOSER_SDK@g" "$MODULE_DIR/Vendor/ogone-client/composer.json"
+    sed -i -e "s@ingenico/ogone-client@$COMPOSER_CLIENT@g" "$MODULE_DIR/Vendor/ogone-client/composer.json"
+fi
+
+# Update composer names
+sed -i -e "s@ingenico/ogone-sdk-php@$COMPOSER_SDK@g" "$MODULE_DIR/composer.json"
+sed -i -e "s@ingenico/ogone-client@$COMPOSER_CLIENT@g" "$MODULE_DIR/composer.json"
+
+# Change Support data
+if [[ -f "$MODULE_DIR/Vendor/ogone-client/onboarding/emails.ini" ]]; then
+    cp -f "$SOURCE_DIR/WLScript/resources/$BRAND_ID/emails.ini" "$MODULE_DIR/Vendor/ogone-client/onboarding/emails.ini"
+fi
 
 # Replace logo
 cp "$SOURCE_DIR/WLScript/resources/$BRAND_ID/logo.png" $MODULE_DIR/view/adminhtml/web/images/logo_provider.png
@@ -399,9 +464,3 @@ cd $TMPDIR
 zip -r "$MODULE_NAME.zip" "./$MODULE_NAME/"
 mv "$TMPDIR/$MODULE_NAME.zip" "$BUILD_DIR/"
 rm -rf "$MODULE_DIR/"
-
-# For testing only
-# rm -rf "/data05/virt70433/domeenid/www.konzhi.com/ingenico/app/code/Ingenico"
-# mkdir "/data05/virt70433/domeenid/www.konzhi.com/ingenico/app/code/Ingenico"
-# mv "$TMPDIR/$MODULE_NAME" "/data05/virt70433/domeenid/www.konzhi.com/ingenico/app/code/Ingenico/Payment"
-# rm -rf "$MODULE_DIR/"

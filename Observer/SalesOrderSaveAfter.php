@@ -67,7 +67,7 @@ class SalesOrderSaveAfter implements ObserverInterface
                     $relatedOrder
                         ->setState($order->getState())
                         ->setStatus($order->getStatus())
-                        ->addCommentToStatusHistory(__('Update status'), $order->getStatus());
+                        ->addCommentToStatusHistory(__('ingenico.notification.message15'), $order->getStatus());
 
                     $this->orderRepository->save($relatedOrder);
                 }

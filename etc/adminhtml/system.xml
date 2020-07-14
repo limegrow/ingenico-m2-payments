@@ -18,10 +18,21 @@
 						<field id="title_mode">text</field>
 					</depends>
                 </field>
-                <field id="supress_order_email" translate="label comment" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                <!--field id="supress_order_email" translate="label comment" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>ingenico.settings.label8</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>ingenico.settings.comment1</comment>
+                </field-->
+                <field id="order_confirmation_email" translate="label comment" sortOrder="41" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>ingenico.settings.label8</label>
+                    <source_model>Ingenico\Payment\Model\Config\Source\Settings\OrderEmail</source_model>
+                </field>
+                <field id="order_status" translate="label" type="select" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>ingenico.settings.label25</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+					<depends>
+						<field id="payment_other/ingenico_e_payments/order_confirmation_email">3</field>
+					</depends>
                 </field>
                 <field id="allowspecific" translate="label" type="allowspecific" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>ingenico.settings.label9</label>
@@ -185,6 +196,19 @@
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
    					<comment>ingenico.settings.comment5</comment>
 				</field>
+
+                <!-- Magento specific settings for order statuses -->
+                <field id="order_status_authorize" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>ingenico.settings.label26</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <config_path>ingenico_settings/general/order_status_authorize</config_path>
+                </field>
+
+                <field id="order_status_capture" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>ingenico.settings.label27</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <config_path>ingenico_settings/general/order_status_capture</config_path>
+                </field>
 			</group>
 
 			<group id="tokenization" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">

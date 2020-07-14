@@ -17,6 +17,11 @@ class Config extends \Magento\Framework\App\Config
     protected $_cacheManager;
 
     /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory
+     */
+    private $orderStatusCollectionFactory;
+
+    /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
@@ -27,12 +32,14 @@ class Config extends \Magento\Framework\App\Config
         \Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory $configCollectionFactory,
         \Magento\Framework\App\Cache\Manager $cacheManager,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollectionFactory,
         array $types = []
     ) {
         $this->_configResource = $configResource;
         $this->_configCollectionFactory = $configCollectionFactory;
         $this->_cacheManager = $cacheManager;
         $this->storeManager = $storeManager;
+        $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;
 
         $this->setStoreId($this->storeManager->getStore()->getId());
 
@@ -112,6 +119,16 @@ class Config extends \Magento\Framework\App\Config
     public function isOrderConfirmationEmailSuppressed()
     {
         return $this->isSetFlag('payment/ingenico_e_payments/supress_order_email', $this->_scope, $this->_scopeCode);
+    }
+    
+    public function getOrderConfirmationEmailMode()
+    {
+        return $this->isSetFlag('payment/ingenico_e_payments/supress_order_email', $this->_scope, $this->_scopeCode);
+    }
+    
+    public function getOrderStatusForConfirmationEmail()
+    {
+        return $this->getValue('payment/ingenico_e_payments/order_status', $this->_scope, $this->_scopeCode);
     }
 
     public function getMode($asBool = false)
@@ -207,6 +224,26 @@ class Config extends \Magento\Framework\App\Config
     public function getPaymentAuthorisationNotificationEmail()
     {
         return $this->getValue('ingenico_settings/tokenization/capture_request_email', $this->_scope, $this->_scopeCode);
+    }
+
+    /**
+     * Get Order Status of Authorized payments.
+     *
+     * @return string
+     */
+    public function getOrderStatusAuth()
+    {
+        return $this->getValue('ingenico_settings/general/order_status_authorize', $this->_scope, $this->_scopeCode);
+    }
+
+    /**
+     * Get Order Status of Sale/Captured payments.
+     *
+     * @return string
+     */
+    public function getOrderStatusSale()
+    {
+        return $this->getValue('ingenico_settings/general/order_status_capture', $this->_scope, $this->_scopeCode);
     }
 
     public function getMinValue($path)
@@ -308,5 +345,18 @@ class Config extends \Magento\Framework\App\Config
             $this->_configResource->saveConfig($row->path, $row->value, $row->scope, $row->scope_id);
         }
         $this->_cacheManager->flush(['config']);
+    }
+
+    /**
+     * Get Assigned State
+     * @param $status
+     * @return \Magento\Framework\DataObject
+     */
+    public function getAssignedState($status)
+    {
+        $collection = $this->orderStatusCollectionFactory->create()->joinStates();
+        $status = $collection->addAttributeToFilter('main_table.status', $status)
+                             ->getFirstItem();
+        return $status;
     }
 }

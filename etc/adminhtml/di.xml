@@ -16,4 +16,7 @@
     <type name="Magento\Config\Block\System\Config\Form">
         <plugin name="ingenico_support_email_value" type="Ingenico\Payment\Plugin\MagentoConfigBlockSystemConfigForm" />
     </type>
+    <type name="Magento\Sales\Controller\Adminhtml\Order\Creditmemo\Save">
+        <plugin name="intercept_creditmemo_creation" type="Ingenico\Payment\Plugin\MagentoSalesControllerAdminhtmlOrderCreditmemoSave" />
+    </type>
 </config>

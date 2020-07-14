@@ -136,6 +136,36 @@
         <p><?= /* @noEscape */ __('modal.payment-methods-modal.label2') ?></p>
         <p><?= /* @noEscape */ __('modal.payment-methods-modal.label3') ?></p>
     </div>
+    
+    <!-- PayPal Help Live Mode -->
+    <div id="paypal_title_content_live">
+        <p><?= __('modal.paypal.label1') ?></p>
+        <p>
+            <?= __('modal.paypal.label2') ?><br/>
+            <?= __('modal.paypal.label3') ?>
+        </p>
+        <img src="<?php echo $this->getImageUrl('paypal.png'); ?>" alt="PayPal Settings Illustration">
+        <p></p>
+        <p><?= __('modal.paypal.label4') ?></p>
+        <img src="<?php echo $this->getImageUrl('paypal2.png'); ?>" alt="PayPal Settings Illustration">
+        <p></p>
+        <p><?= __('modal.paypal.label5') ?></p>
+        <p class="message message-warning"><?= __('modal.paypal.label6') ?></p>
+        <p class="message message-notice">
+            <?= __('modal.paypal.label7') ?> 
+            <a href="https://payment-services.ingenico.com/int/en/ogone/support/guides/integration%20guides/paypal/configuration#paypalaccount" target="_blank" title="PayPal Configuration Help">
+                <?= __('modal.paypal.label8') ?>.
+            </a>
+        </p>
+    </div>
+    
+    <!-- PayPal Help Test Mode -->
+    <div id="paypal_title_content_test">
+        <p>
+            <?= __('modal.paypal_test.label2') ?> <?= __('modal.paypal_test.label3') ?><br/><br/>
+            <?= __('modal.paypal_test.label4') ?>
+        </p>
+    </div>
 
     <!-- Instalments Rules -->
     <div id="instalments_rules_content">

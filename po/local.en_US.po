@@ -233,3 +233,21 @@ msgstr "Male"
 msgid "Female"
 msgstr "Female"
 
+msgid "ingenico.settings.label24"
+msgstr "Send on Status Change"
+
+msgid "ingenico.notification.message15"
+msgstr "Update status"
+
+msgid "ingenico.notification.message16"
+msgstr "Credit memo created in Pending status. Refund will be finalised when confirmed by payment gateway."
+
+msgid "ingenico.settings.label25"
+msgstr "Order Status"
+
+msgid "ingenico.settings.label26"
+msgstr "Order status (for AUTHORIZATION)"
+
+msgid "ingenico.settings.label27"
+msgstr "Order status (for SALE)"
+

@@ -19,5 +19,7 @@
     <type name="Magento\Translation\Model\ResourceModel\Translate">
         <plugin name="ingenico_translations_injector" type="Ingenico\Payment\Plugin\MagentoTranslationModelResourceModelTranslate" />
     </type>
-    <preference for="\Magento\Framework\Mail\Template\TransportBuilder" type="Ingenico\Payment\Model\Email\Template\TransportBuilder" />
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="order_state_plugin" type="Ingenico\Payment\Plugin\OrderStatePlugin" />
+    </type>
 </config>

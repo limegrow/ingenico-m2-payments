@@ -9,10 +9,19 @@ class Processor
     protected $_orderFactory;
     protected $_invoiceRepository;
     protected $_orderRepository;
+    protected $_creditmemoManagement;
+    protected $_creditmemoFactory;
     protected $_invoiceService;
     protected $_invoiceSender;
+    protected $_creditmemoSender;
     protected $_transactionBuilder;
+    protected $_creditmemoRepository;
     protected $_registry;
+
+    /**
+     * @var Config
+     */
+    private $config;
 
     /**
      * @var \Ingenico\Payment\Model\Connector
@@ -28,18 +37,28 @@ class Processor
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Magento\Sales\Api\CreditmemoManagementInterface $creditmemoManagement,
+        \Magento\Sales\Model\Order\CreditmemoFactory $creditmemoFactory,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
+        \Magento\Sales\Model\Order\Email\Sender\CreditmemoSender $creditmemoSender,
         \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder,
-        \Magento\Framework\Registry $registry
+        \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
+        \Magento\Framework\Registry $registry,
+        \Ingenico\Payment\Model\Config $config
     ) {
         $this->_orderFactory = $orderFactory;
         $this->_invoiceRepository = $invoiceRepository;
         $this->_orderRepository = $orderRepository;
+        $this->_creditmemoManagement = $creditmemoManagement;
+        $this->_creditmemoFactory = $creditmemoFactory;
+        $this->_creditmemoRepository = $creditmemoRepository;
         $this->_invoiceService = $invoiceService;
         $this->_invoiceSender = $invoiceSender;
+        $this->_creditmemoSender = $creditmemoSender;
         $this->_transactionBuilder = $transactionBuilder;
         $this->_registry = $registry;
+        $this->config = $config;
     }
 
     public function setConnector(\Ingenico\Payment\Model\Connector $connector)
@@ -72,10 +91,10 @@ class Processor
     /**
      * Process successful order payment (capture)
      */
-    public function processOrderAuthorization($incrementId, $message)
+    public function processOrderAuthorization($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        $authorizedStatus = $order->getConfig()->getStateDefaultStatus($order::STATE_PENDING_PAYMENT);
+        $authorizedStatus = $this->config->getOrderStatusAuth();
 
         // skip already authorized orders (double ping-back)
         if ($order->getStatus() == $authorizedStatus) {
@@ -88,15 +107,13 @@ class Processor
             return $this->_orderRepository->save($order);
         }
 
-        // create transaction
-        $trx = $this->_connector->getIngenicoPaymentLog($incrementId);
-        $this->_createTransaction($order, $trx->getPayId() . '-' . $trx->getPayIdSub(), \Magento\Sales\Model\Order\Payment\Transaction::TYPE_AUTH);
-
-        $order
-            ->setState($order::STATE_PENDING_PAYMENT)
-            ->setStatus($order->getConfig()->getStateDefaultStatus($order::STATE_PENDING_PAYMENT));
-
+        // Set order status
+        $new_status = $this->config->getOrderStatusAuth();
+        $status = $this->config->getAssignedState($new_status);
+        $order->setData('state', $status->getState());
+        $order->setStatus($status->getStatus());
         $this->_addOrderMessage($order, $message, __('ingenico.notification.message3'));
+        $this->_registry->register($this->_connector::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL, true, true);
 
         return $this->_orderRepository->save($order);
     }
@@ -104,59 +121,125 @@ class Processor
     /**
      * Process successful order payment (capture)
      */
-    public function processOrderPayment($incrementId, $message)
+    public function processOrderPayment($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        if ($order->hasInvoices()) {
-            $this->_addOrderMessage($order, __('ingenico.notification.message4'));
-            return $this->_orderRepository->save($order);
+        
+        // only process if request is not from Admin Panel
+        if ($this->_registry->registry('current_invoice')) {
+            return $order;
         }
-
+        
         if ($order->isCanceled()) {
             $this->_addOrderMessage($order, __('ingenico.notification.message5'));
             return $this->_orderRepository->save($order);
         }
-
-        // only create invoice if initiated by gateway, not from Admin Panel
-        if (!$this->_registry->registry('current_invoice')) {
+        
+        $processStatus = false;
+        // check if there is an Invoice with transaction ID
+        $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
+        if ($order->hasInvoices()) {
+            foreach ($order->getInvoiceCollection() as $invoice) {
+                if ($invoice->getTransactionId() == $trxId && $invoice->canCancel()) {
+                    $invoice->pay();
+                    $this->_invoiceRepository->save($invoice);
+                    $this->_orderRepository->save($invoice->getOrder());
+                    $this->_invoiceSender->send($invoice);
+                    $processStatus = true;
+                }
+            }
+            
+        } else {
             try {
                 $invoice = $this->_invoiceService->prepareInvoice($order);
                 $invoice->setRequestedCaptureCase($invoice::CAPTURE_ONLINE);
                 $invoice->register();
                 $invoice->getOrder()->setIsInProcess(true);
                 $invoice->setIsPaid(true);
+                $invoice->setTransactionId($trxId);
                 $this->_invoiceRepository->save($invoice);
-            } catch (LocalizedException $e) {
-                $this->_connector->log(sprintf('%s::%s %s', __CLASS__, __METHOD__, $e->getMessage()));
-
-                throw $e;
-            }
-
-            try {
                 $this->_invoiceSender->send($invoice);
+                $processStatus = true;
+                
             } catch (\Exception $e) {
                 $this->_connector->log($e->getMessage(), 'crit');
+            } catch (LocalizedException $e) {
+                $this->_connector->log(sprintf('%s::%s %s', __CLASS__, __METHOD__, $e->getMessage()));
+                throw $e;
             }
-
-            // create transaction
-            $trx = $this->_connector->getIngenicoPaymentLog($incrementId);
-            $this->_createTransaction($order, $trx->getPayId() . '-' . $trx->getPayIdSub(), \Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE);
-
-            $invoice->setTransactionId($trx->getPayId() . '-' . $trx->getPayIdSub());
-            $this->_invoiceRepository->save($invoice);
-
-            // register order status
-            $order
-                ->setState($order::STATE_PROCESSING)
-                ->setStatus($order->getConfig()->getStateDefaultStatus($order::STATE_PROCESSING));
         }
-
-        $this->_addOrderMessage($order, $message, __('ingenico.notification.message6'));
-
+        
+        if ($processStatus) {
+            // Set order status
+            $new_status = $this->config->getOrderStatusSale();
+            $status = $this->config->getAssignedState($new_status);
+            $order->setData('state', $status->getState());
+            $order->setStatus($status->getStatus());
+            $this->_addOrderMessage($order, $message, __('ingenico.notification.message6'));
+        }
+        
+        return $this->_orderRepository->save($order);        
+    }
+    
+    public function processOrderCaptureProcessing($incrementId, $paymentResult, $message)
+    {
+        $order = $this->getOrderByIncrementId($incrementId);
+        $this->_addOrderMessage($order, $message);
         return $this->_orderRepository->save($order);
     }
+    
+    public function processOrderRefundProcessing($incrementId, $paymentResult, $message)
+    {
+        $order = $this->getOrderByIncrementId($incrementId);
+        $this->_addOrderMessage($order, $message);
+        return $this->_orderRepository->save($order);
+    }
+    
+    /**
+     * Process successful order payment (capture)
+     */
+    public function processOrderRefund($incrementId, $paymentResult, $message)
+    {
+        $order = $this->getOrderByIncrementId($incrementId);
+        
+        if ($order->isCanceled()) {
+            $this->_addOrderMessage($order, __('ingenico.notification.message5'));
+            return $this->_orderRepository->save($order);
+        }
+        
+        try {
+            // check if there is a Credit Memo with transaction ID
+            $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
+            if ($order->hasCreditmemos()) {
+                foreach ($order->getCreditmemosCollection() as $creditMemo) {
+                    if ($creditMemo->getTransactionId() == $trxId && $creditMemo->canRefund()) {
+                        $creditMemo->setPaymentRefundDisallowed(true);
+                        $this->_creditmemoManagement->refund($creditMemo);
+                        $this->_creditmemoSender->send($creditMemo);
+                    }
+                }
+                
+            } else {
+                $creditMemo = $this->_creditmemoFactory->createByOrder($order);
+                $creditMemo->setTransactionId($trxId);
+                $creditMemo->setPaymentRefundDisallowed(true);
+                $this->_creditmemoManagement->refund($creditMemo);
+                $this->_creditmemoSender->send($creditMemo);
+            }
+            
+            $order = $this->_orderRepository->get($order->getId());
+            $this->_addOrderMessage($order, $message);
+        
+        } catch (\Exception $e) {
+            $this->_connector->log($e->getMessage(), 'crit');
+        } catch (LocalizedException $e) {
+            $this->_connector->log(sprintf('%s::%s %s', __CLASS__, __METHOD__, $e->getMessage()));
+        }
+        
+        return $this->_orderRepository->save($order);        
+    }
 
-    public function processOrderCancellation($incrementId, $message = null)
+    public function processOrderCancellation($incrementId, $paymentResult, $message = null)
     {
         $order = $this->getOrderByIncrementId($incrementId);
 
