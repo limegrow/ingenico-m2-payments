@@ -132,7 +132,7 @@ msgid "form.connection.label.directlink.label3"
 msgstr "La tokenización permite programar pagos, vender suscripciones y ofrecer “pago en 1 clic”."
 
 msgid "form.connection.label.directlink.label4"
-msgstr "Para poder usar DirectLink, debe cumplir los PCI-SAQD."
+msgstr "Para poder usar DirectLink, debe cumplir los PCI-SAQA."
 
 msgid "form.connection.label.readmore"
 msgstr "Leer más"
@@ -180,7 +180,7 @@ msgid "form.settings.label.readmore"
 msgstr "Leer más"
 
 msgid "form.settings.label.disclaimer"
-msgstr "Para poder usar la tokenización, debe cumplir los PCI-SAQD y conectarse a DirectLink."
+msgstr "Para poder usar la tokenización, debe cumplir los PCI-SAQA y conectarse a DirectLink."
 
 msgid "form.settings.label.stored_cards"
 msgstr "Tarjetas almacenadas"

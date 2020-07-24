@@ -72,7 +72,7 @@ class SalesOrderSaveAfter implements ObserverInterface
                     $this->orderRepository->save($relatedOrder);
                 }
             } catch (\Exception $e) {
-                // Silence is golden
+                $this->orderRepository->save($relatedOrder);
             }
         }
     }

@@ -255,3 +255,21 @@ msgstr "Homme"
 
 msgid "Female"
 msgstr "Femme"
+
+msgid "ingenico.settings.label24"
+msgstr "Envoyer lorsque le statut change"
+
+msgid "ingenico.notification.message15"
+msgstr "Mise à jour"
+
+msgid "ingenico.notification.message16"
+msgstr "La note de crédit est en court. Le remboursement deviendra définitif une fois confirmé par la platforme de paiement."
+
+msgid "ingenico.settings.label25"
+msgstr "Statut de la commande"
+
+msgid "ingenico.settings.label26"
+msgstr "Statut de la commande (pour AUTORISATION)"
+
+msgid "ingenico.settings.label27"
+msgstr "Statut de la commande (pour la VENTE DIRECTE)"

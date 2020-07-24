@@ -132,7 +132,7 @@ msgid "form.connection.label.directlink.label3"
 msgstr "Tokenization allows you to schedule payments, sell subscriptions, and offer “1-click payment”."
 
 msgid "form.connection.label.directlink.label4"
-msgstr "In order to use Direct Link, you must be PCI-SAQD compliant."
+msgstr "In order to use Direct Link, you must be PCI-SAQA compliant."
 
 msgid "form.connection.label.readmore"
 msgstr "Read more"

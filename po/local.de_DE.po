@@ -254,3 +254,21 @@ msgstr "Männlich"
 
 msgid "Female"
 msgstr "Weiblich"
+
+msgid "ingenico.settings.label24"
+msgstr "Senden, wenn sich der Status ändert"
+
+msgid "ingenico.notification.message15"
+msgstr "Update status"
+
+msgid "ingenico.notification.message16"
+msgstr "Gutschrift im Status "Ausstehend" erstellt. Die Rückerstattung wird abgeschlossen, wenn sie vom Zahlungsgateway bestätigt wird."
+
+msgid "ingenico.settings.label25"
+msgstr "Bestellstatus"
+
+msgid "ingenico.settings.label26"
+msgstr "Bestellstatus (zur AUTORISIERUNG)"
+
+msgid "ingenico.settings.label27"
+msgstr "Bestellstatus (zur SALE)"

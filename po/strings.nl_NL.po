@@ -132,7 +132,7 @@ msgid "form.connection.label.directlink.label3"
 msgstr "Tokenisatie stelt u ertoe in staat betalingen te plannen, abonnementen te verkopen en “betalen met één klik” aan te bieden."
 
 msgid "form.connection.label.directlink.label4"
-msgstr "Als u Direct Link wilt gebruiken, moet u voldoen aan PCI-SAQD."
+msgstr "Als u Direct Link wilt gebruiken, moet u voldoen aan PCI-SAQA."
 
 msgid "form.connection.label.readmore"
 msgstr "Meer informatie"

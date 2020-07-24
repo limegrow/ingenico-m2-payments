@@ -418,6 +418,9 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             case $this->_coreLibrary::STATUS_REFUND_PROCESSING:
                 $this->_processor->processOrderRefundProcessing($orderId, $paymentResult, $message);
                 break;
+            case $this->_coreLibrary::STATUS_REFUND_REFUSED:
+                $this->_processor->processOrderDefault($orderId, $paymentResult, $message);
+                break;
             case $this->_coreLibrary::STATUS_REFUNDED:
                 $this->_processor->processOrderRefund($orderId, $paymentResult, $message);
                 break;
@@ -1065,6 +1068,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                     self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
                     self::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    self::PARAM_NAME_ORDER_URL => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId()]),
                     'path_uri' => '',
                     'ingenico_logo' => $this->_cnf->getIngenicoLogo()
                 ],

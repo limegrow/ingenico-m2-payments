@@ -11,6 +11,7 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
     protected $_adminSession;
     protected $_messageManager;
     protected $_connector;
+    protected $_fileDriver;
     protected $_cnf;
 
     /**
@@ -27,6 +28,7 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Ingenico\Payment\Model\Connector $connector,
         \Ingenico\Payment\Model\Config $cnf,
+        \Magento\Framework\Filesystem\Driver\File $fileDriver,
         \Magento\Framework\HTTP\PhpEnvironment\Request $request
     ) {
         $this->_storeManager = $storeManager;
@@ -34,6 +36,7 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         $this->_adminSession = $adminSession;
         $this->_messageManager = $messageManager;
         $this->_connector = $connector;
+        $this->_fileDriver = $fileDriver;
         $this->_cnf = $cnf;
         $this->request = $request;
     }
@@ -189,8 +192,8 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         if ($ticket) {
             $fileName = sprintf('settings_%s_%s_%s.json', $this->_cnf->getBaseHost(), $ticket, date('dmY_H_i_s'));
         }
-        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $fileName;
-        file_put_contents($filePath, $this->_cnf->exportSettingsJson());
+        $filePath = BP . '/var/' . $fileName;
+        $this->_fileDriver->filePutContents($filePath, $this->_cnf->exportSettingsJson());
 
         // prepare subject
         $subject = sprintf('%s: Issues configuring the site %s', $this->_connector->requestShoppingCartExtensionId(), $this->_cnf->getBaseHost());
@@ -209,8 +212,8 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
             $filePath
         );
 
-        // remove temporary file
-        unlink($filePath);
+        // remove configuration dump file
+        $this->_fileDriver->deleteFile($filePath);
 
         if ($result) {
             $this->_messageManager->addSuccessMessage(__('form.support.validation.mail_sent'));
@@ -237,7 +240,6 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
             $this->_cnf->importSettingsJson($content);
 
             $this->_messageManager->addSuccessMessage('Settings successfully imported!');
-
         } catch (\Exception $e) {
             $this->_messageManager->addErrorMessage(__($e->getMessage()));
         }

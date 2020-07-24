@@ -251,3 +251,21 @@ msgstr "Masculino"
 
 msgid "Female"
 msgstr "Feminino"
+
+msgid "ingenico.settings.label24"
+msgstr "Enviar quando o status for alterado"
+
+msgid "ingenico.notification.message15"
+msgstr "Atualizar o status"
+
+msgid "ingenico.notification.message16"
+msgstr "Nota de crédito criada com status pendente. O reembolso será finalizado assim que confirmado pelo gateway de pagamento."
+
+msgid "ingenico.settings.label25"
+msgstr "Status do pedido"
+
+msgid "ingenico.settings.label26"
+msgstr "Status do pedido (para AUTHORIZATION)"
+
+msgid "ingenico.settings.label27"
+msgstr "Status do pedido (para SALE)"

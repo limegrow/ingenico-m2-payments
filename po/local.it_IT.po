@@ -247,3 +247,21 @@ msgstr "Uomo"
 
 msgid "Female"
 msgstr "Donna"
+
+msgid "ingenico.settings.label24"
+msgstr "Invia quando lo stato cambia"
+
+msgid "ingenico.notification.message15"
+msgstr "Aggiorna stato"
+
+msgid "ingenico.notification.message16"
+msgstr "Nota di accredito creata con stato in sospeso. Il rimborso diventerà definitivo una volta confermato dal gateway di pagamento."
+
+msgid "ingenico.settings.label25"
+msgstr "Lo stato dell'ordine"
+
+msgid "ingenico.settings.label26"
+msgstr "Stato dell'ordine (per AUTORIZZAZIONE)"
+
+msgid "ingenico.settings.label27"
+msgstr "Stato dell'ordine (per SALE)"

@@ -248,3 +248,21 @@ msgstr "Man"
 
 msgid "Female"
 msgstr "Vrouw"
+
+msgid "ingenico.settings.label24"
+msgstr "Verzenden bij statuswijziging"
+
+msgid "ingenico.notification.message15"
+msgstr "Status bijwerken"
+
+msgid "ingenico.notification.message16"
+msgstr "Creditnota gemaakt met de status in behandeling. De terugbetaling wordt definitief wanneer deze bevestigd is door de betalingsgateway."
+
+msgid "ingenico.settings.label25"
+msgstr "Orderstatus"
+
+msgid "ingenico.settings.label26"
+msgstr "Orderstatus (voor AUTORISATIE)"
+
+msgid "ingenico.settings.label27"
+msgstr "Orderstatus (voor SALE)"

@@ -73,9 +73,9 @@ class CheckoutOnepageControllerSuccessAction implements ObserverInterface
                 // Trigger order saving
                 /** @var \Magento\Sales\Model\Order $order */
                 $order = $this->orderRepository->get($orderId);
-                $order->save();
+                $this->orderRepository->save($order);
             } catch (\Exception $e) {
-                //
+                $this->orderRepository->save($order);
             }
         }
 

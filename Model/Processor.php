@@ -28,8 +28,6 @@ class Processor
      */
     protected $_connector;
 
-    protected $_createTransactions = false;
-
     /**
      * Constructor
      */
@@ -144,7 +142,9 @@ class Processor
                     $invoice->pay();
                     $this->_invoiceRepository->save($invoice);
                     $this->_orderRepository->save($invoice->getOrder());
-                    $this->_invoiceSender->send($invoice);
+                    if (!$invoice->getEmailSent()) {
+                        $this->_invoiceSender->send($invoice);
+                    }
                     $processStatus = true;
                 }
             }
@@ -181,14 +181,26 @@ class Processor
         return $this->_orderRepository->save($order);        
     }
     
+    /**
+     * Deprecated from v2.2.1, use processOrderDefault()
+     */
     public function processOrderCaptureProcessing($incrementId, $paymentResult, $message)
     {
-        $order = $this->getOrderByIncrementId($incrementId);
-        $this->_addOrderMessage($order, $message);
-        return $this->_orderRepository->save($order);
+        return $this->processOrderDefault($incrementId, $paymentResult, $message);
     }
     
+    /**
+     * Deprecated from v2.2.1, use processOrderDefault()
+     */
     public function processOrderRefundProcessing($incrementId, $paymentResult, $message)
+    {
+        return $this->processOrderDefault($incrementId, $paymentResult, $message);
+    }
+    
+    /**
+     * Simply add record to order history, nothing else
+     */
+    public function processOrderDefault($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
         $this->_addOrderMessage($order, $message);
@@ -196,7 +208,7 @@ class Processor
     }
     
     /**
-     * Process successful order payment (capture)
+     * Process successful order refund
      */
     public function processOrderRefund($incrementId, $paymentResult, $message)
     {
@@ -261,33 +273,5 @@ class Processor
             $order->getStatus(),
             $message ? $message : $fallbackMsg
         );
-    }
-
-    protected function _createTransaction($order, $trxId, $type)
-    {
-        if (!$this->_createTransactions) {
-            return;
-        }
-
-        try {
-            $payment = $order->getPayment()
-                ->setLastTransId($trxId)
-                ->setTransactionId($trxId)
-                ->setParentTransactionId($trxId)
-                ;
-
-            //get the object of builder class
-            $transaction = $this->_transactionBuilder
-                ->setPayment($payment)
-                ->setOrder($order)
-                ->setTransactionId($trxId)
-                ->setFailSafe(true)
-                ->build($type);
-
-            $payment->save();
-            $transaction->save();
-        } catch (\Exception $e) {
-            $this->_connector->log($e->getMessage(), 'crit');
-        }
     }
 }

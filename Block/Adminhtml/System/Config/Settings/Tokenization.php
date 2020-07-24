@@ -13,7 +13,8 @@ class Tokenization extends \Magento\Config\Block\System\Config\Form\Field
             '<td class="value">',
             '<div class="message message-notice">',
             __('form.settings.label.disclaimer'),
-            '<br/><a href="javascript:void(0);">'.__('form.settings.label.readmore').'</a>',
+            '<br/><a href="https://www.mwrinfosecurity.com/our-thinking/pci-compliance-which-saq-is-right-for-me/" target="_blank">',
+            __('form.settings.label.readmore').'</a>',
             '</div>',
             '</td>',
             '<td class=""></td></tr>'

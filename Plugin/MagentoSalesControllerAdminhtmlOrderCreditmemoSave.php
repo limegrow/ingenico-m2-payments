@@ -42,8 +42,11 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
         $data = $subject->getRequest()->getPost('creditmemo');
         $order = $this->_orderRepository->get($subject->getRequest()->getParam('order_id'));
         
-        // only intercept if order with Ingenico Payment
-        if ($order->getPayment()->getMethod() !== \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
+        // only intercept if order with Ingenico Payment and Online Refund
+        if (
+            (isset($data['do_offline']) && $data['do_offline']) || 
+            $order->getPayment()->getMethod() !== \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE
+        ) {
             return $proceed();
         }
         
@@ -105,7 +108,9 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
                         $creditMemo->setState(\Magento\Sales\Model\Order\Creditmemo::STATE_REFUNDED);
                         $creditMemo->setPaymentRefundDisallowed(true);
                         $this->_creditmemoManagement->refund($creditMemo);
-                        $this->_creditmemoSender->send($creditMemo);
+                        if (isset($data['send_email']) && $data['send_email']) {
+                            $this->_creditmemoSender->send($creditMemo);
+                        }
                 }
                 
                 $resultRedirect->setPath('sales/order/view', ['order_id' => $creditmemo->getOrderId()]);
