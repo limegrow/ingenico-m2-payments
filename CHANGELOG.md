@@ -57,6 +57,7 @@
 	- Allow Magento to send email when order is created using one of Ingenico Payment Methods
 	- Restrict Magento to send email when order is created using one of Ingenico Payment Methods
 	- Send email when order status is changed. This allows for more flexibility when adjusting for Merchant business logic.
+- Bank transfer payment status change to be aligned with Ingenicos status when payment is pending.
 
 ## [2.1.0] - 2020-07-06
 ### Added
