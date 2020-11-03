@@ -2,6 +2,8 @@
 
 namespace Ingenico\Payment\Block\Method;
 
+use IngenicoClient\Data;
+
 class View extends \Magento\Framework\View\Element\Template
 {
     const CARDS = 'Cards';
@@ -74,31 +76,33 @@ class View extends \Magento\Framework\View\Element\Template
         return [];
     }
 
-    public function getRedirectPaymentData()
+    /**
+     * Get Specified Redirect payment data.
+     *
+     * @return false|Data Array like ['url' => '', 'fields' => []]
+     */
+    public function getSpecifiedRedirectPaymentData()
     {
-        $result = [];
+        $paymentId = $this->getRequest()->getParam('payment_id', false);
+        $paymentMethod = $this->getRequest()->getParam('pm', false);
+        $brand = $this->getRequest()->getParam('brand', false);
 
-        if ($this->_cnf->isPaymentPageModeRedirect()) {
-            $result = $this->_registry->registry($this->_connector::REGISTRY_KEY_TEMPLATE_VARS_REDIRECT);
-        } else {
-            $pm = $this->getRequest()->getParam('pm', false);
-            $brand = $this->getRequest()->getParam('brand', false);
-            $orderId = $this->_connector->requestOrderId();
-
-            if (!$pm || !$brand) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('ingenico.exception.message1'));
-            }
-
-            // Build Alias with PaymentMethod and Brand
-            $alias = new \IngenicoClient\Alias();
-            $alias->setIsPreventStoring(true)
-                ->setPm($pm)
-                ->setBrand($brand);
-
-            $result = $this->_connector->getCoreLibrary()->initiateRedirectPayment($orderId, $alias);
+        if (!$paymentMethod || !$brand) {
+            return false;
         }
 
-        return $result;
+        return $this->_connector->getSpecifiedRedirectPaymentRequest(null, $paymentMethod, $brand, $paymentId);
+    }
+
+    /**
+     * Get Redirect payment data.
+     *
+     * @return array Array like ['url' => '', 'fields' => []]
+     */
+    public function getRedirectPaymentData()
+    {
+        // There's result of $this->_connector->getCoreLibrary()->initiateRedirectPayment($orderId, $alias);
+        return $this->_registry->registry($this->_connector::REGISTRY_KEY_TEMPLATE_VARS_REDIRECT);
     }
 
     /**
@@ -134,6 +138,16 @@ class View extends \Magento\Framework\View\Element\Template
     public function getOpenInvoicePostUrl()
     {
         return $this->_urlBuilder->getUrl('ingenico/payment/openinvoice');
+    }
+
+    /**
+     * Returns OpenInvoice payment data: the url and fields.
+     *
+     * @return array Like ['url' => '', 'fields' = []]
+     */
+    public function getOpenInvoicePaymentData()
+    {
+        return $this->_registry->registry($this->_connector::REGISTRY_KEY_TEMPLATE_VARS_OPENINVOICE);
     }
 
     public function getLoaderParam($paramName)

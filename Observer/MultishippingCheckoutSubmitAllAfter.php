@@ -2,24 +2,35 @@
 
 namespace Ingenico\Payment\Observer;
 
+use Ingenico\Payment\Model\Connector;
+use Ingenico\Payment\Model\Config as IngenicoConfig;
+use Ingenico\Payment\Helper\Data as IngenicoHelper;
+use Magento\Checkout\Helper\Data as CheckoutHelper;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Quote\Model\QuoteManagement;
+use Magento\Quote\Model\QuoteFactory;
+use Magento\Customer\Model\Session as CustomerSession;
 
 class MultishippingCheckoutSubmitAllAfter implements ObserverInterface
 {
     /**
-     * @var \Ingenico\Payment\Model\Connector
+     * @var Connector
      */
     private $connector;
 
     /**
-     * @var \Ingenico\Payment\Model\Config
+     * @var IngenicoConfig
      */
     private $cnf;
+
+    /**
+     * @var IngenicoHelper
+     */
+    private $ingenicoHelper;
 
     /**
      * @var OrderFactory
@@ -32,7 +43,7 @@ class MultishippingCheckoutSubmitAllAfter implements ObserverInterface
     private $orderRepository;
 
     /**
-     * @var \Magento\Quote\Model\QuoteFactory
+     * @var QuoteFactory
      */
     private $quoteFactory;
 
@@ -42,38 +53,40 @@ class MultishippingCheckoutSubmitAllAfter implements ObserverInterface
     private $quoteManagement;
 
     /**
-     * @var \Magento\Checkout\Helper\Data
+     * @var CheckoutHelper
      */
     private $checkoutHelper;
 
     /**
-     * @var \Magento\Customer\Model\Session
+     * @var CustomerSession
      */
     private $customerSession;
 
     /**
      * Constructor
      *
-     * @param \Ingenico\Payment\Model\Connector $connector
-     * @param \Ingenico\Payment\Model\Config    $cnf
-     * @param OrderFactory                      $orderFactory
-     * @param OrderRepository                   $orderRepository
-     * @param QuoteManagement                   $quoteManagement
-     * @param \Magento\Checkout\Helper\Data     $checkoutHelper
-     * @param \Magento\Customer\Model\Session   $customerSession
+     * @param Connector $connector
+     * @param IngenicoConfig $cnf
+     * @param OrderFactory $orderFactory
+     * @param OrderRepository $orderRepository
+     * @param QuoteManagement $quoteManagement
+     * @param CheckoutHelper $checkoutHelper
+     * @param CustomerSession $customerSession
      */
     public function __construct(
-        \Ingenico\Payment\Model\Connector $connector,
-        \Ingenico\Payment\Model\Config $cnf,
+        Connector $connector,
+        IngenicoConfig $cnf,
+        IngenicoHelper $ingenicoHelper,
         OrderFactory $orderFactory,
         OrderRepository $orderRepository,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        QuoteFactory $quoteFactory,
         QuoteManagement $quoteManagement,
-        \Magento\Checkout\Helper\Data $checkoutHelper,
-        \Magento\Customer\Model\Session $customerSession
+        CheckoutHelper $checkoutHelper,
+        CustomerSession $customerSession
     ) {
         $this->connector = $connector;
         $this->cnf = $cnf;
+        $this->ingenicoHelper = $ingenicoHelper;
         $this->orderFactory = $orderFactory;
         $this->orderRepository = $orderRepository;
         $this->quoteFactory = $quoteFactory;
@@ -94,10 +107,12 @@ class MultishippingCheckoutSubmitAllAfter implements ObserverInterface
 
         // Check if we have orders paid using Ingenico
         $hasIngenicoOrders = false;
+        $methodCode = null;
         foreach ($orders as $order) {
             /** @var \Magento\Sales\Model\Order $order */
-            if ($order->getPayment()->getMethod() === \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
+            if (in_array($order->getPayment()->getMethod(), $this->ingenicoHelper->getPaymentMethodCodes())) {
                 $hasIngenicoOrders = true;
+                $methodCode = $order->getPayment()->getMethod();
                 break;
             }
         }
@@ -172,7 +187,7 @@ class MultishippingCheckoutSubmitAllAfter implements ObserverInterface
         // Set Sales Order Payment
         $quote1->getPayment()->importData(array_merge(
             $quote->getPayment()->getAdditionalInformation(),
-            ['method' => \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE]
+            ['method' => $methodCode]
         ));
 
         // Collect Totals & Save Quote

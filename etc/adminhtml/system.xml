@@ -4,54 +4,25 @@
         <section id="payment">
             <group id="ingenico_e_payments" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Ingenico ePayments</label>
-                <field id="active" translate="label comment" sortOrder="1" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label5</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="title_mode" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>ingenico.settings.label6</label>
-                    <source_model>Ingenico\Payment\Model\Config\Source\MethodTitle</source_model>
-                </field>
-                <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>ingenico.settings.label7</label>
-					<depends>
-						<field id="title_mode">text</field>
-					</depends>
-                </field>
-                <!--field id="supress_order_email" translate="label comment" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>ingenico.settings.label8</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>ingenico.settings.comment1</comment>
-                </field-->
-                <field id="order_confirmation_email" translate="label comment" sortOrder="41" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>ingenico.settings.label8</label>
-                    <source_model>Ingenico\Payment\Model\Config\Source\Settings\OrderEmail</source_model>
-                </field>
-                <field id="order_status" translate="label" type="select" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>ingenico.settings.label25</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
-					<depends>
-						<field id="payment_other/ingenico_e_payments/order_confirmation_email">3</field>
-					</depends>
-                </field>
-                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>ingenico.settings.label9</label>
-                    <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
-                </field>
-                <field id="specificcountry" translate="label" type="multiselect" sortOrder="51" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label10</label>
-                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="min_order_total" translate="label" type="text" sortOrder="98" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label11</label>
-                </field>
-                <field id="max_order_total" translate="label" type="text" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label12</label>
-                </field>
-                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label13</label>
-                </field>
+                <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                <include path="Ingenico_Payment::system/ingenico.xml"/>
+                <include path="Ingenico_Payment::system/banktransfer.xml"/>
+                <include path="Ingenico_Payment::system/cc.xml"/>
+                <include path="Ingenico_Payment::system/cb.xml"/>
+                <include path="Ingenico_Payment::system/belfius.xml"/>
+                <include path="Ingenico_Payment::system/cbc.xml"/>
+                <include path="Ingenico_Payment::system/giropay.xml"/>
+                <include path="Ingenico_Payment::system/ideal.xml"/>
+                <include path="Ingenico_Payment::system/ing.xml"/>
+                <include path="Ingenico_Payment::system/kbc.xml"/>
+                <include path="Ingenico_Payment::system/twint.xml"/>
+                <include path="Ingenico_Payment::system/paypal.xml"/>
+                <include path="Ingenico_Payment::system/paysafecard.xml"/>
+                <include path="Ingenico_Payment::system/afterpay.xml"/>
+                <include path="Ingenico_Payment::system/klarna.xml"/>
+                <include path="Ingenico_Payment::system/klarna_paynow.xml"/>
+                <include path="Ingenico_Payment::system/klarna_paylater.xml"/>
+                <include path="Ingenico_Payment::system/klarna_financing.xml"/>
             </group>
         </section>
 		<tab id="ingenico" translate="label" sortOrder="100">
@@ -200,13 +171,13 @@
                 <!-- Magento specific settings for order statuses -->
                 <field id="order_status_authorize" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>ingenico.settings.label26</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
                     <config_path>ingenico_settings/general/order_status_authorize</config_path>
                 </field>
 
                 <field id="order_status_capture" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>ingenico.settings.label27</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
                     <config_path>ingenico_settings/general/order_status_capture</config_path>
                 </field>
 			</group>
@@ -319,38 +290,6 @@
 					<depends>
 						<field id="ingenico_settings/orders/payment_reminder_email_send">1</field>
 					</depends>
-				</field>
-			</group>
-
-		</section>
-
-		<section id="ingenico_payment_methods" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-			<label>form.payment_methods.title</label>
-			<tab>ingenico</tab>
-			<resource>Ingenico_Payment::config_ingenico</resource>
-
-			<group id="business_geography" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-				<label>form.payment_methods.label.geography</label>
-   				<attribute type="expanded">1</attribute>
-				<field id="choose_countries" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-					<label>form.payment_methods.label.choose_countries</label>
-					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentMethods\ChooseCountries</frontend_model>
-				</field>
-                <field id="countries" translate="label comment" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>ingenico.settings.label20</label>
-                    <source_model>Ingenico\Payment\Model\Config\Source\Country</source_model>
-                    <can_be_empty>1</can_be_empty>
-                    <comment>ingenico.settings.comment6</comment>
-                </field>
-			</group>
-
-			<group id="methods" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
-				<label>form.payment_methods.title</label>
-				<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentMethods\MethodsTitle</frontend_model>
-   				<attribute type="expanded">1</attribute>
-				<field id="loaded" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-					<label>ingenico.settings.comment2</label>
-					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentMethods\MethodsPlaceholder</frontend_model>
 				</field>
 			</group>
 

@@ -504,9 +504,12 @@ msgid "modal.psp.whatis"
 msgstr "What is my PSPID?"
 
 msgid "modal.psp.label1"
-msgstr "PSPID is your unique identifier for Ingenico ePayments."
+msgstr "PSPID is your unique technical identifier for your account."
 
 msgid "modal.psp.label2"
+msgstr "You should receive it from your account manager once your account has been created."
+
+msgid "modal.psp.label3"
 msgstr "You should receive it from your account manager once your account has been created."
 
 msgid "modal.psp.youcan"
@@ -637,6 +640,9 @@ msgstr "Please contact Ingenico ePayments Support"
 
 msgid "modal.refund_failed.label3"
 msgstr "Phone support numbers can be found here"
+
+msgid "modal.refund_failed.not_refundable"
+msgstr "A payment which paid with %1 can't be refunded"
 
 msgid "modal.credentials-validation.label1"
 msgstr "Missing Live environment credentials"
@@ -826,3 +832,12 @@ msgstr "Either you are using Inline or Redirect mode you can customise the style
 
 msgid "modal.optional-customisation.label2"
 msgstr "Still, the default state is already fully designed in a very generic way so that you could start accepting payments directly."
+
+msgid "Pay with saved card."
+msgstr "Pay with saved card."
+
+msgid "Credit Cards"
+msgstr "Credit Cards"
+
+msgid "Your payment data is ready to be processed by {0}."
+msgstr "Your payment data is ready to be processed by {0}."

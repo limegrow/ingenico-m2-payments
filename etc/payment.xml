@@ -4,5 +4,41 @@
         <method name="ingenico_e_payments">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="ingenico_cc">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_banktransfer">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_cb">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_belfius">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_cbc">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_giropay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_ideal">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_ing">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_kbc">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_twint">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_paypal">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_paysafecard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

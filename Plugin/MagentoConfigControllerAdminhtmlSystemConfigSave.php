@@ -5,6 +5,7 @@ namespace Ingenico\Payment\Plugin;
 class MagentoConfigControllerAdminhtmlSystemConfigSave
 {
     const PARAM_NAME_VALUE = 'value';
+    const PARAM_NAME_INHERIT = 'inherit';
 
     protected $_storeManager;
     protected $_resultRedirectFactory;
@@ -50,7 +51,6 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         if (!in_array($section, [
             'ingenico_registration',
             'ingenico_connection',
-            'ingenico_payment_methods',
             'ingenico_support',
             'ingenico_import_export'
         ])) {
@@ -63,9 +63,6 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
                 break;
             case 'ingenico_connection':
                 $this->_processConnectionRequest($subject);
-                break;
-            case 'ingenico_payment_methods':
-                $this->_processPaymentMethodsRequest($subject);
                 break;
             case 'ingenico_support':
                 $this->_processSupportRequest($subject);
@@ -121,55 +118,35 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
     {
         $this->_redirect = false;
         $data = $subject->getRequest()->getParam('groups');
-        $mode = $data['mode']['fields']['mode'][self::PARAM_NAME_VALUE];
-        $pspid = $data[$mode]['fields']['pspid'][self::PARAM_NAME_VALUE];
-        $signature = $data[$mode]['fields']['signature'][self::PARAM_NAME_VALUE];
-        $user = $data[$mode]['fields']['user'][self::PARAM_NAME_VALUE];
-        $password = $data[$mode]['fields']['password'][self::PARAM_NAME_VALUE];
 
-        if (empty($pspid)) {
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message11'));
-            $this->_redirect = true;
+        if (!empty($data['mode']['fields']['mode'][self::PARAM_NAME_INHERIT])) {
+            $mode = $this->_cnf->getMode();
+        } else {
+            $mode = $data['mode']['fields']['mode'][self::PARAM_NAME_VALUE];
         }
 
-        if (empty($signature)) {
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message12'));
-            $this->_redirect = true;
-        }
+        $fields = ['pspid', 'signature', 'user', 'password'];
+        foreach ($fields as $field) {
+            if (isset($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE]) &&
+                empty($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE])
+            ) {
+                switch ($field) {
+                    case 'pspid':
+                        $this->_messageManager->addErrorMessage(__('ingenico.notification.message11'));
+                        break;
+                    case 'signature':
+                        $this->_messageManager->addErrorMessage(__('ingenico.notification.message12'));
+                        break;
+                    case 'user':
+                        $this->_messageManager->addErrorMessage(__('ingenico.notification.message13'));
+                        break;
+                    case 'password':
+                        $this->_messageManager->addErrorMessage(__('ingenico.notification.message14'));
+                        break;
+                }
 
-        if (empty($user)) {
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message13'));
-            $this->_redirect = true;
-        }
-
-        if (empty($password)) {
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message14'));
-            $this->_redirect = true;
-        }
-    }
-
-    /**
-     * Prevent more than one Open Invoice provider being enabled
-     *
-     * @param \Magento\Config\Controller\Adminhtml\System\Config\Save $subject
-     */
-    protected function _processPaymentMethodsRequest($subject)
-    {
-        $this->_redirect = false;
-        $data = $subject->getRequest()->getParam('groups');
-        $data = $data['methods']['groups'];
-        $count = 0;
-
-        if (isset($data['open_invoice'])) {
-            foreach ($data['open_invoice']['groups'] as $openInvoiceMethod) {
-                $count += $openInvoiceMethod['fields']['enabled']['value'];
+                $this->_redirect = true;
             }
-        }
-
-        if ($count > 1) {
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message9'));
-            $this->_messageManager->addErrorMessage(__('ingenico.notification.message10'));
-            $this->_redirect = true;
         }
     }
 
@@ -232,11 +209,12 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         try {
             $files = $this->request->getFiles()->toArray();
 
-            if (!isset($files['groups']['tmp_name']['import']['fields']['import_settings']['value'])) { //@codingStandardsIgnoreLine
+            if (!isset($files['groups']['import']['fields']['import_settings']['value']['tmp_name'])) { //@codingStandardsIgnoreLine
                 throw new \Exception('Failed uploading file');
             }
 
-            $content = file_get_contents($files['groups']['tmp_name']['import']['fields']['import_settings']['value']); //@codingStandardsIgnoreLine
+            // phpcs:ignore
+            $content = file_get_contents($files['groups']['import']['fields']['import_settings']['value']['tmp_name']); //@codingStandardsIgnoreLine
             $this->_cnf->importSettingsJson($content);
 
             $this->_messageManager->addSuccessMessage('Settings successfully imported!');

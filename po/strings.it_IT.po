@@ -638,6 +638,9 @@ msgstr "Rivolgersi al Supporto ePayments di Ingenico"
 msgid "modal.refund_failed.label3"
 msgstr "I numeri di telefono del Supporto si trovano qui"
 
+msgid "modal.refund_failed.not_refundable"
+msgstr "A payment which paid with %1 can't be refunded"
+
 msgid "modal.credentials-validation.label1"
 msgstr "Assenza credenziali dell’ambiente Live"
 
@@ -826,3 +829,12 @@ msgstr "Nell’uso di entrambe le modalità Inline e Redirect, si possono person
 
 msgid "modal.optional-customisation.label2"
 msgstr "Comunque lo stato predefinito è già completamente progettato genericamente, per consentire di iniziare ad accettare pagamenti direttamente."
+
+msgid "Pay with saved card."
+msgstr "Paga con carta salvata."
+
+msgid "Credit Cards"
+msgstr "Carte di credito"
+
+msgid "Your payment data is ready to be processed by {0}."
+msgstr "I tuoi dati di pagamento sono pronti per essere elaborati da {0}."

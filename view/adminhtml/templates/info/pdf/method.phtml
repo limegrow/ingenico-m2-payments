@@ -1,0 +1,15 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Info\Method
+ */
+?>
+<?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
+{{pdf_row_separator}}
+<?php $specificInfo = $block->getSpecificInformation(); ?>
+<?php if (count($specificInfo) > 0): ?>
+    <?php foreach($specificInfo as $_label => $_value): ?>
+        <?php echo __($block->escapeHtml($_label)) . ': ' . $block->escapeHtml($_value); ?>
+        {{pdf_row_separator}}
+    <?php endforeach; ?>
+<?php endif; ?>

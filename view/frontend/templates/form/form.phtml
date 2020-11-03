@@ -1,33 +1,13 @@
 <?php
 // @codingStandardsIgnoreFile
 /**
- * @var $block \Ingenico\Payment\Block\Form
+ * @var $block \Ingenico\Payment\Block\Form\Method
  */
 $code = $block->escapeHtml($block->getMethodCode());
 ?>
 
 <div id="payment_form_<?php echo $block->escapeHtml($code); ?>" class="<?php echo $block->escapeHtml($code); ?>">
     <fieldset class="fieldset payment items payment-method <?php echo $block->escapeHtml($code); ?>" id="payment_form_<?php echo $block->escapeHtml($code); ?>" style="display: none;">
-        <div class="saved-cards">
-        <?php $cards = $block->getSavedCards(); ?>
-        <?php foreach ($cards as $card): ?>
-            <div class="card">
-                <label class="label">
-                    <input type="radio" name="payment[alias]" class="radio"
-                           id="<?php echo $block->escapeHtml($card->code); ?>"
-                           value="<?php echo $block->escapeHtml($card->code); ?>"
-                        <?php echo $card->isChecked ? 'checked' : '' ?>
-                    />
 
-                    <img src="<?php echo $block->escapeHtml($card->imgSrc); ?>"
-                         title="<?php echo $block->escapeHtml($card->brand); ?>"
-                         alt="<?php echo $block->escapeHtml($card->brand); ?>"
-                         style="<?php echo !$card->imgSrc ? 'display: none' : '' ?> height:16px; margin-right:8px;" />
-
-                    <span><?php echo $block->escapeHtml($card->title); ?></span>
-                </label>
-            </div>
-        <?php endforeach; ?>
-        </div>
     </fieldset>
 </div>

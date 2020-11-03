@@ -638,6 +638,9 @@ msgstr "Neem contact op met de ondersteuningsdienst van Ingenico ePayments"
 msgid "modal.refund_failed.label3"
 msgstr "U vindt de telefoonnummers voor ondersteuning hier"
 
+msgid "modal.refund_failed.not_refundable"
+msgstr "A payment which paid with %1 can't be refunded"
+
 msgid "modal.credentials-validation.label1"
 msgstr "Ontbrekende toegangsgegevens Live-omgeving"
 

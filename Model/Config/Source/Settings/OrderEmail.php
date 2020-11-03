@@ -4,6 +4,10 @@ namespace Ingenico\Payment\Model\Config\Source\Settings;
 
 class OrderEmail implements \Magento\Framework\Option\ArrayInterface
 {
+    const STATUS_ENABLED = 0;
+    const STATUS_DISABLED = 1;
+    const STATUS_ONCHANGE = 3;
+
     public function toOptionArray()
     {
         $out = [];

@@ -2,14 +2,24 @@
 
 namespace Ingenico\Payment\Model;
 
+use IngenicoClient\Data;
+use IngenicoClient\Exception;
+use Magento\Framework\App\ActionFlag;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Framework\App\ResponseFactory;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use IngenicoClient\Connector as AbstractConnector;
 use IngenicoClient\IngenicoCoreLibrary;
 use IngenicoClient\OrderItem;
 use IngenicoClient\OrderField;
+use IngenicoClient\PaymentMethod\PaymentMethod;
+use Magento\Framework\Exception\LocalizedException;
 
 class Connector extends AbstractConnector implements \IngenicoClient\ConnectorInterface
 {
+    const REGISTRY_KEY_TEMPLATE_VARS_OPENINVOICE = 'ingenico_payment_openinvoice_template_vars';
     const REGISTRY_KEY_TEMPLATE_VARS_INLINE = 'ingenico_payment_inline_template_vars';
     const REGISTRY_KEY_TEMPLATE_VARS_REDIRECT = 'ingenico_payment_redirect_template_vars';
     const REGISTRY_KEY_TEMPLATE_VARS_ALIAS = 'ingenico_payment_alias_template_vars';
@@ -51,6 +61,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     protected $_backendUrlBuilder;
     protected $_checkoutSession;
     protected $_cart;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
     protected $_customerSession;
     protected $_processor;
     protected $_transactionFactory;
@@ -73,6 +87,56 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * @var \Magento\Sales\Model\OrderFactory
      */
     protected $orderFactory;
+
+    /**
+     * @var \Magento\Quote\Model\ResourceModel\Quote\CollectionFactory
+     */
+    protected $quoteCollectionFactory;
+
+    /**
+     * @var \Magento\Quote\Model\QuoteRepository
+     */
+    protected $quoteRepository;
+
+    /**
+     * @var \Magento\Quote\Api\CartManagementInterface
+     */
+    protected $quoteManagement;
+
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Framework\App\ProductMetadata
+     */
+    private $productMetadata;
+
+    /**
+     * @var \Magento\Framework\Filesystem\Driver\File
+     */
+    private $fileDriver;
+
+    /**
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    private $json;
+
+    /**
+     * @var ResponseFactory
+     */
+    private $responseFactory;
+
+    /**
+     * @var ActionFlag
+     */
+    protected $actionFlag;
+
+    /**
+     * @var RedirectInterface
+     */
+    protected $redirect;
 
     protected $_orderId = null;
     protected $_customerId = null;
@@ -105,7 +169,17 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         \Magento\Store\Model\App\Emulation $appEmulation,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
-        \Magento\Sales\Model\OrderFactory $orderFactory
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Quote\Model\ResourceModel\Quote\CollectionFactory $quoteCollectionFactory,
+        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
+        \Magento\Framework\App\Request\Http $request,
+        \Magento\Framework\App\ProductMetadata $productMetadata,
+        \Magento\Framework\Filesystem\Driver\File $fileDriver,
+        \Magento\Framework\Serialize\Serializer\Json $json,
+        ResponseFactory $responseFactory,
+        ActionFlag $actionFlag,
+        RedirectInterface $redirect
     ) {
         $this->_logger = $logger;
         $this->_cnf = $cnf;
@@ -135,6 +209,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $this->_messageManager = $messageManager;
         $this->_orderCollectionFactory = $orderCollectionFactory;
         $this->orderFactory = $orderFactory;
+        $this->quoteCollectionFactory = $quoteCollectionFactory;
+        $this->quoteRepository = $quoteRepository;
+        $this->quoteManagement = $quoteManagement;
+        $this->request = $request;
+        $this->productMetadata = $productMetadata;
+        $this->fileDriver = $fileDriver;
+        $this->json = $json;
+        $this->responseFactory = $responseFactory;
+        $this->actionFlag = $actionFlag;
+        $this->redirect = $redirect;
 
         $this->_processor->setConnector($this);
         $this->_coreLibrary = new \IngenicoClient\IngenicoCoreLibrary($this);
@@ -154,11 +238,26 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function getStoreId()
     {
         if ($orderId = $this->requestOrderId()) {
-            $order = $this->_processor->getOrderByIncrementId($orderId);
-            return $order->getStoreId();
+            if ($this->isOrderCreated($orderId)) {
+                $order = $this->_processor->getOrderByIncrementId($orderId);
+                return $order->getStoreId();
+            } else {
+                return $this->getStoreIdBeforePlaceOrder();
+            }
         }
 
         return $this->_storeManager->getStore()->getId();
+    }
+
+    public function getStoreIdBeforePlaceOrder()
+    {
+        if ($this->request->getFullActionName() !== 'checkout_index_index') {
+            return false;
+        }
+
+        $this->reserveOrderId();
+
+        return $this->_checkoutSession->getQuote()->getStoreId();
     }
 
     public function getUrl($path, $params = [])
@@ -181,7 +280,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestShoppingCartExtensionId()
     {
-        return 'MG2V200';
+        $composerData = $this->json->unserialize(
+            $this->fileDriver->fileGetContents(__DIR__ . '../../composer.json')
+        );
+
+        return sprintf(
+            'MG%sV%s',
+            str_replace('.', '', $this->productMetadata->getVersion()),
+            str_replace('.', '', $composerData['version'])
+        );
     }
 
     /**
@@ -316,6 +423,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 $order = $this->_processor->getOrderByIncrementId($orderId);
                 if ($orderCustomerId = $order->getCustomerId()) {
                     $this->_customerId = $orderCustomerId;
+                } else {
+                    $this->_customerId = 0;
                 }
             } elseif ($sessCustomerId = $this->_customerSession->getId()) {
                 $this->_customerId = $sessCustomerId;
@@ -373,7 +482,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
      * Depending on the payment mode (Inline vs. Redirect) CL will initiate the right processes and render the corresponding GUI.
      *
+     * @deprecated
+     * @param mixed|null  $aliasId
+     * @param bool $forceAliasSave
+     *
      * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function processPayment($aliasId = null, $forceAliasSave = false)
     {
@@ -381,6 +495,67 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         try {
             $this->_coreLibrary->processPayment($orderId, $aliasId, $forceAliasSave);
+            // @see self::showPaymentListRedirectTemplate()
+            // @see self::showPaymentListInlineTemplate()
+        } catch (\IngenicoClient\Exception $e) {
+            // Show Error Page
+            $this->setOrderErrorPage($e->getMessage());
+        }
+    }
+
+    /**
+     * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
+     * @param mixed|null $aliasId
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function processPaymentRedirect($aliasId)
+    {
+        $orderId = $this->requestOrderId();
+
+        try {
+            $this->_coreLibrary->processPaymentRedirect($orderId, $aliasId);
+            // @see self::showPaymentListRedirectTemplate()
+        } catch (\IngenicoClient\Exception $e) {
+            // Show Error Page
+            $this->setOrderErrorPage($e->getMessage());
+        }
+    }
+
+    /**
+     * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
+     * @param mixed|null $aliasId
+     * @param string $paymentMethod
+     * @param string $brand
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function processPaymentRedirectSpecified($aliasId, $paymentMethod, $brand)
+    {
+        $orderId = $this->requestOrderId();
+
+        try {
+            $this->_coreLibrary->processPaymentRedirectSpecified($orderId, $aliasId, $paymentMethod, $brand);
+            // @see self::showPaymentListRedirectTemplate()
+        } catch (\IngenicoClient\Exception $e) {
+            // Show Error Page
+            $this->setOrderErrorPage($e->getMessage());
+        }
+    }
+
+    /**
+     * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
+     * @param mixed|null $aliasId
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function processPaymentInline($aliasId = null)
+    {
+        $orderId = $this->requestOrderId();
+
+        try {
+            $this->_coreLibrary->processPaymentInline($orderId, $aliasId);
+            // @see self::showPaymentListInlineTemplate()
         } catch (\IngenicoClient\Exception $e) {
             // Show Error Page
             $this->setOrderErrorPage($e->getMessage());
@@ -391,7 +566,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Matches Ingenico payment statuses to the platform's order statuses.
      *
      * @param mixed $orderId
-     * @param object $paymentResult
+     * @param \IngenicoClient\Payment $paymentResult
      * @param string|null $message
      * @return void
      */
@@ -540,15 +715,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $taxPercent = (int) $item->getTaxPercent();
 
             $items[] = [
-                'type' => OrderItem::TYPE_PRODUCT,
-                'id' => $item->getSku(),
-                'name' => $item->getName(),
-                'description' => $item->getName(),
-                'unit_price' => round($item->getRowTotalInclTax() / $item->getQtyOrdered(), 2),
-                'qty' => $item->getQtyOrdered(),
-                'unit_vat' => round(($item->getRowTotalInclTax() - $item->getRowTotal()) / $item->getQtyOrdered(), 2),
-                'vat_percent' => $taxPercent,
-                'vat_included' => 1 // VAT included
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_PRODUCT,
+                OrderItem::ITEM_ID => $item->getSku(),
+                OrderItem::ITEM_NAME => $item->getName(),
+                OrderItem::ITEM_DESCRIPTION => $item->getName(),
+                OrderItem::ITEM_UNIT_PRICE => round($item->getRowTotalInclTax() / $item->getQtyOrdered(), 2),
+                OrderItem::ITEM_QTY => $item->getQtyOrdered(),
+                OrderItem::ITEM_UNIT_VAT => round(($item->getRowTotalInclTax() - $item->getRowTotal()) / $item->getQtyOrdered(), 2),
+                OrderItem::ITEM_VATCODE => $taxPercent,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
@@ -557,6 +732,157 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $taxPercent = 0;
 
             $totalDiscount = $order->getData('discount_amount') + $order->getData('shipping_discount_amount');
+
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'discount',
+                OrderItem::ITEM_NAME => 'Discount',
+                OrderItem::ITEM_DESCRIPTION => 'Discount',
+                OrderItem::ITEM_UNIT_PRICE => -1 * $totalDiscount,
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add Shipping Order Line
+        $shippingIncTax = 0;
+        $shippingTax = 0;
+        $shippingTaxRate = 0;
+        if (!$order->getIsVirtual()) {
+            $shippingExclTax = $order->getShippingAmount();
+            $shippingIncTax = $order->getShippingInclTax();
+            $shippingTax = $shippingIncTax - $shippingExclTax;
+
+            // find out tax-rate for the shipping
+            if ((float) $shippingIncTax && (float) $shippingExclTax) {
+                $shippingTaxRate = (($shippingIncTax / $shippingExclTax) - 1) * 100;
+            } else {
+                $shippingTaxRate = 0;
+            }
+
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_SHIPPING,
+                OrderItem::ITEM_ID => 'shipping',
+                OrderItem::ITEM_NAME => $order->getShippingDescription(),
+                OrderItem::ITEM_DESCRIPTION => $order->getShippingDescription(),
+                OrderItem::ITEM_UNIT_PRICE => $shippingIncTax,
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => $shippingTax,
+                OrderItem::ITEM_VATCODE => round($shippingTaxRate),
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        return [
+            OrderField::ORDER_ID => $this->requestOrderId(),
+            OrderField::PAY_ID => $this->getIngenicoPayIdByOrderId($this->requestOrderId()),
+            OrderField::AMOUNT => $totalAmount,
+            OrderField::TOTAL_CAPTURED => $capturedAmount,
+            OrderField::TOTAL_REFUNDED => $refundedAmount,
+            OrderField::TOTAL_CANCELLED => $cancelledAmount,
+            OrderField::CURRENCY => $order->getOrderCurrencyCode(),
+            OrderField::STATUS => $status,
+            OrderField::CREATED_AT => date('Y-m-d H:i:s', strtotime($order->getData('created_at'))), // Y-m-d H:i:s
+            OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
+            OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
+            OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
+            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : '.',
+            OrderField::BILLING_ADDRESS3 => null,
+            OrderField::BILLING_CITY => $billingAddress->getCity(),
+            OrderField::BILLING_STATE => $billingAddress->getRegionId(),
+            OrderField::BILLING_POSTCODE => $billingAddress->getPostcode(),
+            OrderField::BILLING_PHONE => $billingAddress->getTelephone(),
+            OrderField::BILLING_EMAIL => $order->getData('customer_email'),
+            OrderField::BILLING_FIRST_NAME => $billingAddress->getFirstname(),
+            OrderField::BILLING_LAST_NAME => $billingAddress->getLastname(),
+            OrderField::IS_SHIPPING_SAME => false,
+            OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
+            OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
+            OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
+            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : '.',
+            OrderField::SHIPPING_ADDRESS3 => null,
+            OrderField::SHIPPING_CITY => $shippingAddress->getCity(),
+            OrderField::SHIPPING_STATE => $shippingAddress->getRegionId(),
+            OrderField::SHIPPING_POSTCODE => $shippingAddress->getPostcode(),
+            OrderField::SHIPPING_PHONE => $shippingAddress->getTelephone(),
+            OrderField::SHIPPING_EMAIL => $order->getData('customer_email'),
+            OrderField::SHIPPING_FIRST_NAME => $shippingAddress->getFirstname(),
+            OrderField::SHIPPING_LAST_NAME => $shippingAddress->getLastname(),
+            OrderField::CUSTOMER_ID => (int) $customerId,
+            OrderField::CUSTOMER_IP => $order->getData('remote_ip'),
+            OrderField::CUSTOMER_DOB => null, //null or timestamp
+            OrderField::ITEMS => $items,
+            OrderField::LOCALE => $this->getLocale($orderId),
+            OrderField::SHIPPING_METHOD => $order->getShippingDescription(),
+            OrderField::SHIPPING_AMOUNT => $shippingIncTax,
+            OrderField::SHIPPING_TAX_AMOUNT => $shippingTax,
+            OrderField::SHIPPING_TAX_CODE => round($shippingTaxRate),
+            OrderField::COMPANY_NAME => $billingAddress->getCompany(),
+            OrderField::COMPANY_VAT => null,
+            OrderField::CHECKOUT_TYPE => \IngenicoClient\Checkout::TYPE_B2C,
+            OrderField::BILLING_FAX => $billingAddress->getFax(),
+            OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
+            OrderField::SHIPPING_COMPANY => $order->getData('shipping_description'),
+            OrderField::CUSTOMER_CIVILITY => null,
+            OrderField::CUSTOMER_GENDER => null
+        ];
+    }
+
+    /**
+     * Same As requestOrderInfo()
+     * But Order Object Cannot Be Used To Fetch The Required Info
+     *
+     * @param mixed $reservedOrderId
+     * @return array
+     */
+    public function requestOrderInfoBeforePlaceOrder($reservedOrderId)
+    {
+        $quote = $this->_checkoutSession->getQuote();
+
+        $status = $this->_coreLibrary::STATUS_UNKNOWN;
+
+        $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
+        if (!$shippingAddress) {
+            $shippingAddress = $billingAddress;
+        }
+        $customerId = 0;
+        if ($quote->getCustomerId()) {
+            $customerId = $quote->getCustomerId();
+        }
+
+        // Calculate refunded, cancelled, and captured totals
+        $totalAmount = round($quote->getGrandTotal(), 2);
+        $refundedAmount = 0.00;
+        $cancelledAmount = 0.00;
+        $capturedAmount = 0.00;
+
+        // Get quote items
+        $items = [];
+        foreach ($quote->getAllVisibleItems() as $item) {
+            /** @var \Magento\Quote\Model\Quote\Item $item */
+            $taxPercent = (int) $item->getTaxPercent();
+
+            $items[] = [
+                'type' => OrderItem::TYPE_PRODUCT,
+                'id' => $item->getSku(),
+                'name' => $item->getName(),
+                'description' => $item->getName(),
+                'unit_price' => round($item->getRowTotalInclTax() / $item->getQty(), 2),
+                'qty' => $item->getQtyOrdered(),
+                'unit_vat' => round(($item->getRowTotalInclTax() - $item->getRowTotal()) / $item->getQty(), 2),
+                'vat_percent' => $taxPercent,
+                'vat_included' => 1 // VAT included
+            ];
+        }
+
+        // Add Discount Order line
+        if ((float)$quote->getData('discount_amount') > 0 || (float)$quote->getData('shipping_discount_amount') > 0) {
+            $taxPercent = 0;
+
+            $totalDiscount = $quote->getData('discount_amount') + $quote->getData('shipping_discount_amount');
 
             $items[] = [
                 'type' => OrderItem::TYPE_DISCOUNT,
@@ -571,10 +897,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             ];
         }
 
-        // Add Shipping Order Line
-        if (!$order->getIsVirtual()) {
-            $shippingExclTax = $order->getShippingAmount();
-            $shippingIncTax = $order->getShippingInclTax();
+        // Add Shipping Quote Line
+        if (!$quote->getIsVirtual()) {
+            $shippingExclTax = $shippingAddress->getShippingAmount();
+            $shippingIncTax = $shippingAddress->getShippingInclTax();
             $shippingTax = $shippingIncTax - $shippingExclTax;
 
             // find out tax-rate for the shipping
@@ -587,8 +913,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $items[] = [
                 'type' => OrderItem::TYPE_SHIPPING,
                 'id' => 'shipping',
-                'name' => $order->getShippingDescription(),
-                'description' => $order->getShippingDescription(),
+                'name' => $shippingAddress->getShippingDescription(),
+                'description' => $shippingAddress->getShippingDescription(),
                 'unit_price' => $shippingIncTax,
                 'qty' => 1,
                 'unit_vat' => $shippingTax,
@@ -598,16 +924,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         }
 
         return [
-            self::PARAM_NAME_ORDER_ID => $this->requestOrderId(),
-            self::PARAM_NAME_PAY_ID => $this->getIngenicoPayIdByOrderId($this->requestOrderId()),
+            self::PARAM_NAME_ORDER_ID => $reservedOrderId,
+            self::PARAM_NAME_PAY_ID => $this->getIngenicoPayIdByOrderId($reservedOrderId),
             'amount' => $totalAmount,
             'total_captured' => $capturedAmount,
             'total_refunded' => $refundedAmount,
             'total_cancelled' => $cancelledAmount,
-            'currency' => $order->getData('order_currency_code'),
+            'currency' => $quote->getQuoteCurrencyCode(),
             'customer_id' => (int) $customerId,
             'status' => $status,
-            'created_at' => date('Y-m-d H:i:s', strtotime($order->getData('created_at'))), // Y-m-d H:i:s
+            'created_at' => date('Y-m-d H:i:s', strtotime($quote->getCreatedAt())), // Y-m-d H:i:s
             'billing_country' => $billingAddress->getCountryId(),
             'billing_country_code' => $billingAddress->getCountryId(),
             'billing_address1' => $billingAddress->getStreet()[0],
@@ -617,7 +943,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             'billing_state' => $billingAddress->getRegionId(),
             'billing_postcode' => $billingAddress->getPostcode(),
             'billing_phone' => $billingAddress->getTelephone(),
-            'billing_email' => $order->getData('customer_email'),
+            'billing_email' => $billingAddress->getEmail(),
             'billing_first_name' => $billingAddress->getFirstname(),
             'billing_last_name' => $billingAddress->getLastname(),
             'is_shipping_same' => false,
@@ -630,20 +956,20 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             'shipping_state' => $shippingAddress->getRegionId(),
             'shipping_postcode' => $shippingAddress->getPostcode(),
             'shipping_phone' => $shippingAddress->getTelephone(),
-            'shipping_email' => $order->getData('customer_email'),
+            'shipping_email' => $billingAddress->getEmail(),
             'shipping_first_name' => $shippingAddress->getFirstname(),
             'shipping_last_name' => $shippingAddress->getLastname(),
-            'shipping_company' => $order->getData('shipping_description'),
-            'shipping_method' => $order->getData('shipping_description'),
-            'shipping_amount' => $order->getData('shipping_amount'),
-            'shipping_tax_amount' => $order->getData('shipping_tax_amount'),
+            'shipping_company' => $shippingAddress->getShippingDescription(),
+            'shipping_method' => $shippingAddress->getShippingDescription(),
+            'shipping_amount' => $shippingAddress->getShippingAmount(),
+            'shipping_tax_amount' => $shippingAddress->getShippingTaxAmount(),
             'shipping_tax_code' => 0,
             'shipping_fax' => '-',
-            'customer_ip' => $order->getData('remote_ip'),
+            'customer_ip' => $quote->getRemoteIp(),
             'customer_dob' => null,
             'customer_civility' => '',
             'items' => $items,
-            'locale' => $this->getLocale($orderId)
+            'locale' => $this->getLocale()
         ];
     }
 
@@ -687,6 +1013,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * @param string $subject
      * @param array $attachedFiles Array like [['name' => 'attached.txt', 'mime' => 'plain/text', 'content' => 'Body']]
      * @return bool|int
+     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     public function sendMail(
         $template,
@@ -727,31 +1054,64 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 ->setFrom($sender)
                 ->addTo($to)
                 ;
-            
+
             $transport = $transport->getTransport();
-            
+
             if (count($attachedFiles)) {
-                $parts = $transport->getMessage()->getBody()->getParts();
-                foreach ($attachedFiles as $attachedFile) {
-                    $parts[] = (new \Zend\Mime\Part())
-                        ->setContent($attachedFile['content'])
-                        ->setType($attachedFile['mime'])
-                        ->setFileName($attachedFile['name'])
-                        ->setDisposition(\Zend\Mime\Mime::DISPOSITION_ATTACHMENT)
-                        ->setEncoding(\Zend\Mime\Mime::ENCODING_BASE64)
+                $message = $transport->getMessage();
+
+                // Check if $message has setBody method
+                if (method_exists($message, 'setBody')) {
+                    $parts = $message->getBody()->getParts();
+                    foreach ($attachedFiles as $attachedFile) {
+                        $parts[] = (new \Zend\Mime\Part())
+                            ->setContent($attachedFile['content'])
+                            ->setType($attachedFile['mime'])
+                            ->setFileName($attachedFile['name'])
+                            ->setDisposition(\Zend\Mime\Mime::DISPOSITION_ATTACHMENT)
+                            ->setEncoding(\Zend\Mime\Mime::ENCODING_BASE64)
                         ;
+                    }
+
+                    $mimeMessage = (new \Zend\Mime\Message())->setParts($parts);
+                    $message->setBody($mimeMessage);
+                } else {
+                    // Magento 2.3.3 release introduces a new, immutable EmailMessageInterface
+                    // that supports the sending of multi-part MIME-type content in email.
+                    // The Magento\Framework\Mail\Template\TransportBuilder
+                    // structures were refactored to use this new EmailMessageInterface instead of MessageInterface,
+                    // which was previously used.
+                    $transportBuilder = ObjectManager::getInstance()->create(\Ingenico\Payment\Model\Email\Template\TransportBuilder::class);
+                    $transport = $transportBuilder
+                        ->setTemplateIdentifier($this->getEmailTemplate())
+                        ->setTemplateOptions([
+                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                            'store' => $this->getStoreId(),
+                        ])
+                        ->setTemplateVars(['data' => $emailData])
+                        ->setFrom($sender)
+                        ->addTo($to)
+                    ;
+
+                    // add attachments to email
+                    foreach ($attachedFiles as $attachedFile) {
+                        /** @var \Ingenico\Payment\Model\Email\Template\TransportBuilder $transport */
+                        $transport->addAttachment($attachedFile['content'], $attachedFile['name'], $attachedFile['mime']);
+                    }
+
+                    $transport = $transport->getTransport();
                 }
-                $mimeMessage = (new \Zend\Mime\Message())->setParts($parts);
-                $transport->getMessage()->setBody($mimeMessage);
             }
-            
+
             $transport->sendMessage();
             $this->_inlineTranslation->resume();
+
             return true;
 
         } catch (\Exception $e) {
             $this->log($e->getMessage(), 'crit');
         }
+
         return false;
     }
 
@@ -906,11 +1266,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $order = $this->_processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
-        
+
         if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
             return null;
         }
-        
+
         $recipient = $this->_cnf->getPaymentAuthorisationNotificationEmail();
         if (!$recipient) {
             $recipient = $this->_cnf->getValue('trans_email/ident_general/email', self::CNF_SCOPE);
@@ -1119,8 +1479,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         // Send E-mail
         return $this->getCoreLibrary()->sendMailSupport(
-            'support@ecom.ingenico.com',
-            'Ingenico Support',
+            $this->getCoreLibrary()->getWhiteLabelsData()->getSupportEmail(),
+            $this->getCoreLibrary()->getWhiteLabelsData()->getSupportName(),
             $email,
             $this->_cnf->getStoreName(),
             $subject,
@@ -1184,7 +1544,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         } catch (\Exception $e) {
             $this->_logger->crit('Failed saving payment transaction: ' . $e->getMessage());
         }
-        
+
         // process Magento Transaction if needed
         $transactionStatus = $this->_coreLibrary->getStatusByCode($data->getStatus());
         $transactionTypeMap = [
@@ -1193,21 +1553,21 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->_coreLibrary::STATUS_CANCELLED => Transaction::TYPE_VOID,
             $this->_coreLibrary::STATUS_REFUNDED => Transaction::TYPE_REFUND
         ];
-        
+
         // only create relevant Magento Transactions
         if (isset($transactionTypeMap[$transactionStatus])) {
-            
+
             $trxType = $transactionTypeMap[$transactionStatus];
-            
+
             /** @var \Magento\Sales\Model\Order $order */
             $order = $this->orderFactory->create()->loadByIncrementId($orderId);
             if (!$order->getId()) {
                 throw new \Exception('Order doesn\'t exists in store');
             }
-            
+
             // Register Magento Transaction
             $order->getPayment()->setTransactionId($data->getPayId() . '-' . $data->getPayIdSub());
-            
+
             /** @var \Magento\Sales\Model\Order\Payment\Transaction $transaction */
             $transaction = $order->getPayment()->addTransaction($trxType, null, true);
             $transaction
@@ -1328,7 +1688,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
     /**
      * Saves the buyer (customer) Alias entity.
-     * Important fields that are provided by Ingenico: ALIAS, BRAND, CARDNO, BIN, PM, ED.
+     * Important fields that are provided by Ingenico: ALIAS, BRAND, CARDNO, BIN, PM, ED, CN.
      *
      * @param int $customerId
      * @param array $data
@@ -1337,17 +1697,35 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function saveAlias($customerId, array $data)
     {
         $data['customer_id'] = $customerId;
-        foreach ($data as $key => $val) {
-            $newKey = strtolower($key);
-            unset($data[$key]);
-            $data[$newKey] = $val;
-        }
-        $alias = $this->_aliasFactory->create()->load($data[self::PARAM_NAME_ALIAS], self::PARAM_NAME_ALIAS);
+        $data = array_change_key_case($data, CASE_LOWER);
+
+        $collection = $this->_aliasCollectionFactory
+            ->create()
+            ->addFieldToSelect('*')
+            ->addFieldToFilter('alias', $data['alias']);
+
         try {
-            $alias->addData($data)->save();
+            if ($collection->getSize() > 0) {
+                // Update
+                /** @var \Ingenico\Payment\Model\Alias $trx */
+                $alias = $collection->getFirstItem();
+                $alias->setUpdatedAt(date('Y-m-d H:i:s', time()))
+                    ->addData($data)
+                    ->save();
+            } else {
+                $trx = $this->_aliasFactory->create();
+                $trx->setCreatedAt(date('Y-m-d H:i:s', time()))
+                    ->setUpdatedAt(date('Y-m-d H:i:s', time()))
+                    ->addData($data)
+                    ->save();
+            }
         } catch (\Exception $e) {
-            $this->_logger->crit('Failed saving alias: '.$e->getMessage());
+            $this->_logger->crit('Failed saving alias: ' . $e->getMessage());
+
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -1393,7 +1771,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
             $this->restoreShoppingCart();
-            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID]);
+            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
         }
     }
@@ -1455,13 +1833,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
             $this->restoreShoppingCart();
-            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID]);
+            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
         }
+
         $message = 'ingenico.exception.message4';
         if (isset($fields[self::PARAM_NAME_MESSAGE]) && $fields[self::PARAM_NAME_MESSAGE] !== '') {
             $message = $fields[self::PARAM_NAME_MESSAGE];
         }
+
         throw new \Magento\Framework\Exception\LocalizedException(__($message));
     }
 
@@ -1666,6 +2046,46 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     }
 
     /**
+     * Check whether an order with given ID is created in Magento
+     *
+     * @param $orderId
+     * @return bool
+     */
+    public function isOrderCreated($orderId)
+    {
+        try {
+            return (bool) $this->orderFactory->create()->loadByIncrementId($orderId)->getId();
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves iFrame URL.
+     *
+     * @param $reservedOrderId
+     * @return string
+     */
+    public function getCcIframeUrlBeforePlaceOrder()
+    {
+        if ($this->request->getFullActionName() !== 'checkout_index_index') {
+            return false;
+        }
+
+        $this->reserveOrderId();
+
+        return $this->_coreLibrary->getCcIFrameUrlBeforePlaceOrder($this->_checkoutSession->getQuote()->getReservedOrderId());
+    }
+
+    private function reserveOrderId()
+    {
+        if ($this->_checkoutSession->getQuote()->getReservedOrderId() === null || $this->isOrderCreated($this->_checkoutSession->getQuote()->getReservedOrderId())) {
+            $quote = $this->_checkoutSession->getQuote()->reserveOrderId();
+            $this->quoteRepository->save($quote);
+        }
+    }
+
+    /**
      * Delegates cron jobs handling to the CL.
      *
      * @return void
@@ -1759,7 +2179,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      *
      * @param $request
      */
-    public function processOpenInvoiceFields(\Magento\Framework\App\Request\Http $request)
+    public function processOpenInvoiceFields(\Magento\Framework\App\RequestInterface $request)
     {
         // Build Alias with PaymentMethod and Brand
         /** @var \IngenicoClient\Alias $alias */
@@ -1770,7 +2190,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             ->setPaymentId($request->getParam('payment_id', null))
             ;
 
-        return $this->processOpenInvoicePayment($this->requestOrderId(), $alias, $request->getParams());
+        $this->processOpenInvoicePayment($this->requestOrderId(), $alias, $request->getParams());
     }
 
     /**
@@ -1783,6 +2203,13 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function processOpenInvoicePayment($orderId, \IngenicoClient\Alias $alias, array $fields = [])
     {
+        // @see Connector::showPaymentListRedirectTemplate()
+        // @see Connector::clarifyOpenInvoiceAdditionalFields()
+
+        if (isset($fields['customer_dob'])) {
+            $fields['customer_dob'] = strtotime($fields['customer_dob']);
+        }
+
         $this->_coreLibrary->initiateOpenInvoicePayment($orderId, $alias, $fields);
     }
 
@@ -1812,7 +2239,24 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function clarifyOpenInvoiceAdditionalFields($orderId, \IngenicoClient\Alias $alias, array $fields)
     {
-        return $this->processPayment();
+        $this->log(sprintf('%s %s', __METHOD__, var_export($fields, true)), 'debug');
+
+        foreach ($fields as $field) {
+            /** @var \IngenicoClient\OrderField $field */
+            if (!$field->getIsValid()) {
+                $this->_messageManager->addErrorMessage(__($field->getValidationMessage()));
+            }
+        }
+
+        // Redirect
+        $this->actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
+        $response = $this->responseFactory
+            ->create()
+            ->setHttpResponseCode(301)
+            ->setRedirect($this->getUrl('ingenico/payment/inline'))
+            ->sendResponse();
+
+        $this->redirect->redirect($response, $this->getUrl('ingenico/payment/inline'));
     }
 
     /**
@@ -1822,9 +2266,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getSessionValues()
     {
-        if ($fields = $this->_checkoutSession->getData(self::PARAM_NAME_OPEN_INVOICE_FIELDS)) {
+        if ($fields = $this->_customerSession->getCoreSessionStorage()) {
             return $fields;
         }
+
         return [];
     }
 
@@ -1851,7 +2296,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $fields = $this->getSessionValues();
         $fields[$key] = $value;
-        $this->_checkoutSession->setData(self::PARAM_NAME_OPEN_INVOICE_FIELDS, $fields);
+        $this->_customerSession->setCoreSessionStorage($fields);
     }
 
     /**
@@ -1864,7 +2309,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $fields = $this->getSessionValues();
         unset($fields[$key]);
-        $this->_checkoutSession->setData(self::PARAM_NAME_OPEN_INVOICE_FIELDS, $fields);
+        $this->_customerSession->setCoreSessionStorage($fields);
     }
 
     /**
@@ -1914,5 +2359,44 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         }
 
         $this->_logger->$mode($str);
+    }
+
+    /**
+     * Get "Redirect" Payment Request with specified PaymentMethod and Brand.
+     * @see \IngenicoClient\PaymentMethod\PaymentMethod
+     *
+     * @param mixed|null $aliasId
+     * @param string $paymentMethod
+     * @param string $brand
+     * @param string|null $paymentId
+     *
+     * @return Data Data with url and fields keys
+     * @throws Exception
+     */
+    public function getSpecifiedRedirectPaymentRequest($aliasId, $paymentMethod, $brand, $paymentId = null)
+    {
+        $orderId = $this->requestOrderId();
+
+        if (!$paymentMethod || !$brand) {
+            throw new LocalizedException(__('ingenico.exception.message1'));
+        }
+
+        return $this->getCoreLibrary()->getSpecifiedRedirectPaymentRequest(
+            $orderId,
+            $aliasId,
+            $paymentMethod,
+            $brand,
+            $paymentId
+        );
+    }
+
+    /**
+     * Get Platform Environment.
+     *
+     * @return string
+     */
+    public function getPlatformEnvironment()
+    {
+        return \IngenicoClient\IngenicoCoreLibrary::PLATFORM_INGENICO;
     }
 }

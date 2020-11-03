@@ -1,0 +1,10 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Info\Method
+ */
+?>
+
+<dl class="payment-method <?php echo $block->escapeHtml($block->getMethod()->getCode()) ?>">
+    <?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?><br/>
+</dl>

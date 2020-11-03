@@ -250,3 +250,6 @@ msgstr "Order status (for AUTHORIZATION)"
 
 msgid "ingenico.settings.label27"
 msgstr "Order status (for SALE)"
+
+msgid "%1 ends with %2, expires on %3/%4"
+msgstr "%1 ends with %2, expires on %3/%4"

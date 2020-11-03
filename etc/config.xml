@@ -4,17 +4,156 @@
 	<default>
     	<payment>
             <ingenico_e_payments>
-                <active>0</active>
+                <active>1</active>
                 <model>Ingenico\Payment\Model\Method\Ingenico</model>
                 <payment_action>authorize_capture</payment_action>
-                <title_mode>logos</title_mode>
                 <title>Ingenico ePayments</title>
-                <order_status>pending</order_status>
-                <supress_order_email>1</supress_order_email>
                 <order_confirmation_email>0</order_confirmation_email>
-                <order_status>processing</order_status>
                 <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
             </ingenico_e_payments>
+            <ingenico_alias>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Alias</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Pay with saved card.</title>
+            </ingenico_alias>
+            <ingenico_afterpay>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Afterpay</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Afterpay</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_afterpay>
+            <ingenico_banktransfer>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Banktransfer</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Klarna Bank transfer</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_banktransfer>
+            <ingenico_cc>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Cc</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Credit Cards</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_cc>
+            <ingenico_cb>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Cb</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Carte Bancaire</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_cb>
+            <ingenico_belfius>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Belfius</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Belfius</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_belfius>
+            <ingenico_cbc>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Cbc</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Cbc</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_cbc>
+            <ingenico_giropay>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Giropay</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Giropay</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_giropay>
+            <ingenico_ideal>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Ideal</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>iDeal</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_ideal>
+            <ingenico_ing>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Ing</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>ING Home'Pay</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_ing>
+            <ingenico_kbc>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Kbc</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Kbc</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_kbc>
+            <ingenico_klarna>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Klarna</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Klarna</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_klarna>
+            <ingenico_twint>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Twint</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Twint</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_twint>
+            <ingenico_paypal>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\PayPal</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>PayPal</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_paypal>
+            <ingenico_paysafecard>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Paysafecard</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Paysafecard</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_paysafecard>
+            <ingenico_klarna_paynow>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\KlarnaPayNow</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Klarna Pay Now</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_klarna_paynow>
+            <ingenico_klarna_paylater>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\KlarnaPayLater</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Klarna Pay Later</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_klarna_paylater>
+            <ingenico_klarna_financing>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\KlarnaFinancing</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Klarna Financing</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_klarna_financing>
     	</payment>
         <carriers>
             <ingenico_dummy>
@@ -25,6 +164,11 @@
                 <title>Shipping</title>
             </ingenico_dummy>
         </carriers>
+        <ingenico_connection>
+            <mode>
+                <mode>test</mode>
+            </mode>
+        </ingenico_connection>
         <ingenico_settings>
             <general>
                 <mode>basic</mode>
@@ -41,6 +185,11 @@
 	            <payment_reminder_email_timeout>2</payment_reminder_email_timeout>
             </orders>
         </ingenico_settings>
+        <ingenico_payment_page>
+            <presentation>
+                <mode>REDIRECT</mode>
+            </presentation>
+        </ingenico_payment_page>
         <ingenico_instalments>
 	        <general>
 		        <enabled>0</enabled>

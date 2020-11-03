@@ -110,3 +110,88 @@ button.action-display {
     padding: 0 0 0 15px;
     list-style: none;
 }
+
+/* Payment methods */
+.ingenico-method-bank-tranfer > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/bank_transfer.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-belfius > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/belfius.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-cb > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/carte_bancaire.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-cbc > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/cbc.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-cc > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/visa.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-giropay > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/giropay.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-ideal > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/ideal.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-ing > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/ing.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-kbc > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/kbc.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-paypal > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/paypal.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-paysafecard > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/paysafecard.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}
+
+.ingenico-method-twint > .entry-edit-head > .config-heading .heading strong {
+    padding-left: 90px;
+    background: url(../images/logos/twint.svg) no-repeat 0 0;
+    background-size: 82px 39px;
+    line-height: 39px;
+}

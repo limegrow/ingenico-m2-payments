@@ -4,6 +4,7 @@ namespace Ingenico\Payment\Model;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use IngenicoClient\Configuration;
 
 class Config extends \Magento\Framework\App\Config
 {
@@ -101,6 +102,40 @@ class Config extends \Magento\Framework\App\Config
         );
     }
 
+    /**
+     * Check if the extension is configured.
+     *
+     * @return bool
+     */
+    public function isExtensionConfigured()
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $mode = $this->getMode();
+
+        $settings = [
+            'user' => $user = $this->getConnectionUser($mode),
+            'password' => $this->getConnectionPassword($mode),
+            'psid' => $this->getConnectionPspid($mode),
+            'signature' => $this->getConnectionSignature($mode)
+        ];
+
+        foreach ($settings as $key => $value) {
+            if (empty($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the payment method is activate.
+     *
+     * @return bool
+     */
     public function isEnabled()
     {
         return $this->isSetFlag('payment/ingenico_e_payments/active', $this->_scope, $this->_scopeCode);
@@ -111,32 +146,39 @@ class Config extends \Magento\Framework\App\Config
         return $this->isSetFlag('ingenico_settings/general/logging_enabled', $this->_scope, $this->_scopeCode);
     }
 
-    public function getTitleMode()
-    {
-        return $this->getValue('payment/ingenico_e_payments/title_mode', $this->_scope, $this->_scopeCode);
-    }
-
-    public function isOrderConfirmationEmailSuppressed()
-    {
-        return $this->isSetFlag('payment/ingenico_e_payments/supress_order_email', $this->_scope, $this->_scopeCode);
-    }
-    
+    /**
+     * Suppress Order Confirmation Email Option.
+     *
+     * @return int
+     */
     public function getOrderConfirmationEmailMode()
     {
-        return $this->isSetFlag('payment/ingenico_e_payments/supress_order_email', $this->_scope, $this->_scopeCode);
+        return (int) $this->getValue(
+            'payment/ingenico_e_payments/order_confirmation_email',
+            $this->_scope,
+            $this->_scopeCode
+        );
     }
-    
+
     public function getOrderStatusForConfirmationEmail()
     {
         return $this->getValue('payment/ingenico_e_payments/order_status', $this->_scope, $this->_scopeCode);
     }
 
+    /**
+     * Get Gateway mode.
+     *
+     * @param bool $asBool
+     *
+     * @return string|bool
+     */
     public function getMode($asBool = false)
     {
         if ($asBool) {
-            return $this->getValue(self::CONFIG_CONNECTION_KEY.'mode/mode', $this->_scope, $this->_scopeCode) == 'test' ? false : true;
+            return $this->getValue(self::CONFIG_CONNECTION_KEY . 'mode/mode', $this->_scope, $this->_scopeCode) === 'test' ? false : true;
         }
-        return $this->getValue(self::CONFIG_CONNECTION_KEY.'mode/mode', $this->_scope, $this->_scopeCode);
+
+        return $this->getValue(self::CONFIG_CONNECTION_KEY . 'mode/mode', $this->_scope, $this->_scopeCode);
     }
 
     public function getConnectionUser($mode)
@@ -159,6 +201,12 @@ class Config extends \Magento\Framework\App\Config
         return $this->getValue(self::CONFIG_CONNECTION_KEY.$mode.'/signature', $this->_scope, $this->_scopeCode);
     }
 
+    /**
+     * @deprecated
+     * @param $mode
+     *
+     * @return mixed
+     */
     public function getConnectionTimeout($mode)
     {
         return $this->getValue(self::CONFIG_CONNECTION_KEY.$mode.'/timeout', $this->_scope, $this->_scopeCode);
@@ -174,31 +222,111 @@ class Config extends \Magento\Framework\App\Config
         return $this->isSetFlag('ingenico_settings/tokenization/stored_cards_enabled', $this->_scope, $this->_scopeCode);
     }
 
+    /**
+     * Get List of Magento Payment Classes.
+     *
+     * @return string[]
+     */
+    public static function getAllPaymentMethods()
+    {
+        return [
+            'Ingenico',
+            'Afterpay',
+            'Banktransfer',
+            'Belfius',
+            'Cb',
+            'Cbc',
+            'Cc',
+            'Giropay',
+            'Ideal',
+            'Ing',
+            'Kbc',
+            'Klarna',
+            'PayPal',
+            'Paysafecard',
+            'Twint',
+            'KlarnaFinancing',
+            'KlarnaPayLater',
+            'KlarnaPayNow'
+        ];
+    }
+
+    /**
+     * Get Ingenico Payment Code codes that active in Magento.
+     *
+     * @return array
+     */
     public function getActivePaymentMethods()
     {
-        $result = [];
+        if (!$this->isExtensionConfigured()) {
+            return [];
+        }
 
-        if ($data = $this->getValue('ingenico_payment_methods/methods', $this->_scope, $this->_scopeCode)) {
-            foreach ($data as $methods) {
-                foreach ($methods as $code => $methData) {
-                    if (isset($methData['enabled']) && $methData['enabled']) {
-                        $result[] = $code;
+        $result = [];
+        foreach (self::getAllPaymentMethods() as $className) {
+            $classWithNs = '\\Ingenico\\Payment\\Model\\Method\\' . $className;
+            if (!defined($classWithNs . '::CORE_CODE')) {
+                continue;
+            }
+
+            $methodCode = $classWithNs::PAYMENT_METHOD_CODE;
+            $coreCode = $classWithNs::CORE_CODE;
+
+            try {
+                if ($this->isSetFlag('payment/' . $methodCode . '/active', $this->_scope, $this->_scopeCode)) {
+                    $result[] = $coreCode;
+
+                    if ($coreCode === 'visa') {
+                        $result[] = 'mastercard';
+                        $result[] = 'amex';
+                        $result[] = 'bancontact';
+                        $result[] = 'diners_club';
+                        $result[] = 'discover';
+                        $result[] = 'jcb';
+                        $result[] = 'maestro';
                     }
                 }
+            } catch (\Exception $e) {
+                //
             }
         }
 
         return $result;
     }
 
+    /**
+     * Get Payment Page Mode.
+     *
+     * @return string
+     */
     public function getPaymentPageMode()
     {
-        return $this->getValue('ingenico_payment_page/presentation/mode', $this->_scope, $this->_scopeCode);
+        $mode = $this->getValue('ingenico_payment_page/presentation/mode', $this->_scope, $this->_scopeCode);
+        if (empty($mode)) {
+            return Configuration::PAYMENT_TYPE_REDIRECT;
+        }
+
+        return $mode;
     }
 
+    /**
+     * Is Payment Page Mode Redirect.
+     *
+     * @return bool
+     */
     public function isPaymentPageModeRedirect()
     {
-        return $this->getPaymentPageMode() == \IngenicoClient\Configuration::PAYMENT_TYPE_REDIRECT;
+        return $this->getPaymentPageMode() === Configuration::PAYMENT_TYPE_REDIRECT;
+    }
+
+    /**
+     * Is Payment Page Mode Inline.
+     *
+     * @return bool
+     */
+    public function isPaymentPageModeInline()
+    {
+        return $this->getPaymentPageMode() === Configuration::PAYMENT_TYPE_INLINE;
     }
 
     public function isDirectSalesMode()
@@ -277,21 +405,28 @@ class Config extends \Magento\Framework\App\Config
         return '[Please set Store Name in configuration]';
     }
 
+    /**
+     * @param mixed $storeId
+     *
+     * @return string
+     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
+     */
     public function getStoreEmailLogo($storeId)
     {
         $template = ObjectManager::getInstance()->create(\Ingenico\Payment\Model\Email\Template::class);
         return $template->getLogoUrlCustom($storeId);
     }
 
+    /**
+     * @param mixed $storeId
+     *
+     * @return mixed
+     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
+     */
     public function getIngenicoLogo($storeId = null)
     {
         $assetRepo = ObjectManager::getInstance()->create(\Magento\Framework\View\Asset\Repository::class);
         return $assetRepo->getUrl('Ingenico_Payment::images/logo_provider.png');
-    }
-
-    public function getAvailableLocalisations()
-    {
-        return ['en_US','fr_FR','de_DE','nl_NL','it_IT','es_ES','pt_PT'];
     }
 
     public function getBaseHost()

@@ -56,7 +56,7 @@ class SalesOrderSaveAfter implements ObserverInterface
             return;
         }
 
-        // Sync statuses
+        // Multishipping: Sync statuses
         $relatedOrders = $this->getSalesOrderCollection(['ingenico_parent_order_id' => $order->getId()]);
         foreach ($relatedOrders as $relatedOrder) {
             try {

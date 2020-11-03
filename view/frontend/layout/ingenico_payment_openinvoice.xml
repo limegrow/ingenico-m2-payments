@@ -5,7 +5,7 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Ingenico\Payment\Block\Method\View" name="ingenico_method_redirect" template="Ingenico_Payment::method/redirect.phtml" cacheable="false" />
+            <block class="Ingenico\Payment\Block\Method\View" name="ingenico_method_list" template="Ingenico_Payment::method/list.phtml" cacheable="false" />
         </referenceContainer>
     </body>
 </page>

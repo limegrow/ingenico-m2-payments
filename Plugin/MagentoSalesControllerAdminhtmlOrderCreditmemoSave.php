@@ -2,61 +2,118 @@
 
 namespace Ingenico\Payment\Plugin;
 
+use Magento\Sales\Controller\Adminhtml\Order\Creditmemo\Save;
+use Ingenico\Payment\Model\Connector;
+use Ingenico\Payment\Helper\Data as IngenicoHelper;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader;
+use Magento\Sales\Api\CreditmemoManagementInterface;
+use Magento\Sales\Api\CreditmemoRepositoryInterface;
+use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Payment\Transaction;
 
 class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
 {
-    protected $_resultRedirectFactory;
-    protected $_messageManager;
-    protected $_creditmemoLoader;
-    protected $_creditmemoRepository;
-    protected $_creditmemoManagement;
-    protected $_orderRepository;
-    protected $_connector;
-    
+    /**
+     * @var RedirectFactory
+     */
+    private $resultRedirectFactory;
+
+    /**
+     * @var ManagerInterface
+     */
+    private $messageManager;
+
+    /**
+     * @var CreditmemoLoader
+     */
+    private $creditmemoLoader;
+
+    /**
+     * @var CreditmemoRepositoryInterface
+     */
+    private $creditmemoRepository;
+
+    /**
+     * @var CreditmemoSender
+     */
+    private $creditmemoSender;
+
+    /**
+     * @var CreditmemoManagementInterface
+     */
+    private $creditmemoManagement;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @var Connector
+     */
+    private $connector;
+
+    /**
+     * @var IngenicoHelper
+     */
+    private $ingenicoHelper;
+
     public function __construct(
-        \Magento\Framework\Controller\Result\RedirectFactory $resultRedirectFactory,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader $creditmemoLoader,
-        \Magento\Sales\Api\CreditmemoManagementInterface $creditmemoManagement,
-        \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Ingenico\Payment\Model\Connector $connector,
+        RedirectFactory $resultRedirectFactory,
+        ManagerInterface $messageManager,
+        CreditmemoLoader $creditmemoLoader,
+        CreditmemoManagementInterface $creditmemoManagement,
+        CreditmemoRepositoryInterface $creditmemoRepository,
+        CreditmemoSender $creditmemoSender,
+        OrderRepositoryInterface $orderRepository,
+        Connector $connector,
+        IngenicoHelper $ingenicoHelper,
         $data = []
     ) {
-        $this->_resultRedirectFactory = $resultRedirectFactory;
-        $this->_messageManager = $messageManager;
-        $this->_creditmemoLoader = $creditmemoLoader;
-        $this->_creditmemoRepository = $creditmemoRepository;
-        $this->_creditmemoManagement = $creditmemoManagement;
-        $this->_orderRepository = $orderRepository;
-        $this->_connector = $connector;
+        $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->messageManager = $messageManager;
+        $this->creditmemoLoader = $creditmemoLoader;
+        $this->creditmemoRepository = $creditmemoRepository;
+        $this->creditmemoSender = $creditmemoSender;
+        $this->creditmemoManagement = $creditmemoManagement;
+        $this->orderRepository = $orderRepository;
+        $this->connector = $connector;
+        $this->ingenicoHelper = $ingenicoHelper;
     }
 
     /**
      * Intercept Credit Memo saving and use custom processing
      */
-    public function aroundExecute(\Magento\Sales\Controller\Adminhtml\Order\Creditmemo\Save $subject, callable $proceed)
+    public function aroundExecute(Save $subject, callable $proceed)
     {
-        $resultRedirect = $this->_resultRedirectFactory->create();
+        $resultRedirect = $this->resultRedirectFactory->create();
         $data = $subject->getRequest()->getPost('creditmemo');
-        $order = $this->_orderRepository->get($subject->getRequest()->getParam('order_id'));
-        
+        $order = $this->orderRepository->get($subject->getRequest()->getParam('order_id'));
+
         // only intercept if order with Ingenico Payment and Online Refund
         if (
-            (isset($data['do_offline']) && $data['do_offline']) || 
-            $order->getPayment()->getMethod() !== \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE
+            (isset($data['do_offline']) && $data['do_offline']) ||
+            !in_array(
+                $order->getPayment()->getMethod(),
+                array_merge($this->ingenicoHelper->getPaymentMethodCodes(), [
+                    \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE
+                ])
+            )
         ) {
             return $proceed();
         }
-        
+
         try {
-            $this->_creditmemoLoader->setOrderId($subject->getRequest()->getParam('order_id'));
-            $this->_creditmemoLoader->setCreditmemoId($subject->getRequest()->getParam('creditmemo_id'));
-            $this->_creditmemoLoader->setCreditmemo($subject->getRequest()->getParam('creditmemo'));
-            $this->_creditmemoLoader->setInvoiceId($subject->getRequest()->getParam('invoice_id'));
-            $creditmemo = $this->_creditmemoLoader->load();
-            
+            $this->creditmemoLoader->setOrderId($subject->getRequest()->getParam('order_id'));
+            $this->creditmemoLoader->setCreditmemoId($subject->getRequest()->getParam('creditmemo_id'));
+            $this->creditmemoLoader->setCreditmemo($subject->getRequest()->getParam('creditmemo'));
+            $this->creditmemoLoader->setInvoiceId($subject->getRequest()->getParam('invoice_id'));
+            $creditmemo = $this->creditmemoLoader->load();
+
             if ($creditmemo) {
                 if (!$creditmemo->isValidGrandTotal()) {
                     throw new \Magento\Framework\Exception\LocalizedException(
@@ -83,10 +140,21 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
                         );
                     }
                 }
-                
-                $this->_connector->setOrderId($order->getIncrementId());
-                $payId = $this->_connector->getIngenicoPayIdByOrderId($order->getIncrementId());                
-                $result = $this->_connector->getCoreLibrary()->refund($order->getIncrementId(), $payId, $creditmemo->getGrandTotal());
+
+                $payId = $this->connector->getIngenicoPayIdByOrderId($order->getIncrementId());
+
+                // Has it been paid with "Bank transfer"?
+                $result = $this->connector->getCoreLibrary()->getPaymentInfo($order->getIncrementId(), $payId);
+                if (mb_strpos($result->getPm(), 'Bank transfer', null, 'UTF-8') !== false) {
+                    throw new LocalizedException(__('modal.refund_failed.not_refundable', $result->getPm()));
+                }
+
+                $this->connector->setOrderId($order->getIncrementId());
+                $result = $this->connector->getCoreLibrary()->refund(
+                    $order->getIncrementId(),
+                    $payId,
+                    $creditmemo->getGrandTotal()
+                );
                 $trxId = $result->getPayId() . '-' . $result->getPayIdSub();
                 $transaction = $order->getPayment()
                     ->setTransactionId($trxId)
@@ -94,43 +162,43 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
                     ->setIsClosed(0)
                     ->setAdditionalInformation(Transaction::RAW_DETAILS, $result->getData())
                     ->save();
-                
+
                 $creditmemo->setTransactionId($trxId);
-                
+
                 switch ($result->getPaymentStatus()) {
-                    case $this->_connector->getCoreLibrary()::STATUS_REFUND_PROCESSING:
+                    case $this->connector->getCoreLibrary()::STATUS_REFUND_PROCESSING:
                         $creditmemo->setState(\Magento\Sales\Model\Order\Creditmemo::STATE_OPEN);
-                        $this->_creditmemoRepository->save($creditmemo);
-                        $this->_messageManager->addSuccessMessage(__('ingenico.notification.message16'));
+                        $this->creditmemoRepository->save($creditmemo);
+                        $this->messageManager->addSuccessMessage(__('ingenico.notification.message16'));
                         break;
-                        
-                    case $this->_connector->getCoreLibrary()::STATUS_REFUNDED:
-                        $creditMemo->setState(\Magento\Sales\Model\Order\Creditmemo::STATE_REFUNDED);
-                        $creditMemo->setPaymentRefundDisallowed(true);
-                        $this->_creditmemoManagement->refund($creditMemo);
+
+                    case $this->connector->getCoreLibrary()::STATUS_REFUNDED:
+                        $creditmemo->setState(\Magento\Sales\Model\Order\Creditmemo::STATE_REFUNDED);
+                        $creditmemo->setPaymentRefundDisallowed(true);
+                        $this->creditmemoManagement->refund($creditmemo);
                         if (isset($data['send_email']) && $data['send_email']) {
-                            $this->_creditmemoSender->send($creditMemo);
+                            $this->creditmemoSender->send($creditmemo);
                         }
                 }
-                
+
                 $resultRedirect->setPath('sales/order/view', ['order_id' => $creditmemo->getOrderId()]);
                 return $resultRedirect;
-                
+
             } else {
                 $resultRedirect->setPath('noroute');
                 return $resultRedirect;
             }
-            
+
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->_messageManager->addErrorMessage($e->getMessage());
-        } catch (\Exception $e) {
-            $this->_connector->log($e->getMessage(), 'crit');
+            $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\IngenicoClient\Exception $e) {
+            $this->connector->log($e->getMessage(), 'crit');
             $msg = __('modal.refund_failed.label1');
-            $msg .= ' '.__('modal.refund_failed.label2').' '.'support@ecom.ingenico.сom';
-            $msg .= ' '.__('modal.refund_failed.label3').' '.'https://www.ingenico.com/support/phone';
-            $this->_messageManager->addErrorMessage($msg);
+            $msg .= ' '.__('modal.refund_failed.label2') . ' ' . $this->connector->getCoreLibrary()->getWhiteLabelsData()->getSupportEmail();
+            $msg .= ' '.__('modal.refund_failed.label3') . ' ' . $this->connector->getCoreLibrary()->getWhiteLabelsData()->getSupportUrl();
+            $this->messageManager->addErrorMessage($msg);
         }
-        
+
         $resultRedirect->setPath('sales/*/new', ['_current' => true]);
         return $resultRedirect;
     }

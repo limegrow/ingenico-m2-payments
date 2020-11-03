@@ -272,3 +272,6 @@ msgstr "Bestellstatus (zur AUTORISIERUNG)"
 
 msgid "ingenico.settings.label27"
 msgstr "Bestellstatus (zur SALE)"
+
+msgid "%1 ends with %2, expires on %3/%4"
+msgstr "%1 ends with %2, expires on %3/%4"

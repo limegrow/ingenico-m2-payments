@@ -1,0 +1,19 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Info\Method
+ */
+?>
+<?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
+<br />
+<?php $specificInfo = $block->getSpecificInformation(); ?>
+<?php if (count($specificInfo) > 0): ?>
+    <table class="data-table admin__table-secondary">
+        <?php foreach ($specificInfo as $_label => $_value):?>
+            <tr>
+                <th><?php echo __($block->escapeHtml($_label))?>:</th>
+                <td><?php echo nl2br(implode("\n", $block->getValueAsArray($_value, true)))?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>

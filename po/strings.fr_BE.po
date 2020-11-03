@@ -638,6 +638,9 @@ msgstr "Veuillez contacter Ingenico ePayments Support"
 msgid "modal.refund_failed.label3"
 msgstr "Consultez ici les numéros de téléphone du support"
 
+msgid "modal.refund_failed.not_refundable"
+msgstr "A payment which paid with %1 can't be refunded"
+
 msgid "modal.credentials-validation.label1"
 msgstr "Références de l’environnement Live manquantes"
 
@@ -826,3 +829,12 @@ msgstr "Vous utilisez soit le mode Inline soit le mode Redirect (redirection). V
 
 msgid "modal.optional-customisation.label2"
 msgstr "En revanche, le style par défaut est déjà conçu de manière générique pour vous permettre de commencer à accepter les paiements directement."
+
+msgid "Pay with saved card."
+msgstr "Payer avec une carte enregistrée."
+
+msgid "Credit Cards"
+msgstr "Cartes de crédit"
+
+msgid "Your payment data is ready to be processed by {0}."
+msgstr "Vos données de paiement sont prêtes à être traitées par {0}."

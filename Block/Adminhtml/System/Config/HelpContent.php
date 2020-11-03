@@ -10,6 +10,11 @@ class HelpContent extends \Magento\Backend\Block\Template
     protected $_assetRepo;
 
     /**
+     * @var \Ingenico\Payment\Model\Connector
+     */
+    protected $connector;
+
+    /**
      * @var \Ingenico\Payment\Model\Config
      */
     protected $cnf;
@@ -17,10 +22,12 @@ class HelpContent extends \Magento\Backend\Block\Template
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\View\Asset\Repository $assetRepo,
+        \Ingenico\Payment\Model\Connector $connector,
         \Ingenico\Payment\Model\Config $cnf,
         array $data = []
     ) {
         $this->_assetRepo = $assetRepo;
+        $this->connector = $connector;
         $this->cnf = $cnf;
 
         parent::__construct($context, $data);
@@ -39,5 +46,13 @@ class HelpContent extends \Magento\Backend\Block\Template
     public function isTestMode()
     {
         return $this->cnf->getMode(true) === false;
+    }
+
+    /**
+     * @return \IngenicoClient\WhiteLabels
+     */
+    public function getWhiteLabelsData()
+    {
+        return $this->connector->getCoreLibrary()->getWhiteLabelsData();
     }
 }

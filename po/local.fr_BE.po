@@ -273,3 +273,6 @@ msgstr "Statut de la commande (pour AUTORISATION)"
 
 msgid "ingenico.settings.label27"
 msgstr "Statut de la commande (pour la VENTE DIRECTE)"
+
+msgid "%1 ends with %2, expires on %3/%4"
+msgstr "%1 ends with %2, expires on %3/%4"

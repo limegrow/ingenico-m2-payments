@@ -15,7 +15,7 @@
 
     <div id="connection_pspid_test_content">
         <p><?= /* @noEscape */ __('modal.psp.label1') ?></p>
-        <p><?= /* @noEscape */ __('modal.psp.youcan') ?> <a target="_blank" href="https://secure.ogone.com/Ncol/Test/BackOffice/accountcreation/create?Branding=ogone&ISP=OIT&SubId=2&MODE=STD&SOLPRO=&ACOUNTRY=&Lang=1"><?= __('modal.psp.request') ?></a>.</p>
+        <p><?= /* @noEscape */ __('modal.psp.label2') ?></p>
     </div>
 
     <!-- Signature Help -->
@@ -136,7 +136,7 @@
         <p><?= /* @noEscape */ __('modal.payment-methods-modal.label2') ?></p>
         <p><?= /* @noEscape */ __('modal.payment-methods-modal.label3') ?></p>
     </div>
-    
+
     <!-- PayPal Help Live Mode -->
     <div id="paypal_title_content_live">
         <p><?= __('modal.paypal.label1') ?></p>
@@ -152,13 +152,13 @@
         <p><?= __('modal.paypal.label5') ?></p>
         <p class="message message-warning"><?= __('modal.paypal.label6') ?></p>
         <p class="message message-notice">
-            <?= __('modal.paypal.label7') ?> 
-            <a href="https://payment-services.ingenico.com/int/en/ogone/support/guides/integration%20guides/paypal/configuration#paypalaccount" target="_blank" title="PayPal Configuration Help">
+            <?= __('modal.paypal.label7') ?>
+            <a href="<?php echo $block->getWhiteLabelsData()->getTemplateGuidPaypal(); ?>" target="_blank" title="PayPal Configuration Help">
                 <?= __('modal.paypal.label8') ?>.
             </a>
         </p>
     </div>
-    
+
     <!-- PayPal Help Test Mode -->
     <div id="paypal_title_content_test">
         <p>
@@ -206,7 +206,7 @@
                 <?= /* @noEscape */ __('modal.paypal.label6') ?>
             </p>
             <p class="highlight-color2">
-                <?= /* @noEscape */ __('modal.paypal.label7') ?> <a target="_blank" href="https://epayments-support.ingenico.com/en/payment-methods/wallets/paypal-express-checkout/guide#paypal-account-configuration">
+                <?= /* @noEscape */ __('modal.paypal.label7') ?> <a target="_blank" href="<?php echo $block->getWhiteLabelsData()->getTemplateGuidPaypal(); ?>">
                     <?= /* @noEscape */ __('modal.paypal.label8') ?>
                 </a>
             </p>

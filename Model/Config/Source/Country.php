@@ -21,6 +21,12 @@ class Country implements \Magento\Framework\Option\ArrayInterface
     public function toOptionArray($isMultiselect = false, $foregroundCountries = '')
     {
         $limitTo = array_keys($this->_connector->getAllCountries());
+
+        // Remove countries
+        $limitTo = array_flip($limitTo);
+        unset($limitTo['SE'], $limitTo['FI'], $limitTo['DK'], $limitTo['NO']);
+        $limitTo = array_flip($limitTo);
+
         if (!$this->_options) {
             $this->_options = $this->_countryCollection
                 ->addCountryIdFilter($limitTo)

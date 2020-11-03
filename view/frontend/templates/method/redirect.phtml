@@ -7,7 +7,14 @@
     <?php // 3DSec HTML data ?>
     <?php echo /* @noEscape */ $html; ?>
 <?php else: ?>
-    <?php $data = $block->getRedirectPaymentData(); ?>
+    <?php
+    // Check the specified PM/Brand Redirect data
+    $data = $block->getSpecifiedRedirectPaymentData();
+    if (!$data) {
+        // Check Redirect data of initiateRedirectPayment()
+        $data = $block->getRedirectPaymentData();
+    }
+    ?>
     <div class="ingenico-confirmation">
         <div class="ingenico-loader">
             <img src="<?php echo $block->escapeHtmlAttr($block->getLoaderUrl()); ?>" alt="<?= __('checkout.please_wait'); ?>">

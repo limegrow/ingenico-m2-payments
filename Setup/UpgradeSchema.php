@@ -83,19 +83,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
                 // Indexes
                 $connection->dropIndex(
-                    InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION,
+                    $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION),
                     $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION, ['pay_id'])
                 );
 
                 $connection->addIndex(
-                    InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION,
+                    $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION),
                     $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION, ['order_id']),
                     ['order_id'],
                     AdapterInterface::INDEX_TYPE_INDEX
                 );
 
                 $connection->addIndex(
-                    InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION,
+                    $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION),
                     $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_TRANSACTION, ['pay_id_sub']),
                     ['pay_id_sub'],
                     AdapterInterface::INDEX_TYPE_INDEX
@@ -113,6 +113,57 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'nullable' => true,
                     'comment'  => 'Parent order ID for Multishipping Checkout'
                 ]
+            );
+        }
+
+        if (version_compare($context->getVersion(), '0.0.3', '<')) {
+            // Alias: Remove unique indexes of customer_id and alias fields
+            $connection->dropIndex(
+                $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS),
+                $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS, ['customer_id', 'alias'])
+            );
+
+            // Alias: add index for customer_id field
+            $connection->addIndex(
+                $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS),
+                $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS, ['customer_id']),
+                ['customer_id'],
+                AdapterInterface::INDEX_TYPE_INDEX
+            );
+
+            // Alias: add unique index for alias field
+            $connection->addIndex(
+                $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS),
+                $setup->getIdxName(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS, ['alias']),
+                ['alias'],
+                AdapterInterface::INDEX_TYPE_UNIQUE
+            );
+        }
+
+        if (version_compare($context->getVersion(), '0.0.4', '<')) {
+            // Add "cn" field
+            $connection->addColumn(
+                $setup->getTable(InstallSchema::PARAM_NAME_TABLE_NAME_ALIAS),
+                'cn',
+                [
+                    'type'     => Table::TYPE_TEXT,
+                    'length'   => 255,
+                    'nullable' => true,
+                    'default'  => null,
+                    'comment'  => 'Customer name'
+                ]
+            );
+        }
+
+        if (version_compare($context->getVersion(), '0.0.5', '<')) {
+            // Add index (Multishipping Checkout)
+            $connection->addIndex(
+                $setup->getTable('sales_order'),
+                $setup->getIdxName('sales_order', ['ingenico_parent_order_id']),
+                [
+                    'ingenico_parent_order_id'
+                ],
+                AdapterInterface::INDEX_TYPE_INDEX
             );
         }
 

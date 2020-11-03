@@ -87,7 +87,14 @@ class Processor
     }
 
     /**
-     * Process successful order payment (capture)
+     * Process successful order payment (authorize).
+     *
+     * @param string $incrementId
+     * @param \IngenicoClient\Payment $paymentResult
+     * @param string $message
+     *
+     * @return \Magento\Sales\Api\Data\OrderInterface|null
+     * @throws LocalizedException
      */
     public function processOrderAuthorization($incrementId, $paymentResult, $message)
     {
@@ -117,22 +124,29 @@ class Processor
     }
 
     /**
-     * Process successful order payment (capture)
+     * Process successful order payment (capture).
+     *
+     * @param string $incrementId
+     * @param \IngenicoClient\Payment $paymentResult
+     * @param string $message
+     *
+     * @return \Magento\Sales\Api\Data\OrderInterface|\Magento\Sales\Model\Order
+     * @throws LocalizedException
      */
     public function processOrderPayment($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        
+
         // only process if request is not from Admin Panel
         if ($this->_registry->registry('current_invoice')) {
             return $order;
         }
-        
+
         if ($order->isCanceled()) {
             $this->_addOrderMessage($order, __('ingenico.notification.message5'));
             return $this->_orderRepository->save($order);
         }
-        
+
         $processStatus = false;
         // check if there is an Invoice with transaction ID
         $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
@@ -148,7 +162,7 @@ class Processor
                     $processStatus = true;
                 }
             }
-            
+
         } else {
             try {
                 $invoice = $this->_invoiceService->prepareInvoice($order);
@@ -156,11 +170,13 @@ class Processor
                 $invoice->register();
                 $invoice->getOrder()->setIsInProcess(true);
                 $invoice->setIsPaid(true);
-                $invoice->setTransactionId($trxId);
+                if ($paymentResult->getPm() !== 'Bank transfer') {
+                    $invoice->setTransactionId($trxId);
+                }
                 $this->_invoiceRepository->save($invoice);
                 $this->_invoiceSender->send($invoice);
                 $processStatus = true;
-                
+
             } catch (\Exception $e) {
                 $this->_connector->log($e->getMessage(), 'crit');
             } catch (LocalizedException $e) {
@@ -168,7 +184,7 @@ class Processor
                 throw $e;
             }
         }
-        
+
         if ($processStatus) {
             // Set order status
             $new_status = $this->config->getOrderStatusSale();
@@ -177,10 +193,10 @@ class Processor
             $order->setStatus($status->getStatus());
             $this->_addOrderMessage($order, $message, __('ingenico.notification.message6'));
         }
-        
-        return $this->_orderRepository->save($order);        
+
+        return $this->_orderRepository->save($order);
     }
-    
+
     /**
      * Deprecated from v2.2.1, use processOrderDefault()
      */
@@ -188,7 +204,7 @@ class Processor
     {
         return $this->processOrderDefault($incrementId, $paymentResult, $message);
     }
-    
+
     /**
      * Deprecated from v2.2.1, use processOrderDefault()
      */
@@ -196,7 +212,7 @@ class Processor
     {
         return $this->processOrderDefault($incrementId, $paymentResult, $message);
     }
-    
+
     /**
      * Simply add record to order history, nothing else
      */
@@ -206,51 +222,88 @@ class Processor
         $this->_addOrderMessage($order, $message);
         return $this->_orderRepository->save($order);
     }
-    
+
     /**
-     * Process successful order refund
+     * Process successful order refund.
+     *
+     * @param string $incrementId
+     * @param \IngenicoClient\Payment $paymentResult
+     * @param string $message
+     *
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     * @throws LocalizedException
      */
     public function processOrderRefund($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        
+
         if ($order->isCanceled()) {
             $this->_addOrderMessage($order, __('ingenico.notification.message5'));
             return $this->_orderRepository->save($order);
         }
-        
+
         try {
             // check if there is a Credit Memo with transaction ID
             $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
-            if ($order->hasCreditmemos()) {
-                foreach ($order->getCreditmemosCollection() as $creditMemo) {
-                    if ($creditMemo->getTransactionId() == $trxId && $creditMemo->canRefund()) {
-                        $creditMemo->setPaymentRefundDisallowed(true);
-                        $this->_creditmemoManagement->refund($creditMemo);
-                        $this->_creditmemoSender->send($creditMemo);
+            $hasFound = false;
+            foreach ($order->getCreditmemosCollection() as $creditMemo) {
+                /** @var \Magento\Sales\Model\Order\Creditmemo $creditMemo */
+                if ($creditMemo->getTransactionId() === $trxId && $creditMemo->canRefund()) {
+                    $creditMemo->setPaymentRefundDisallowed(true);
+                    // @see \Magento\Sales\Model\Service\CreditmemoService::refund()
+                    $this->_creditmemoManagement->refund($creditMemo, false);
+                    $this->_creditmemoSender->send($creditMemo);
+
+                    $hasFound = true;
+                }
+            }
+
+            if (!$hasFound) {
+                // Try to find the invoice
+                $invoiceToRefund = null;
+                if ($order->hasInvoices()) {
+                    foreach ($order->getInvoiceCollection() as $invoice) {
+                        /** @var \Magento\Sales\Model\Order\Invoice $invoice */
+                        if ($invoice->canRefund()) {
+                            $invoiceToRefund = $invoice;
+                            break;
+                        }
                     }
                 }
-                
-            } else {
+
+                /** @var \Magento\Sales\Model\Order\Creditmemo $creditMemo */
                 $creditMemo = $this->_creditmemoFactory->createByOrder($order);
-                $creditMemo->setTransactionId($trxId);
-                $creditMemo->setPaymentRefundDisallowed(true);
+                $creditMemo->setTransactionId($trxId)
+                    ->setInvoice($invoiceToRefund)
+                    ->setBaseGrandTotal($paymentResult->getAmount())
+                    ->setGrandTotal($paymentResult->getAmount())
+                    ->setPaymentRefundDisallowed(true);
+
                 $this->_creditmemoManagement->refund($creditMemo);
                 $this->_creditmemoSender->send($creditMemo);
             }
-            
+
             $order = $this->_orderRepository->get($order->getId());
             $this->_addOrderMessage($order, $message);
-        
-        } catch (\Exception $e) {
-            $this->_connector->log($e->getMessage(), 'crit');
         } catch (LocalizedException $e) {
             $this->_connector->log(sprintf('%s::%s %s', __CLASS__, __METHOD__, $e->getMessage()));
+        } catch (\Exception $e) {
+            $this->_connector->log($e->getMessage(), 'crit');
         }
-        
-        return $this->_orderRepository->save($order);        
+
+        return $this->_orderRepository->save($order);
     }
 
+    /**
+     * Process order cancellation.
+     *
+     * @param string $incrementId
+     * @param \IngenicoClient\Payment $paymentResult
+     * @param string $message
+     *
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     * @throws LocalizedException
+     */
     public function processOrderCancellation($incrementId, $paymentResult, $message = null)
     {
         $order = $this->getOrderByIncrementId($incrementId);

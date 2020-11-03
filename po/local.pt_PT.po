@@ -269,3 +269,6 @@ msgstr "Status do pedido (para AUTHORIZATION)"
 
 msgid "ingenico.settings.label27"
 msgstr "Status do pedido (para SALE)"
+
+msgid "%1 ends with %2, expires on %3/%4"
+msgstr "%1 ends with %2, expires on %3/%4"

@@ -2,6 +2,10 @@
 
 namespace Ingenico\Payment\Observer;
 
+use Ingenico\Payment\Model\Connector;
+use Ingenico\Payment\Model\Config as IngenicoConfig;
+use Ingenico\Payment\Helper\Data as IngenicoHelper;
+use Magento\Checkout\Helper\Data as CheckoutHelper;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\OrderFactory;
@@ -15,14 +19,19 @@ use Magento\Framework\App\Response\RedirectInterface;
 class MultishippingCheckoutControllerSuccessAction implements ObserverInterface
 {
     /**
-     * @var \Ingenico\Payment\Model\Connector
+     * @var Connector
      */
     private $connector;
 
     /**
-     * @var \Ingenico\Payment\Model\Config
+     * @var IngenicoConfig
      */
     private $cnf;
+
+    /**
+     * @var IngenicoHelper
+     */
+    private $ingenicoHelper;
 
     /**
      * @var OrderFactory
@@ -40,7 +49,7 @@ class MultishippingCheckoutControllerSuccessAction implements ObserverInterface
     private $quoteRepository;
 
     /**
-     * @var \Magento\Checkout\Helper\Data
+     * @var CheckoutHelper
      */
     private $checkoutHelper;
 
@@ -65,12 +74,13 @@ class MultishippingCheckoutControllerSuccessAction implements ObserverInterface
     protected $redirect;
 
     public function __construct(
-        \Ingenico\Payment\Model\Connector $connector,
-        \Ingenico\Payment\Model\Config $cnf,
+        Connector $connector,
+        IngenicoConfig $cnf,
+        IngenicoHelper $ingenicoHelper,
         OrderFactory $orderFactory,
         OrderRepository $orderRepository,
         QuoteRepository $quoteRepository,
-        \Magento\Checkout\Helper\Data $checkoutHelper,
+        CheckoutHelper $checkoutHelper,
         UrlInterface $urlBuilder,
         ResponseFactory $responseFactory,
         ActionFlag $actionFlag,
@@ -78,6 +88,7 @@ class MultishippingCheckoutControllerSuccessAction implements ObserverInterface
     ) {
         $this->connector = $connector;
         $this->cnf = $cnf;
+        $this->ingenicoHelper = $ingenicoHelper;
         $this->orderFactory = $orderFactory;
         $this->orderRepository = $orderRepository;
         $this->quoteRepository = $quoteRepository;
@@ -112,18 +123,44 @@ class MultishippingCheckoutControllerSuccessAction implements ObserverInterface
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $paymentMode = strtolower($this->cnf->getPaymentPageMode());
-        $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/' . $paymentMode);
+        /** @var \Ingenico\Payment\Model\Method\AbstractMethod $paymentMethodInstance */
+        $paymentMethodInstance = $order->getPayment()->getMethodInstance();
+
+        /** @var \IngenicoClient\PaymentMethod\PaymentMethod $paymentMethod */
+        $paymentMethod = $this->ingenicoHelper->getCoreMethod(
+            $paymentMethodInstance::CORE_CODE
+        );
 
         // If alias is defined
         $data = $order->getPayment()->getAdditionalInformation();
         if (!empty($data['alias'])) {
-            $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/' . $paymentMode . '/alias/' . $data['alias']);
+            $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/redirect', [
+                'alias' => $data['alias']
+            ]);
+        } elseif ($paymentMethodInstance->getCode() === \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
+            $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/redirect');
+        } elseif ($paymentMethodInstance->getCode() === \Ingenico\Payment\Model\Method\Cc::PAYMENT_METHOD_CODE) {
+            $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/redirect', [
+                'payment_id' => null,
+                'pm' => 'CreditCard',
+                'brand' => 'CreditCard'
+            ]);
+        } else {
+            $redirectionUrl = $this->urlBuilder->getUrl('ingenico/payment/redirect', [
+                'payment_id' => $paymentMethod->getId(),
+                'pm' => $paymentMethod->getPM(),
+                'brand' => $paymentMethod->getBrand()
+            ]);
         }
 
         // Redirect
         $this->actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
-        $this->responseFactory->create()->setHttpResponseCode(301)->setRedirect($redirectionUrl)->sendResponse();
-        $this->redirect->redirect(null, $redirectionUrl);
+        $response = $this->responseFactory
+            ->create()
+            ->setHttpResponseCode(301)
+            ->setRedirect($redirectionUrl)
+            ->sendResponse();
+
+        $this->redirect->redirect($response, $redirectionUrl);
     }
 }

@@ -7,19 +7,39 @@
     <?php // 3DSec HTML data ?>
     <?php echo /* @noEscape */ $html; ?>
 <?php else: ?>
+    <?php if ($data = $block->getOpenInvoicePaymentData()): ?>
+        <div class="ingenico-confirmation">
+            <div class="ingenico-loader">
+                <img src="<?php echo $block->escapeHtmlAttr($block->getLoaderUrl()); ?>" alt="<?= __('checkout.please_wait'); ?>">
+            </div>
+            <form id="ingenico-hosted-checkout-form" method="post" action="<?= $block->escapeHtmlAttr($data['url']); ?>" accept-charset="utf-8" style="display:none">
+                <?php foreach ($data['fields'] as $key => $value): ?>
+                    <input type="hidden" name="<?php echo $block->escapeHtmlAttr($key); ?>" value="<?php echo $block->escapeHtmlAttr($value); ?>">
+                <?php endforeach; ?>
+            </form>
+        </div>
+
+        <script>
+            // Submit form
+            window.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("ingenico-hosted-checkout-form").submit();
+            });
+        </script>
+    <?php else: ?>
     <div class="ingenico-confirmation">
         <ul>
             <?php foreach ($block->getPaymentMethods() as $categoryName => $methods): ?>
                 <h2><?php echo $categoryName; ?></h2>
                 <?php foreach ($methods as $code => $method): ?>
+                    <?php /** @var \IngenicoClient\PaymentMethod\PaymentMethod $method */?>
                     <li>
                     <?php // AFTERPAY & KLARNA ?>
-                    <?php if (in_array($method->getId(), ['afterpay', 'klarna'])): ?>
+                    <?php if ($method->getAdditionalDataRequired()): ?>
                         <div class="payment-logo">
                             <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo $method->getName() ?>" title="<?php echo $method->getName() ?>" width="50" />
                             <h3><?php echo $block->escapeHtmlAttr($method->getName()) ?></h3>
                         </div>
-                        <div class="form-container" style="display: none">
+                        <div class="form-container">
                             <h4 class="subtitle"><?= __('modal.openinvoice.additional_data_required'); ?></h4>
                             <form
                                 action="<?php echo $block->escapeHtmlAttr($block->getOpenInvoicePostUrl()) ?>"
@@ -39,21 +59,22 @@
                                         $required = $field->getRequired() ? ' required' : '';
                                         $value = $field->getValue();
                                         $length = $field->getLength();
+                                        $id = implode('-', [$method->getId(), $type, $name, md5($value)]);
                                         ?>
                                         <div class="field <?php echo $block->escapeHtmlAttr($name) ?><?php echo $block->escapeHtmlAttr($required); ?>">
-                                            <label class="label" for="<?php echo $block->escapeHtmlAttr($name) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>
+                                            <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>
                                             <div class="control">
-                                                <?php if($type == 'radio'): ?>
-                                                    <?php foreach($field->getValues() as $key => $value): ?>
+                                                <?php if ($type === 'radio'): ?>
+                                                    <?php foreach ($field->getValues() as $key => $value): ?>
                                                         <input
                                                             name="<?php echo $block->escapeHtmlAttr($name); ?>"
-                                                            id="<?php echo $block->escapeHtmlAttr(implode('-', [$type, $name, $value])) ?>"
+                                                            id="<?php echo $block->escapeHtmlAttr($id) ?>"
                                                             title="<?php echo $block->escapeHtmlAttr($value) ?>"
                                                             value="<?php echo $block->escapeHtmlAttr($key) ?>"
                                                             class="input-radio"
                                                             type="<?php echo $block->escapeHtmlAttr($type) ?>"
                                                             data-validate="{required:true}" >
-                                                        <label class="label" for="<?php echo $block->escapeHtmlAttr(implode('-', [$type, $name, $value])) ?>">
+                                                        <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>">
                                                             <span><?php echo $block->escapeHtmlAttr($value) ?></span>
                                                         </label>
                                                         <br/>
@@ -61,12 +82,27 @@
                                                 <?php else: ?>
                                                     <input
                                                         name="<?php echo $block->escapeHtmlAttr($name); ?>"
-                                                        id="<?php echo $block->escapeHtmlAttr($name); ?>"
+                                                        id="<?php echo $block->escapeHtmlAttr($id); ?>"
                                                         title="Email"
-                                                        value="<?php echo $block->escapeHtmlAttr($field->getValue()); ?>"
+                                                        value="<?php echo ($type === 'date' && is_numeric($field->getValue())) ? $block->escapeHtmlAttr(date('Y-m-d', $field->getValue())) : $block->escapeHtmlAttr($field->getValue()); ?>"
                                                         class="input-<?php echo $block->escapeHtmlAttr($type); ?><?php echo $length ? $block->escapeHtmlAttr(' validate-length maximum-length-'.$length) : '' ?>"
-                                                        type="<?php echo $type == 'date' ? 'text' : $block->escapeHtmlAttr($type); ?>"
+                                                        type="<?php echo $type === 'date' ? 'text' : $block->escapeHtmlAttr($type); ?>"
                                                         data-validate="{<?php echo $field->getRequired() ? 'required:true' : ''; ?>}" >
+
+                                                        <?php if ($type === 'date'): ?>
+                                                            <script>
+                                                                require(["jquery", "mage/calendar"], function($){
+                                                                    $("#<?php echo $block->escapeHtmlAttr($id); ?>").datepicker({
+                                                                        showMonthAfterYear: false,
+                                                                        dateFormat:'yy-mm-dd',
+                                                                        changeMonth: true,
+                                                                        changeYear: true,
+                                                                        yearRange: '<?php echo '1940:' . date('Y'); ?>',
+                                                                        defaultDate: '-1y'
+                                                                    });
+                                                                });
+                                                            </script>
+                                                        <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -109,23 +145,5 @@
             <?php endforeach; ?>
         </ul>
     </div>
-
-    <script>
-        require(["jquery", "mage/calendar"], function($){
-            $("[name='customer_dob']").datepicker({
-                showMonthAfterYear: false,
-                dateFormat:'dd.mm.yy',
-                changeMonth: true,
-                changeYear: true,
-                yearRange: '<?php echo '1940:' . date('Y'); ?>',
-                defaultDate: '-1y'
-            });
-            $("#shipping_date_time").datepicker({
-                showMonthAfterYear: false,
-                dateFormat:'dd.mm.yy',
-                changeMonth: true,
-                changeYear: true
-            });
-        });
-    </script>
+    <?php endif; ?>
 <?php endif; ?>

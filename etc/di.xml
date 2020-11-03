@@ -22,4 +22,7 @@
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="order_state_plugin" type="Ingenico\Payment\Plugin\OrderStatePlugin" />
     </type>
+    <type name="Magento\Payment\Helper\Data">
+        <plugin sortOrder="10" name="klarnaKpPaymentData" disabled="true" />
+    </type>
 </config>

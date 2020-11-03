@@ -2,20 +2,44 @@
 
 namespace Ingenico\Payment\Plugin;
 
+use Magento\Store\Model\StoreManagerInterface;
+use Ingenico\Payment\Model\Config;
+use Ingenico\Payment\Model\Connector;
+use Ingenico\Payment\Helper\Data as IngenicoHelper;
+use Ingenico\Payment\Model\Config\Source\Settings\OrderEmail;
+
 class MagentoSalesModelOrder
 {
-    protected $_storeManager;
-    protected $_connector;
-    protected $_cnf;
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var Config
+     */
+    private $cnf;
+
+    /**
+     * @var Connector
+     */
+    private $connector;
+
+    /**
+     * @var IngenicoHelper
+     */
+    private $ingenicoHelper;
 
     public function __construct(
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Ingenico\Payment\Model\Config $cnf,
-        \Ingenico\Payment\Model\Connector $connector
+        StoreManagerInterface $storeManager,
+        Config $cnf,
+        Connector $connector,
+        IngenicoHelper $ingenicoHelper
     ) {
-        $this->_storeManager = $storeManager;
-        $this->_connector = $connector;
-        $this->_cnf = $cnf;
+        $this->storeManager = $storeManager;
+        $this->connector    = $connector;
+        $this->ingenicoHelper = $ingenicoHelper;
+        $this->cnf = $cnf;
     }
 
     /**
@@ -23,12 +47,18 @@ class MagentoSalesModelOrder
      */
     public function afterGetCanSendNewEmailFlag(\Magento\Sales\Model\Order $subject, $result)
     {
-        if ($subject->getPayment()->getMethod() == \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
-            if ($this->_cnf->getOrderConfirmationEmailMode() == '0') {
+        if (in_array($subject->getPayment()->getMethod(),
+            array_merge($this->ingenicoHelper->getPaymentMethodCodes(), [
+                \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE
+            ]))
+        ) {
+            if ($this->cnf->getOrderConfirmationEmailMode() === OrderEmail::STATUS_ENABLED) {
                 return $result;
             }
+
             return false;
         }
+
         return $result;
     }
 }
