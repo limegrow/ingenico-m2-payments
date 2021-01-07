@@ -217,6 +217,7 @@ class Config extends \Magento\Framework\App\Config
     {
         return [
             'Ingenico',
+            'Alias',
             'Afterpay',
             'Bancontact',
             'Banktransfer',

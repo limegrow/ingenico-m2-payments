@@ -98,9 +98,7 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
         if ((isset($data['do_offline']) && $data['do_offline']) ||
             !in_array(
                 $order->getPayment()->getMethod(),
-                array_merge($this->ingenicoHelper->getPaymentMethodCodes(), [
-                    \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE
-                ])
+                $this->ingenicoHelper->getPaymentMethodCodes()
             )
         ) {
             return $proceed();

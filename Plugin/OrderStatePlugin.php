@@ -2,6 +2,7 @@
 
 namespace Ingenico\Payment\Plugin;
 
+use Ingenico\Payment\Helper\Data as IngenicoHelper;
 use Magento\Sales\Model\OrderNotifier;
 use Ingenico\Payment\Model\Config;
 use Ingenico\Payment\Model\Config\Source\Settings\OrderEmail;
@@ -18,12 +19,26 @@ class OrderStatePlugin
      */
     private $cnf;
 
+    /**
+     * @var IngenicoHelper
+     */
+    private $ingenicoHelper;
+
+    /**
+     * Constructor.
+     *
+     * @param OrderNotifier  $orderNotifier
+     * @param Config         $cnf
+     * @param IngenicoHelper $ingenicoHelper
+     */
     public function __construct(
         OrderNotifier $orderNotifier,
-        Config $cnf
+        Config $cnf,
+        IngenicoHelper $ingenicoHelper
     ) {
-        $this->orderNotifier = $orderNotifier;
-        $this->cnf           = $cnf;
+        $this->orderNotifier  = $orderNotifier;
+        $this->cnf            = $cnf;
+        $this->ingenicoHelper = $ingenicoHelper;
     }
 
     /**
@@ -31,13 +46,13 @@ class OrderStatePlugin
      */
     public function afterSave(\Magento\Sales\Api\OrderRepositoryInterface $subject, $result)
     {
-        if ($result->getPayment()->getMethod() == \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE) {
+        if (in_array($result->getPayment()->getMethod(), $this->ingenicoHelper->getPaymentMethodCodes())) {
             if ($this->cnf->getOrderConfirmationEmailMode() === OrderEmail::STATUS_ONCHANGE) {
                 $targetStatus = $this->cnf->getOrderStatusForConfirmationEmail();
                 if (!$result->getEmailSent()
                     && $result->getData('status') == $targetStatus
                     && $result->getOrigData('status') !== $targetStatus) {
-                        $this->orderNotifier->notify($result);
+                    $this->orderNotifier->notify($result);
                 }
             }
         }

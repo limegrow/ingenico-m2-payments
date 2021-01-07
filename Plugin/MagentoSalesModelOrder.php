@@ -47,13 +47,7 @@ class MagentoSalesModelOrder
      */
     public function afterGetCanSendNewEmailFlag(\Magento\Sales\Model\Order $subject, $result)
     {
-        if (in_array(
-            $subject->getPayment()->getMethod(),
-            array_merge($this->ingenicoHelper->getPaymentMethodCodes(), [
-                \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE
-            ])
-        )
-        ) {
+        if (in_array($subject->getPayment()->getMethod(), $this->ingenicoHelper->getPaymentMethodCodes())) {
             if ($this->cnf->getOrderConfirmationEmailMode() === OrderEmail::STATUS_ENABLED) {
                 return $result;
             }

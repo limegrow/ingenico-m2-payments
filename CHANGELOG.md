@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.5.3] - 2021-01-07
+### Changed
+- Fixed bug with "Suppress Order Confirmation Email" option
+
 ## [2.5.2] - 2020-11-27
 ### Added
 - Added Bancontact payment method
