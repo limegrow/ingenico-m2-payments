@@ -39,8 +39,7 @@ class Data extends AbstractHelper
         IngenicoConfig $cnf,
         PaymentHelper $paymentHelper,
         StoreManagerInterface $storeManager
-    )
-    {
+    ) {
         parent::__construct($context);
 
         $this->connector = $connector;

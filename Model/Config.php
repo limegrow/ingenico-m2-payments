@@ -109,10 +109,6 @@ class Config extends \Magento\Framework\App\Config
      */
     public function isExtensionConfigured()
     {
-        if (!$this->isEnabled()) {
-            return false;
-        }
-
         $mode = $this->getMode();
 
         $settings = [
@@ -129,16 +125,6 @@ class Config extends \Magento\Framework\App\Config
         }
 
         return true;
-    }
-
-    /**
-     * Check if the payment method is activate.
-     *
-     * @return bool
-     */
-    public function isEnabled()
-    {
-        return $this->isSetFlag('payment/ingenico_e_payments/active', $this->_scope, $this->_scopeCode);
     }
 
     public function isLoggingEnabled()
@@ -232,6 +218,7 @@ class Config extends \Magento\Framework\App\Config
         return [
             'Ingenico',
             'Afterpay',
+            'Bancontact',
             'Banktransfer',
             'Belfius',
             'Cb',
@@ -279,7 +266,6 @@ class Config extends \Magento\Framework\App\Config
                     if ($coreCode === 'visa') {
                         $result[] = 'mastercard';
                         $result[] = 'amex';
-                        $result[] = 'bancontact';
                         $result[] = 'diners_club';
                         $result[] = 'discover';
                         $result[] = 'jcb';

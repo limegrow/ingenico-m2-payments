@@ -21,10 +21,10 @@ class Afterpay extends Country
             $this->_options = $this->_countryCollection
                 ->addCountryIdFilter(self::COUNTRIES)
                 ->loadData()->setForegroundCountries(
-                $foregroundCountries
-            )->toOptionArray(
-                false
-            );
+                    $foregroundCountries
+                )->toOptionArray(
+                    false
+                );
         }
 
         $options = $this->_options;

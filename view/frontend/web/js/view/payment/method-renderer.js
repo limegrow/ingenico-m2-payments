@@ -20,7 +20,7 @@ define(
             );
         }
 
-        $.each(window.checkoutConfig.payment.ingenico.methods, function(methodCode, method) {
+        $.each(window.checkoutConfig.payment.ingenico.methods, function (methodCode, method) {
             rendererList.push({
                 type: methodCode,
                 component: 'Ingenico_Payment/js/view/payment/method-renderer/abstract'

@@ -16,6 +16,7 @@ use IngenicoClient\OrderItem;
 use IngenicoClient\OrderField;
 use IngenicoClient\PaymentMethod\PaymentMethod;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\User\Model\ResourceModel\User\CollectionFactory as UserCollectionFactory;
 
 class Connector extends AbstractConnector implements \IngenicoClient\ConnectorInterface
 {
@@ -138,6 +139,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     protected $redirect;
 
+    /**
+     * @var UserCollectionFactory
+     */
+    protected $userCollectionFactory;
+
     protected $_orderId = null;
     protected $_customerId = null;
 
@@ -179,7 +185,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         \Magento\Framework\Serialize\Serializer\Json $json,
         ResponseFactory $responseFactory,
         ActionFlag $actionFlag,
-        RedirectInterface $redirect
+        RedirectInterface $redirect,
+        UserCollectionFactory $userCollectionFactory
     ) {
         $this->_logger = $logger;
         $this->_cnf = $cnf;
@@ -219,6 +226,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $this->responseFactory = $responseFactory;
         $this->actionFlag = $actionFlag;
         $this->redirect = $redirect;
+        $this->userCollectionFactory = $userCollectionFactory;
 
         $this->_processor->setConnector($this);
         $this->_coreLibrary = new \IngenicoClient\IngenicoCoreLibrary($this);
@@ -1107,7 +1115,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->_inlineTranslation->resume();
 
             return true;
-
         } catch (\Exception $e) {
             $this->log($e->getMessage(), 'crit');
         }
@@ -1194,18 +1201,25 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 null,
                 $this->_coreLibrary->__('order_paid.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                    self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
-                    self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                    self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
-                    self::PARAM_NAME_ORDER_REFERENCE => $orderId,
-                    self::PARAM_NAME_ORDER_URL => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId()])
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                    AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                    AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
+                    AbstractConnector::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    AbstractConnector::PARAM_NAME_ORDER_URL => $this->getUrl(
+                        self::PARAM_NAME_SALES_ORDER_VIEW,
+                        [
+                            self::PARAM_NAME_ORDER_ID => $order->getId()
+                        ]
+                    )
                 ],
                 $locale
             );
         } catch (\Exception $e) {
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
+
+        return false;
     }
 
     /**
@@ -1242,18 +1256,25 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 null,
                 $this->_coreLibrary->__('authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                    self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
-                    self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                    self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
-                    self::PARAM_NAME_ORDER_REFERENCE => $orderId,
-                    self::PARAM_NAME_ORDER_URL => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId()])
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                    AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                    AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
+                    AbstractConnector::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    AbstractConnector::PARAM_NAME_ORDER_URL => $this->getUrl(
+                        self::PARAM_NAME_SALES_ORDER_VIEW,
+                        [
+                            self::PARAM_NAME_ORDER_ID => $order->getId()
+                        ]
+                    )
                 ],
                 $locale
             );
         } catch (\Exception $e) {
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
+
+        return false;
     }
 
     /**
@@ -1264,21 +1285,32 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendNotificationAdminAuthorization($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
-        $locale = $this->getLocale($orderId);
-
         if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
             return null;
         }
 
+        // Get recipient's email
         $recipient = $this->_cnf->getPaymentAuthorisationNotificationEmail();
         if (!$recipient) {
             $recipient = $this->_cnf->getValue('trans_email/ident_general/email', self::CNF_SCOPE);
         }
 
-        $this->_appEmulation->startEnvironmentEmulation($order->getStoreId(), \Magento\Framework\App\Area::AREA_FRONTEND, true);
+        // Get locale of admin if possible
+        $locale = $this->getAdminUserLocale($recipient);
+        if (!$locale) {
+            $locale = $this->_localeResolver->getDefaultLocale();
+        }
+
+        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $this->_appEmulation->startEnvironmentEmulation(
+            $order->getStoreId(),
+            \Magento\Framework\App\Area::AREA_FRONTEND,
+            true
+        );
+
         try {
             $this->setEmailTemplate('ingenico_empty');
+
             return $this->_coreLibrary->sendMailNotificationAdminAuthorization(
                 $recipient,
                 null,
@@ -1286,21 +1318,30 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 null,
                 $this->_coreLibrary->__('admin_authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                    self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
-                    self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                    self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
-                    self::PARAM_NAME_ORDER_REFERENCE => $orderId,
-                    'order_view_url' => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId(), self::CNF_SCOPE_PARAM_NAME => 0]),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                    AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                    AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
+                    AbstractConnector::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    AbstractConnector::PARAM_NAME_ORDER_VIEW_URL => $this->getUrl(
+                        self::PARAM_NAME_SALES_ORDER_VIEW,
+                        [
+                            self::PARAM_NAME_ORDER_ID => $order->getId(),
+                            self::CNF_SCOPE_PARAM_NAME => 0
+                        ]
+                    ),
                     'path_uri' => '',
-                    'ingenico_logo' => $this->_cnf->getIngenicoLogo()
+                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->_cnf->getIngenicoLogo()
                 ],
                 $locale
             );
         } catch (\Exception $e) {
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
+
         $this->_appEmulation->stopEnvironmentEmulation();
+
+        return false;
     }
 
     /**
@@ -1388,18 +1429,25 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 null,
                 $this->_coreLibrary->__('refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                    self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
-                    self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                    self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
-                    self::PARAM_NAME_ORDER_REFERENCE => $orderId,
-                    self::PARAM_NAME_ORDER_URL => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId()])
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                    AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                    AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
+                    AbstractConnector::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    AbstractConnector::PARAM_NAME_ORDER_URL => $this->getUrl(
+                        self::PARAM_NAME_SALES_ORDER_VIEW,
+                        [
+                            self::PARAM_NAME_ORDER_ID => $order->getId()
+                        ]
+                    )
                 ],
                 $locale
             );
         } catch (\Exception $e) {
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
+
+        return false;
     }
 
     /**
@@ -1411,11 +1459,17 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function sendRefundFailedAdminEmail($orderId)
     {
         $order = $this->_processor->getOrderByIncrementId($orderId);
-        $locale = $this->getLocale($orderId);
         $recipient = $this->_cnf->getValue('trans_email/ident_sales/email', self::CNF_SCOPE);
+
+        // Get locale of admin if possible
+        $locale = $this->getAdminUserLocale($recipient);
+        if (!$locale) {
+            $locale = $this->_localeResolver->getDefaultLocale();
+        }
 
         try {
             $this->setEmailTemplate('ingenico_empty');
+
             return $this->_coreLibrary->sendMailNotificationAdminRefundFailed(
                 $recipient,
                 $this->_cnf->getStoreName(),
@@ -1423,14 +1477,19 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 null,
                 $this->_coreLibrary->__('admin_refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                    self::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
-                    self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                    self::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
-                    self::PARAM_NAME_ORDER_REFERENCE => $orderId,
-                    self::PARAM_NAME_ORDER_URL => $this->getUrl(self::PARAM_NAME_SALES_ORDER_VIEW, [self::PARAM_NAME_ORDER_ID => $order->getId()]),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                    AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                    AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
+                    AbstractConnector::PARAM_NAME_ORDER_REFERENCE => $orderId,
+                    AbstractConnector::PARAM_NAME_ORDER_URL => $this->getUrl(
+                        self::PARAM_NAME_SALES_ORDER_VIEW,
+                        [
+                            self::PARAM_NAME_ORDER_ID => $order->getId()
+                        ]
+                    ),
                     'path_uri' => '',
-                    'ingenico_logo' => $this->_cnf->getIngenicoLogo()
+                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->_cnf->getIngenicoLogo()
                 ],
                 $locale
             );
@@ -1438,7 +1497,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -1468,11 +1527,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         // Default Mail template fields
         $fields = array_merge(
             [
-                'platform' => $this->requestShoppingCartExtensionId(),
-                self::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                self::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
-                'ticket' => '',
-                'description' => ''
+                AbstractConnector::PARAM_NAME_PLATFORM => $this->requestShoppingCartExtensionId(),
+                AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
+                AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName(),
+                AbstractConnector::PARAM_NAME_TICKET => '',
+                AbstractConnector::PARAM_NAME_DESCRIPTION => ''
             ],
             $fields
         );
@@ -1493,7 +1552,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     protected function _getStoreEmailLogo($storeId = 0)
     {
         if ($storeId) {
-            $this->_appEmulation->startEnvironmentEmulation($storeId, \Magento\Framework\App\Area::AREA_FRONTEND, true);
+            $this->_appEmulation->startEnvironmentEmulation(
+                $storeId,
+                \Magento\Framework\App\Area::AREA_FRONTEND,
+                true
+            );
         }
 
         $logoUrl = $this->_cnf->getStoreEmailLogo($storeId);
@@ -1556,7 +1619,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         // only create relevant Magento Transactions
         if (isset($transactionTypeMap[$transactionStatus])) {
-
             $trxType = $transactionTypeMap[$transactionStatus];
 
             /** @var \Magento\Sales\Model\Order $order */
@@ -1732,7 +1794,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Renders the template of the payment success page.
      *
      * @param array $fields
-     * @param Payment $payment
+     * @param \IngenicoClient\Payment $payment
      *
      * @return void
      */
@@ -1746,7 +1808,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Renders the template with 3Ds Security Check.
      *
      * @param array $fields
-     * @param Payment $payment
+     * @param \IngenicoClient\Payment $payment
      *
      * @return void
      */
@@ -1760,7 +1822,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Renders the template with the order cancellation.
      *
      * @param array $fields
-     * @param Payment $payment
+     * @param \IngenicoClient\Payment $payment
      *
      * @return void
      */
@@ -2398,5 +2460,25 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function getPlatformEnvironment()
     {
         return \IngenicoClient\IngenicoCoreLibrary::PLATFORM_INGENICO;
+    }
+
+    /**
+     * Get Admin Locale by email.
+     *
+     * @param string $email
+     *
+     * @return string|false
+     */
+    private function getAdminUserLocale($email)
+    {
+        //UserCollectionFactory
+        $collection = $this->userCollectionFactory->create();
+        $collection->addFieldToFilter('main_table.email', $email);
+        if ($collection->getSize() > 0) {
+            $userData = $collection->getFirstItem();
+            return $userData->getInterfaceLocale();
+        }
+
+        return false;
     }
 }

@@ -5,6 +5,8 @@
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_cc" template="Ingenico_Payment::form/cc_form.phtml">
         </referenceBlock>
+        <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_bancontact" template="Ingenico_Payment::form/form.phtml">
+        </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_banktransfer" template="Ingenico_Payment::form/form.phtml">
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_cb" template="Ingenico_Payment::form/form.phtml">

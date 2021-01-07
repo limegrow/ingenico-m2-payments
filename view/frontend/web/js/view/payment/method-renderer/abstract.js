@@ -53,7 +53,7 @@ define([
             return this;
         },
 
-        inlineSuccess: function(event, aliasId, cardBrand) {
+        inlineSuccess: function (event, aliasId, cardBrand) {
             if (quote.paymentMethod().method === this.getCode()) {
                 this.iFrameUrl('');
                 this.isPlaceOrderAllowed(true);
@@ -80,7 +80,7 @@ define([
             }
         },
 
-        inlineFailure: function(event, aliasId, cardBrand) {
+        inlineFailure: function (event, aliasId, cardBrand) {
             if (quote.paymentMethod().method === this.getCode()) {
                 this.iFrameUrl('');
                 this.fillHelperText(
@@ -177,6 +177,11 @@ define([
         },
 
         getMethodCategory: function () {
+            // Bancontact is a card method which doesn't support inline method
+            if (this.getCode() === 'ingenico_bancontact') {
+                return 'bancontact';
+            }
+
             return window.checkoutConfig.payment.ingenico.methods[this.getCode()].category;
         },
 

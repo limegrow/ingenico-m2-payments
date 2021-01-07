@@ -36,14 +36,14 @@ define([
         },
 
         getSavedCards: function () {
-            return window.checkoutConfig.payment.ingenico.savedCards.filter(function(item) {
+            return window.checkoutConfig.payment.ingenico.savedCards.filter(function (item) {
                 return item.code !== '';
             });
         },
 
         selectSavedCard: function (data, event) {
             var redirectUrl = url.build(window.checkoutConfig.payment.ingenico.redirectUri);
-            if (data.code){
+            if (data.code) {
                 redirectUrl = url.build(window.checkoutConfig.payment.ingenico.redirectUri + '/alias/' + data.code);
             }
 

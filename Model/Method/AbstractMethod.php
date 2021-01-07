@@ -160,7 +160,6 @@ class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
                 ->setTransactionId($result->getPayId() . '-' . $result->getPayIdSub())
                 ->setIsTransactionClosed(0)
                 ->setAdditionalInformation(Transaction::RAW_DETAILS, $result->getData());
-
         } catch (\Exception $e) {
             $this->connector->log($e->getMessage(), 'crit');
             throw new LocalizedException(__($e->getMessage()));

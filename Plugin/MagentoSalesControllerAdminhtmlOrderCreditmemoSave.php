@@ -95,8 +95,7 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
         $order = $this->orderRepository->get($subject->getRequest()->getParam('order_id'));
 
         // only intercept if order with Ingenico Payment and Online Refund
-        if (
-            (isset($data['do_offline']) && $data['do_offline']) ||
+        if ((isset($data['do_offline']) && $data['do_offline']) ||
             !in_array(
                 $order->getPayment()->getMethod(),
                 array_merge($this->ingenicoHelper->getPaymentMethodCodes(), [
@@ -183,12 +182,10 @@ class MagentoSalesControllerAdminhtmlOrderCreditmemoSave
 
                 $resultRedirect->setPath('sales/order/view', ['order_id' => $creditmemo->getOrderId()]);
                 return $resultRedirect;
-
             } else {
                 $resultRedirect->setPath('noroute');
                 return $resultRedirect;
             }
-
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         } catch (\IngenicoClient\Exception $e) {

@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.5.2] - 2020-11-27
+### Added
+- Added Bancontact payment method
+
+### Changed
+- Fixed bug when payment methods have gone when generic method is disabled
+- Updated translations
+- Changed Invoice creating code
+- Fixed locale of emails which should be sent to the admin
+
 ## [2.5.0] - 2020-11-03
 
 ### Changed
@@ -57,7 +67,6 @@
 	- Allow Magento to send email when order is created using one of Ingenico Payment Methods
 	- Restrict Magento to send email when order is created using one of Ingenico Payment Methods
 	- Send email when order status is changed. This allows for more flexibility when adjusting for Merchant business logic.
-- Bank transfer payment status change to be aligned with Ingenicos status when payment is pending.
 
 ## [2.1.0] - 2020-07-06
 ### Added

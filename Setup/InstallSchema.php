@@ -253,7 +253,8 @@ class InstallSchema implements InstallSchemaInterface
                 )
                 ->addIndex(
                     $installer->getIdxName(
-                        self::PARAM_NAME_TABLE_NAME_REMINDER, [
+                        self::PARAM_NAME_TABLE_NAME_REMINDER,
+                        [
                             self::PARAM_NAME_ORDER_ID,
                             self::PARAM_NAME_SECURE_TOKEN
                         ]

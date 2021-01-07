@@ -268,4 +268,4 @@ msgid "ingenico.settings.label27"
 msgstr "Orderstatus (voor SALE)"
 
 msgid "%1 ends with %2, expires on %3/%4"
-msgstr "%1 ends with %2, expires on %3/%4"
+msgstr "%1 eindigt op %2, vervalt op %3/%4"

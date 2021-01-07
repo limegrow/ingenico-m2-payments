@@ -59,7 +59,7 @@
                                         $required = $field->getRequired() ? ' required' : '';
                                         $value = $field->getValue();
                                         $length = $field->getLength();
-                                        $id = implode('-', [$method->getId(), $type, $name, md5($value)]);
+                                        $id = implode('-', [$method->getId(), $type, $name, hash('sha256', $value)]);
                                         ?>
                                         <div class="field <?php echo $block->escapeHtmlAttr($name) ?><?php echo $block->escapeHtmlAttr($required); ?>">
                                             <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>

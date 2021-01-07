@@ -3,9 +3,9 @@ require([
     'prototype',
     'mage/adminhtml/events',
     'mage/adminhtml/form'
-], function(jQuery){
+], function (jQuery) {
 
-    FormElementDependenceController.prototype.getSelectValues = function(select) {
+    FormElementDependenceController.prototype.getSelectValues = function (select) {
         var result = [];
         var options = select && select.options;
         var opt;
@@ -33,8 +33,8 @@ require([
                 if (!from || !jQuery(elementValues).filter(valuesFrom[idFrom].values).length) {
                     shouldShowUp = false;
                 }
-            // Standard processing  
-            }else if (from) {
+            // Standard processing
+            } else if (from) {
                 values = valuesFrom[idFrom].values;
                 isInArray = values.indexOf(from.value) != -1; //eslint-disable-line
                 isNegative = valuesFrom[idFrom].negative;
@@ -144,7 +144,6 @@ require([
                 }
                 jQuery('#' + idTo).addClass('ignore-validate');
             }
-    
         }
         rowElement = $('row_' + idTo);
     

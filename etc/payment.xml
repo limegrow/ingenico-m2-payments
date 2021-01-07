@@ -7,6 +7,9 @@
         <method name="ingenico_cc">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="ingenico_bancontact">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
         <method name="ingenico_banktransfer">
             <allow_multiple_address>1</allow_multiple_address>
         </method>

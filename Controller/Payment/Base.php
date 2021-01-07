@@ -145,7 +145,6 @@ abstract class Base extends Action
     {
         // process only if we are dealing with checkout, not reminder
         if (!$this->_session->getData('reminder_order_id')) {
-
             // get and set last_real_order_id so it is not lost after restoreShoppingCart;
             $orderIncId = $this->_session->getData('last_real_order_id');
             $this->_connector->restoreShoppingCart();

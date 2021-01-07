@@ -6,6 +6,7 @@
                 <label>Ingenico ePayments</label>
                 <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                 <include path="Ingenico_Payment::system/ingenico.xml"/>
+                <include path="Ingenico_Payment::system/bancontact.xml"/>
                 <include path="Ingenico_Payment::system/banktransfer.xml"/>
                 <include path="Ingenico_Payment::system/cc.xml"/>
                 <include path="Ingenico_Payment::system/cb.xml"/>

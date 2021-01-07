@@ -117,7 +117,6 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                     \IngenicoClient\PaymentMethod\Visa::CODE,
                     \IngenicoClient\PaymentMethod\Mastercard::CODE,
                     \IngenicoClient\PaymentMethod\Amex::CODE,
-                    \IngenicoClient\PaymentMethod\Bancontact::CODE,
                     \IngenicoClient\PaymentMethod\DinersClub::CODE,
                     \IngenicoClient\PaymentMethod\Discover::CODE,
                     \IngenicoClient\PaymentMethod\Jcb::CODE,
@@ -171,6 +170,10 @@ class IngenicoConfigProvider implements ConfigProviderInterface
         $methods = $this->connector->getCoreLibrary()->getSelectedPaymentMethods();
         foreach ($methods as $method) {
             /** @var PaymentMethodInterface $method */
+            if (\IngenicoClient\PaymentMethod\Bancontact::CODE === $method->getId()) {
+                continue;
+            }
+
             if ('card' === $method->getCategory()) {
                 $imgs[] = (object) [
                     'src' => $method->getEmbeddedLogo(),
@@ -199,9 +202,10 @@ class IngenicoConfigProvider implements ConfigProviderInterface
             foreach ($savedCards as $savedCard) {
                 $out[] = (object) [
                     'code' => $savedCard->getAlias(),
-                    self::PARAM_NAME_TITLE_KEY => (string) __('%1 ends with %2, expires on %3/%4',
+                    self::PARAM_NAME_TITLE_KEY => (string) __(
+                        '%1 ends with %2, expires on %3/%4',
                         $savedCard->getBrand(),
-                        substr($savedCard->getCardno(),-4,4),
+                        substr($savedCard->getCardno(), -4, 4),
                         substr($savedCard->getEd(), 0, 2),
                         substr($savedCard->getEd(), 2, 4)
                     ),

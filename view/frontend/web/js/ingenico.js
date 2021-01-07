@@ -1,4 +1,4 @@
-require(['jquery'],function($) {
+require(['jquery'],function ($) {
     'use strict';
     const Ingenico = {
         init: function () {

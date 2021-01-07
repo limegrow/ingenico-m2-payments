@@ -26,6 +26,14 @@
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
             </ingenico_afterpay>
+            <ingenico_bancontact>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Bancontact</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Bancontact</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_bancontact>
             <ingenico_banktransfer>
                 <active>1</active>
                 <model>Ingenico\Payment\Model\Method\Banktransfer</model>
