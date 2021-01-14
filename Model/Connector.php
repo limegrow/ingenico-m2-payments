@@ -754,6 +754,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             ];
         }
 
+        // Add "Store Credit" discount
+        if ($order->getCustomerBalanceAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'store_credit',
+                OrderItem::ITEM_NAME => __('Store Credit'),
+                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $order->getCustomerBalanceAmount(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add "Store Credit" discount
+        if ($order->getCustomerBalanceAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'store_credit',
+                OrderItem::ITEM_NAME => __('Store Credit'),
+                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $order->getCustomerBalanceAmount(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
         // Add Shipping Order Line
         $shippingIncTax = 0;
         $shippingTax = 0;
@@ -902,6 +932,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 'unit_vat' => 0,
                 'vat_percent' => 0,
                 'vat_included' => 1 // VAT included
+            ];
+        }
+
+        // Add "Store Credit" discount
+        if ($quote->getCustomerBalanceAmountUsed() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'store_credit',
+                OrderItem::ITEM_NAME => __('Store Credit'),
+                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getCustomerBalanceAmountUsed(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add "Store Credit" discount
+        if ($quote->getCustomerBalanceAmountUsed() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'store_credit',
+                OrderItem::ITEM_NAME => __('Store Credit'),
+                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getCustomerBalanceAmountUsed(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
@@ -1833,7 +1893,17 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
             $this->restoreShoppingCart();
-            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
+
+            $incrementId = $fields[self::PARAM_NAME_ORDER_ID];
+            if ($incrementId) {
+                $order = $this->_processor->getOrderByIncrementId($incrementId);
+
+                // Cancel order if the store customer balance wasn't set only to prevent double refund
+                if (abs($order->getBaseCustomerBalanceAmount()) === 0) {
+                    $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
+                }
+            }
+
             $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
         }
     }

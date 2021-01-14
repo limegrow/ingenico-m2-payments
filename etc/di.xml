@@ -25,4 +25,7 @@
     <type name="Magento\Payment\Helper\Data">
         <plugin sortOrder="10" name="klarnaKpPaymentData" disabled="true" />
     </type>
+    <type name="Magento\CustomerBalance\Observer\RevertStoreCreditObserver">
+        <plugin name="fixDoubleStoreCredit" type="Ingenico\Payment\Plugin\RevertStoreCreditObserverPlugin"/>
+    </type>
 </config>

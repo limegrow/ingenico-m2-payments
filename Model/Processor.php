@@ -244,7 +244,7 @@ class Processor
                 /** @var Invoice $invoice */
                 if ($invoice->getTransactionId() == $trxId && $invoice->canCancel()) {
                     $invoice->pay();
-                    $this->invoiceRepository->save($invoice);
+                    $order->addRelatedObject($invoice);
                     $this->orderRepository->save($invoice->getOrder());
 
                     if (!$invoice->getEmailSent() && $this->salesData->canSendNewInvoiceEmail()) {

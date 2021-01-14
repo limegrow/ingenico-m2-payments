@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.5.4] - 2021-01-14
+### Changed
+- Fixed problem with "Store Credit"
+
 ## [2.5.3] - 2021-01-07
 ### Changed
 - Fixed bug with "Suppress Order Confirmation Email" option
