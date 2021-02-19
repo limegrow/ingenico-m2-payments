@@ -82,6 +82,7 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                     'paymentMode' => $paymentMode,
                     'methodLogos' => $this->getPaymentLogos(),
                     'ccLogos' => $this->getCCPaymentLogos(),
+                    'use_saved_cards' => $this->cnf->canUseSavedCards(),
                     'savedCards' => $this->getSavedCards(),
                     'methods' => $this->getMethodsData(),
                 ],

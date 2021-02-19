@@ -11,7 +11,9 @@ define(
     ) {
         'use strict';
 
-        if (window.checkoutConfig.payment.ingenico.savedCards.length > 1) {
+        if (window.checkoutConfig.payment.ingenico.use_saved_cards &&
+            window.checkoutConfig.payment.ingenico.savedCards.length > 1
+        ) {
             rendererList.push(
                 {
                     type: 'ingenico_alias',
@@ -21,6 +23,10 @@ define(
         }
 
         $.each(window.checkoutConfig.payment.ingenico.methods, function (methodCode, method) {
+            if (methodCode === 'ingenico_alias') {
+                return;
+            }
+
             rendererList.push({
                 type: methodCode,
                 component: 'Ingenico_Payment/js/view/payment/method-renderer/abstract'

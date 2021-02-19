@@ -10,6 +10,8 @@ class Config extends \Magento\Framework\App\Config
 {
     const XML_PATH_ORDER_STATUS_AUTHORIZED = 'ingenico_settings/general/order_status_authorize';
     const XML_PATH_ORDER_STATUS_CAPTURED = 'ingenico_settings/general/order_status_capture';
+    const XML_PATH_TOKENIZATION_ENABLED = 'ingenico_settings/tokenization/enabled';
+    const XML_PATH_TOKENIZATION_STORED_CARDS_ENABLED = 'ingenico_settings/tokenization/stored_cards_enabled';
 
     const CONFIG_CONNECTION_KEY = 'ingenico_connection/';
 
@@ -215,9 +217,16 @@ class Config extends \Magento\Framework\App\Config
         return $this->getValue('ingenico_settings/general/mode', $this->_scope, $this->_scopeCode) == 'advanced' ? true : false;
     }
 
+    /**
+     * Check if saved cards feature is active.
+     *
+     * @return bool
+     * @SuppressWarnings(Generic.Files.LineLength.TooLong)
+     */
     public function canUseSavedCards()
     {
-        return $this->isSetFlag('ingenico_settings/tokenization/stored_cards_enabled', $this->_scope, $this->_scopeCode);
+        return $this->isSetFlag(self::XML_PATH_TOKENIZATION_ENABLED, $this->_scope, $this->_scopeCode) &&
+               $this->isSetFlag(self::XML_PATH_TOKENIZATION_STORED_CARDS_ENABLED, $this->_scope, $this->_scopeCode);
     }
 
     /**
