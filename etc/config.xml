@@ -9,6 +9,7 @@
                 <payment_action>authorize_capture</payment_action>
                 <title>Ingenico ePayments</title>
                 <order_confirmation_email>0</order_confirmation_email>
+                <order_confirmation>pending</order_confirmation>
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
             </ingenico_e_payments>

@@ -8,6 +8,9 @@ use IngenicoClient\Configuration;
 
 class Config extends \Magento\Framework\App\Config
 {
+    const XML_PATH_ORDER_STATUS_AUTHORIZED = 'ingenico_settings/general/order_status_authorize';
+    const XML_PATH_ORDER_STATUS_CAPTURED = 'ingenico_settings/general/order_status_capture';
+
     const CONFIG_CONNECTION_KEY = 'ingenico_connection/';
 
     protected $_scope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
@@ -133,7 +136,7 @@ class Config extends \Magento\Framework\App\Config
     }
 
     /**
-     * Suppress Order Confirmation Email Option.
+     * Suppress Order Confirmation Email Mode.
      *
      * @return int
      */
@@ -146,9 +149,18 @@ class Config extends \Magento\Framework\App\Config
         );
     }
 
+    /**
+     * Suppress Order Confirmation Email "Order Status".
+     *
+     * @return string
+     */
     public function getOrderStatusForConfirmationEmail()
     {
-        return $this->getValue('payment/ingenico_e_payments/order_status', $this->_scope, $this->_scopeCode);
+        return $this->getValue(
+            'payment/ingenico_e_payments/order_confirmation_status',
+            $this->_scope,
+            $this->_scopeCode
+        );
     }
 
     /**
@@ -348,7 +360,7 @@ class Config extends \Magento\Framework\App\Config
      */
     public function getOrderStatusAuth()
     {
-        return $this->getValue('ingenico_settings/general/order_status_authorize', $this->_scope, $this->_scopeCode);
+        return $this->getValue(self::XML_PATH_ORDER_STATUS_AUTHORIZED, $this->_scope, $this->_scopeCode);
     }
 
     /**
@@ -358,7 +370,7 @@ class Config extends \Magento\Framework\App\Config
      */
     public function getOrderStatusSale()
     {
-        return $this->getValue('ingenico_settings/general/order_status_capture', $this->_scope, $this->_scopeCode);
+        return $this->getValue(self::XML_PATH_ORDER_STATUS_CAPTURED, $this->_scope, $this->_scopeCode);
     }
 
     public function getMinValue($path)
