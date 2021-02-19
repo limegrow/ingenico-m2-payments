@@ -82,7 +82,6 @@
 				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
 					<label>form.connection.label.signature</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Signature</frontend_model>
-					<validate>validate-length minimum-length-40 maximum-length-40</validate>
 				</field>
 
 				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -121,7 +120,6 @@
 				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
 					<label>form.connection.label.signature</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Signature</frontend_model>
-					<validate>validate-length minimum-length-40 maximum-length-40</validate>
 				</field>
 
 				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
