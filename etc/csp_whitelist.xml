@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="connect-src">
+            <values>
+                <value id="ogone" type="host">*.ogone.com</value>
+                <value id="ingenico" type="host">*.ingenico.com</value>
+                <value id="v-psp" type="host">*.v-psp.com</value>
+                <value id="barclays" type="host">*.epdq.co.uk</value>
+                <value id="postfinance" type="host">*.postfinance.ch</value>
+                <value id="kbc" type="host">*.paypage.be</value>
+                <value id="concardis" type="host">*.payengine.de</value>
+                <value id="payglobe" type="host">*.eupayglobe.com</value>
+                <value id="santander" type="host">*.tpvecommerce.es</value>
+            </values>
+        </policy>
+        <policy id="form-action">
+            <values>
+                <value id="ogone" type="host">*.ogone.com</value>
+                <value id="ingenico" type="host">*.ingenico.com</value>
+                <value id="v-psp" type="host">*.v-psp.com</value>
+                <value id="barclays" type="host">*.epdq.co.uk</value>
+                <value id="postfinance" type="host">*.postfinance.ch</value>
+                <value id="kbc" type="host">*.paypage.be</value>
+                <value id="concardis" type="host">*.payengine.de</value>
+                <value id="payglobe" type="host">*.eupayglobe.com</value>
+                <value id="santander" type="host">*.tpvecommerce.es</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="ogone" type="host">*.ogone.com</value>
+                <value id="ingenico" type="host">*.ingenico.com</value>
+                <value id="v-psp" type="host">*.v-psp.com</value>
+                <value id="barclays" type="host">*.epdq.co.uk</value>
+                <value id="postfinance" type="host">*.postfinance.ch</value>
+                <value id="kbc" type="host">*.paypage.be</value>
+                <value id="concardis" type="host">*.payengine.de</value>
+                <value id="payglobe" type="host">*.eupayglobe.com</value>
+                <value id="santander" type="host">*.tpvecommerce.es</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>
