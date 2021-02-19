@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.5.5] - 2021-02-19
+### Added
+- Add CSP rules
+- Improve cancellation of pending orders
+
+### Changed
+- Custom validation label for Signature field
+- Hide "Pay with saved card" when Tokenization is off
+
 ## [2.5.4] - 2021-01-14
 ### Changed
 - Fixed problem with "Store Credit"
