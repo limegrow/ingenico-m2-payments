@@ -113,6 +113,7 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
      * Prevent empty credentials on Connection section
      *
      * @param \Magento\Config\Controller\Adminhtml\System\Config\Save $subject
+     * @SuppressWarnings(Generic.Files.LineLength.TooLong)
      */
     protected function _processConnectionRequest($subject)
     {
@@ -127,8 +128,13 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
 
         $fields = ['pspid', 'signature', 'user', 'password'];
         foreach ($fields as $field) {
+            $value = null;
+            if (isset($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE])) {
+                $value = $data[$mode]['fields'][$field][self::PARAM_NAME_VALUE];
+            }
+
             if (isset($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE]) &&
-                empty($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE])
+                empty($value)
             ) {
                 switch ($field) {
                     case 'pspid':
@@ -146,6 +152,15 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
                 }
 
                 $this->_redirect = true;
+            }
+
+            if ('signature' === $field && mb_strlen($value, 'UTF-8') < 40) {
+                $this->_messageManager->addErrorMessage(
+                    __('You need to use a signature value that is exactly 40 characters long. We recommend that you generate it and insert it into Backoffice as shown in the help window.')
+                );
+
+                $this->_redirect = true;
+                break;
             }
         }
     }

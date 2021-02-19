@@ -276,3 +276,6 @@ msgstr "Statut de la commande (pour la VENTE DIRECTE)"
 
 msgid "%1 ends with %2, expires on %3/%4"
 msgstr "%1 se termine par %2, expire le %3/%4"
+
+msgid "You need to use a signature value that is exactly 40 characters long. We recommend that you generate it and insert it into Backoffice as shown in the help window."
+msgstr "Vous devez utiliser une signature contenant exactement 40 caractГЁres. Nous vous recommandons de la gГ©nГ©rer et de lвЂ™insГ©rer dans le back-office dвЂ™ comme indiquГ© dans la fenГЄtre dвЂ™aide."

@@ -253,3 +253,6 @@ msgstr "Order status (for SALE)"
 
 msgid "%1 ends with %2, expires on %3/%4"
 msgstr "%1 ends with %2, expires on %3/%4"
+
+msgid "You need to use a signature value that is exactly 40 characters long. We recommend that you generate it and insert it into Backoffice as shown in the help window."
+msgstr "You need to use a signature value that is exactly 40 characters long. We recommend that you generate it and insert it into Backoffice as shown in the help window."
