@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.6] - 2021-03-01
+### Added
+- Add Device parameter for Bancontact
+
+### Changed
+- Update length of billing and shipping addresses
+
 ## [2.5.5] - 2021-02-19
 ### Added
 - Add CSP rules
