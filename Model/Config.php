@@ -499,6 +499,7 @@ class Config extends \Magento\Framework\App\Config
     {
         $collection = $this->orderStatusCollectionFactory->create()->joinStates();
         $status = $collection->addAttributeToFilter('main_table.status', $status)
+                             ->addAttributeToSort('state_table.is_default', 'desc')
                              ->getFirstItem();
         return $status;
     }
