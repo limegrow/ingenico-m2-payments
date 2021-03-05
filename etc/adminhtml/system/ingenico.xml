@@ -30,7 +30,7 @@
         <field id="order_confirmation_status" translate="label" type="select" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Order Status which triggers an order confirmation mailing</label>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
-            <config_path>payment/ingenico_e_payments/order_status</config_path>
+            <config_path>payment/ingenico_e_payments/order_confirmation_status</config_path>
             <depends>
                 <field id="payment_other/ingenico_e_payments/order_confirmation_email">3</field>
             </depends>
@@ -56,7 +56,7 @@
         </field>
         <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>ingenico.settings.label13</label>
-            <config_path>payment/ingenico_e_payments/order_status</config_path>
+            <config_path>payment/ingenico_e_payments/sort_order</config_path>
         </field>
     </group>
 </include>
