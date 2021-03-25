@@ -49,5 +49,13 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/ingenico_cc/sort_order</config_path>
         </field>
+
+        <field id="cc_logos" translate="label" type="multiselect" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Credit card logos</label>
+            <source_model>Ingenico\Payment\Model\Config\Source\CC_Logos</source_model>
+            <can_be_empty>1</can_be_empty>
+            <config_path>payment/ingenico_cc/cc_logos</config_path>
+        </field>
+
     </group>
 </include>

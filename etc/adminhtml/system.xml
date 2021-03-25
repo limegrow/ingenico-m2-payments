@@ -24,6 +24,7 @@
                 <include path="Ingenico_Payment::system/klarna_paynow.xml"/>
                 <include path="Ingenico_Payment::system/klarna_paylater.xml"/>
                 <include path="Ingenico_Payment::system/klarna_financing.xml"/>
+                <include path="Ingenico_Payment::system/flex.xml"/>
             </group>
         </section>
 		<tab id="ingenico" translate="label" sortOrder="100">

@@ -1,30 +1,27 @@
 # Changelog
 
-## [2.5.6] - 2021-03-01
+## [2.6.0] - 2021-03-25
 ### Added
-- Add Device parameter for Bancontact
+- "Remove" button which allows removing saved alias
+- Configurable logos for "Credit Cards"
+- Bank selection for iDeal
+- Blank payment methods
 
 ### Changed
-- Update length of billing and shipping addresses
+- Klarna: Fix street field issues
+- Klarna: Update format of date
+- Fixed  discount bug
+- Give preference to default status-state connections in `getAssignedState()`
+- Small config value errors, causing the settings not to be properly stored
 
-## [2.5.5] - 2021-02-19
+## [2.5.2] - 2020-11-01
 ### Added
-- Add CSP rules
-- Improve cancellation of pending orders
+- Added Sofort payment methods
 
 ### Changed
-- Custom validation label for Signature field
-- Hide "Pay with saved card" when Tokenization is off
+- Fixed "Store Credit" of Magento Commerce issues
 
-## [2.5.4] - 2021-01-14
-### Changed
-- Fixed problem with "Store Credit"
-
-## [2.5.3] - 2021-01-07
-### Changed
-- Fixed bug with "Suppress Order Confirmation Email" option
-
-## [2.5.2] - 2020-11-27
+## [2.5.1] - 2020-11-27
 ### Added
 - Added Bancontact payment method
 

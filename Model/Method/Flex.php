@@ -6,17 +6,17 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-class Ideal extends AbstractMethod
+class Flex extends AbstractMethod
 {
-    const PAYMENT_METHOD_CODE = 'ingenico_ideal';
-    const CORE_CODE = \IngenicoClient\PaymentMethod\Ideal::CODE;
+    const PAYMENT_METHOD_CODE = 'ingenico_flex';
+    const CORE_CODE = \IngenicoClient\PaymentMethod\BankTransfer::CODE;
 
     protected $_code = self::PAYMENT_METHOD_CODE;
 
     /**
      * @var string
      */
-    protected $_formBlockType = 'Ingenico\Payment\Block\Form\Ideal';
+    protected $_formBlockType = 'Ingenico\Payment\Block\Form\Flex';
 
     /**
      * Assign data to info model instance
@@ -38,7 +38,17 @@ class Ideal extends AbstractMethod
 
         /** @var \Magento\Quote\Model\Quote\Payment $info */
         $info = $this->getInfoInstance();
-        $info->setIssuerId($additionalData->getIssuerId());
+
+        $flex = $additionalData->getFlex();
+        if ($flex) {
+            $flex = explode(':', $flex);
+            $additionalData->setFlexPm($flex[0]);
+            $additionalData->setFlexBrand($flex[1]);
+        }
+
+        $info->setFlexTitle($additionalData->getFlexTitle());
+        $info->setFlexPm($additionalData->getFlexPm());
+        $info->setFlexBrand($additionalData->getFlexBrand());
 
         return $this;
     }
@@ -65,38 +75,10 @@ class Ideal extends AbstractMethod
             return $this;
         }
 
-        // Validate field
-        if (!$info->hasIssuerId()) {
-            throw new CouldNotSaveException(__('Please select bank.'));
-        }
-
-        // Save Issuer ID
-        $info->setAdditionalInformation('issuer_id', $info->getIssuerId());
-
-        return $this;
-    }
-
-    /**
-     * Method that will be executed instead of authorize or capture
-     * if flag isInitializeNeeded set to true
-     *
-     * @param string $paymentAction
-     * @param object $stateObject
-     *
-     * @return $this
-     * @throws LocalizedException
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     * @api
-     */
-    public function initialize($paymentAction, $stateObject)
-    {
-        /** @var \Magento\Quote\Model\Quote\Payment $info */
-        $info = $this->getInfoInstance();
-        $isserId = $info->getAdditionalInformation('issuer_id');
-
-        if (!empty($isserId)) {
-            $this->connector->log(sprintf('initialize: issuer_id: %s', $isserId));
-        }
+        // Save data
+        $info->setAdditionalInformation('flex_title', $info->getFlexTitle());
+        $info->setAdditionalInformation('flex_pm', $info->getFlexPm());
+        $info->setAdditionalInformation('flex_brand', $info->getFlexBrand());
 
         return $this;
     }

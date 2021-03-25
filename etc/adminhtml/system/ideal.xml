@@ -34,17 +34,23 @@
             <config_path>payment/ingenico_ideal/specificcountry</config_path>
         </field>
 
-        <field id="min_order_total" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+        <field id="banks" translate="label" type="multiselect" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Available banks</label>
+            <source_model>Ingenico\Payment\Model\Config\Source\Ideal\Banks</source_model>
+            <config_path>payment/ingenico_ideal/banks</config_path>
+        </field>
+
+        <field id="min_order_total" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Minimum Order Total</label>
             <config_path>payment/ingenico_ideal/min_order_total</config_path>
         </field>
 
-        <field id="max_order_total" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+        <field id="max_order_total" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Maximum Order Total</label>
             <config_path>payment/ingenico_ideal/max_order_total</config_path>
         </field>
 
-        <field id="sort_order" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+        <field id="sort_order" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Sort Order</label>
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/ingenico_ideal/sort_order</config_path>

@@ -1,0 +1,31 @@
+<?php
+// @codingStandardsIgnoreFile
+/**
+ * @var $block \Ingenico\Payment\Block\Form\Ideal
+ */
+$code = $block->escapeHtml($block->getMethodCode());
+$banks = $banks->getAvailableBanks();
+//$issuer_id = $block->getInfoData('issuer_id');
+?>
+
+<div id="payment_form_<?php echo $block->escapeHtml($code); ?>" class="<?php echo $block->escapeHtml($code); ?>">
+    <fieldset class="fieldset payment items payment-method <?php echo $block->escapeHtml($code); ?>" id="payment_form_<?php echo $block->escapeHtml($code); ?>" style="display: none;">
+        <div class="field required">
+            <label for="<?php /* @noEscape */ echo $code; ?>_issuer_id" class="label">
+                <span><?php echo $block->escapeHtml(__('Bank')); ?></span>
+            </label>
+            <div class="control">
+                <select class="checkbox required" id="<?php /* @noEscape */ echo $code; ?>_issuer_id" name="payment[issuer_id]"
+                        title="<?php echo $block->escapeHtml(__('Select your bank')); ?>">
+                    <?php foreach ($banks as $bank): ?>
+                        <option selected disabled value="">--Please select--</option>
+                        <option value="<?php echo $block->escapeHtml($bank['value']); ?>">
+                            <?php echo $block->escapeHtml($bank['label']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
