@@ -829,3 +829,6 @@ msgstr "Als u de modus Inline of Redirect gebruikt, kunt u de stijl van uw betal
 
 msgid "modal.optional-customisation.label2"
 msgstr "De standaardtoestand is echter al voorzien van een compleet algemeen ontwerp, zodat u ook meteen kunt beginnen met het accepteren van betalingen."
+
+msgid "Date of Birth"
+msgstr "Geboortedatum"

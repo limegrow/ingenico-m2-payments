@@ -28,4 +28,5 @@
     <type name="Magento\CustomerBalance\Observer\RevertStoreCreditObserver">
         <plugin name="fixDoubleStoreCredit" type="Ingenico\Payment\Plugin\RevertStoreCreditObserverPlugin"/>
     </type>
+    <preference for="Ingenico\Payment\Api\ServiceInterface" type="Ingenico\Payment\Model\Service" />
 </config>

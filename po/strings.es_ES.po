@@ -838,3 +838,6 @@ msgstr "Tarjetas de crédito"
 
 msgid "Your payment data is ready to be processed by {0}."
 msgstr "Sus datos de pago están listos para ser procesados por {0}."
+
+msgid "Date of Birth"
+msgstr "Fecha de nacimiento"

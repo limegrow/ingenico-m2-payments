@@ -43,5 +43,65 @@
         <method name="ingenico_paysafecard">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="ingenico_directebankingat">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingbe">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingch">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingde">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingfr">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankinggb">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingit">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directebankingnl">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_cashu_prepaid">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directdebitsat">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directdebitsde">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_directdebitsnl">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_edankort">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_eps">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_fortis">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_intersolve">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_masterpass">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_postfinancecard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_postfinance_efinance">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="ingenico_uneurocom">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

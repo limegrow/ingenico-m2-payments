@@ -12,6 +12,9 @@ class Config extends \Magento\Framework\App\Config
     const XML_PATH_ORDER_STATUS_CAPTURED = 'ingenico_settings/general/order_status_capture';
     const XML_PATH_TOKENIZATION_ENABLED = 'ingenico_settings/tokenization/enabled';
     const XML_PATH_TOKENIZATION_STORED_CARDS_ENABLED = 'ingenico_settings/tokenization/stored_cards_enabled';
+    const XML_PATH_FLEX_METHODS = 'payment/ingenico_flex/methods';
+    const XML_PATH_FLEX_LOGO = 'payment/ingenico_flex/logo';
+    const XML_PATH_IDEAL_BANKS = 'payment/ingenico_ideal/banks';
 
     const CONFIG_CONNECTION_KEY = 'ingenico_connection/';
 
@@ -166,6 +169,52 @@ class Config extends \Magento\Framework\App\Config
     }
 
     /**
+     * Get Credit Card Logos
+     *
+     * @return string
+     */
+    public function getCCLogos()
+    {
+        $logos = $this->getValue(
+            'payment/ingenico_cc/cc_logos',
+            $this->_scope,
+            $this->_scopeCode
+        );
+
+        return explode(',', $logos);
+    }
+
+    /**
+     * Get Configurable payment methods
+     *
+     * @return array
+     */
+    public function getFlexMethods()
+    {
+        $methods = $this->getValue(
+            self::XML_PATH_FLEX_METHODS,
+            $this->_scope,
+            $this->_scopeCode
+        );
+
+        return !is_array($methods) ? json_decode($methods) : $methods;
+    }
+
+    /**
+     * Get Flex Logo
+     *
+     * @return string
+     */
+    public function getFlexLogo()
+    {
+        return $this->getValue(
+            self::XML_PATH_FLEX_LOGO,
+            $this->_scope,
+            $this->_scopeCode
+        );
+    }
+
+    /**
      * Get Gateway mode.
      *
      * @param bool $asBool
@@ -256,7 +305,8 @@ class Config extends \Magento\Framework\App\Config
             'Twint',
             'KlarnaFinancing',
             'KlarnaPayLater',
-            'KlarnaPayNow'
+            'KlarnaPayNow',
+            'Flex',
         ];
     }
 
@@ -503,4 +553,21 @@ class Config extends \Magento\Framework\App\Config
                              ->getFirstItem();
         return $status;
     }
+
+    /**
+     * Get iDeal Banks
+     *
+     * @return array
+     */
+    public function getIDealBanks()
+    {
+        $banks = $this->getValue(
+            self::XML_PATH_IDEAL_BANKS,
+            $this->_scope,
+            $this->_scopeCode
+        );
+
+        return explode(',', $banks);
+    }
+
 }

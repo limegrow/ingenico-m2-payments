@@ -35,7 +35,7 @@ class Inline extends Base
             );
 
             // Process the payment depends on type
-            if ($paymentMethod->getAdditionalDataRequired()) {
+            if ($paymentMethod && $paymentMethod->getAdditionalDataRequired()) {
                 // Payment Methods which require additional data, i.e. OpenInvoice
                 // Filter the methods to limit one for list.phtml
                 foreach ($inlineData[Connector::PARAM_NAME_METHODS] as $key => $method) {
@@ -50,7 +50,7 @@ class Inline extends Base
                 $this->_registry->register($this->_connector::REGISTRY_KEY_TEMPLATE_VARS_INLINE, $inlineData);
 
                 return $this->resultFactory->create($this->resultFactory::TYPE_PAGE);
-            } elseif ($paymentMethod->isRedirectOnly()) {
+            } elseif ($paymentMethod && $paymentMethod->isRedirectOnly()) {
                 // redirect when is_redirect_only equals true - mainly all PMs except cc
                 $iFrameUrl = $paymentMethod->getIFrameUrl();
                 if (empty($iFrameUrl)) {
@@ -87,10 +87,9 @@ class Inline extends Base
                         return $this->resultRedirectFactory->create()->setUrl($response['redirect']);
                     }
                 }
-                // throw new \Exception('Credit cards aren\'t supported here');
             }
         }
-        
+
         // @todo use redirect as default and remove the possibility to show this custom inline page
         return $this->resultFactory->create($this->resultFactory::TYPE_PAGE);
     }

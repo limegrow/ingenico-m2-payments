@@ -1,6 +1,10 @@
 <?php
 // @codingStandardsIgnoreFile
 /** @var \Ingenico\Payment\Block\Method\View $block */
+
+use IngenicoClient\OrderField;
+use IngenicoClient\PaymentMethod\PaymentMethod;
+
 ?>
 
 <?php if ($html = $block->getSecurityHTMLAnswer()): ?>
@@ -53,7 +57,46 @@
                                 <input type="hidden" name="brand" value="<?php echo $block->escapeHtmlAttr($method->getBrand()) ?>" />
 
                                 <fieldset class="fieldset">
-                                    <?php foreach ($method->getMissingFields() as $field):
+                                    <?php
+                                    $missingFields = $method->getMissingFields();
+
+                                    // There is the dirty soltion of the street number problem
+                                    $order = $block->getOrder();
+                                    if ($order) {
+                                        $streetAddress = $order ? $order->getBillingAddress()->getStreet()[0] : '';
+                                        $streetNumber = '';
+
+                                        try {
+                                            $result = VIISON\AddressSplitter\AddressSplitter::splitAddress($streetAddress);
+                                            $streetAddress = $result['streetName'];
+                                            $streetNumber = $result['houseNumber'];
+
+                                            foreach ($missingFields as &$field2) {
+                                                if ($field2->getFieldName() === 'billing_street_number') {
+                                                    $field2->setValue($streetNumber);
+                                                }
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Ignore it
+                                        }
+
+                                        // Add extra field
+                                        $missingFields = array_merge(
+                                            [
+                                                new OrderField('billing_address_extra', [
+                                                    'field_type' => PaymentMethod::TYPE_TEXT,
+                                                    'label' => __('Billing street address'),
+                                                    'value' => $streetAddress,
+                                                    'required' => true,
+                                                    'is_valid' => true
+                                                ]),
+                                            ],
+                                            $missingFields
+                                        );
+                                    }
+
+                                    ?>
+                                    <?php foreach ($missingFields as $field):
                                         $name = $field->getFieldName();
                                         $type = $field->getFieldType();
                                         $required = $field->getRequired() ? ' required' : '';
@@ -83,8 +126,8 @@
                                                     <input
                                                         name="<?php echo $block->escapeHtmlAttr($name); ?>"
                                                         id="<?php echo $block->escapeHtmlAttr($id); ?>"
-                                                        title="Email"
-                                                        value="<?php echo ($type === 'date' && is_numeric($field->getValue())) ? $block->escapeHtmlAttr(date('Y-m-d', $field->getValue())) : $block->escapeHtmlAttr($field->getValue()); ?>"
+                                                        title="<?php echo $block->escapeHtmlAttr($value) ?>"
+                                                        value="<?php echo ($type === 'date' && is_numeric($field->getValue())) ? $block->escapeHtmlAttr(date('d-m-Y', $field->getValue())) : $block->escapeHtmlAttr($field->getValue()); ?>"
                                                         class="input-<?php echo $block->escapeHtmlAttr($type); ?><?php echo $length ? $block->escapeHtmlAttr(' validate-length maximum-length-'.$length) : '' ?>"
                                                         type="<?php echo $type === 'date' ? 'text' : $block->escapeHtmlAttr($type); ?>"
                                                         data-validate="{<?php echo $field->getRequired() ? 'required:true' : ''; ?>}" >
@@ -94,7 +137,7 @@
                                                                 require(["jquery", "mage/calendar"], function($){
                                                                     $("#<?php echo $block->escapeHtmlAttr($id); ?>").datepicker({
                                                                         showMonthAfterYear: false,
-                                                                        dateFormat:'yy-mm-dd',
+                                                                        dateFormat:'dd-mm-yy',
                                                                         changeMonth: true,
                                                                         changeYear: true,
                                                                         yearRange: '<?php echo '1940:' . date('Y'); ?>',

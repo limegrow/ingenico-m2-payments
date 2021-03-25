@@ -3,6 +3,7 @@
 namespace Ingenico\Payment\Block\Method;
 
 use IngenicoClient\Data;
+use Magento\Sales\Model\OrderFactory;
 
 class View extends \Magento\Framework\View\Element\Template
 {
@@ -26,6 +27,7 @@ class View extends \Magento\Framework\View\Element\Template
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Registry $registry,
         \Ingenico\Payment\Model\Config $cnf,
+        OrderFactory $orderFactory,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -36,6 +38,7 @@ class View extends \Magento\Framework\View\Element\Template
         $this->_urlBuilder = $urlBuilder;
         $this->_registry = $registry;
         $this->_cnf = $cnf;
+        $this->orderFactory = $orderFactory;
     }
 
     public function getPaymentMethods()
@@ -158,5 +161,18 @@ class View extends \Magento\Framework\View\Element\Template
         }
 
         return null;
+    }
+
+    /**
+     * @return \Magento\Sales\Model\Order|false
+     */
+    public function getOrder()
+    {
+        $incrementId = $this->_checkoutSession->getLastRealOrderId();
+        if ($incrementId) {
+            return $this->orderFactory->create()->loadByIncrementId($incrementId);
+        }
+
+        return false;
     }
 }

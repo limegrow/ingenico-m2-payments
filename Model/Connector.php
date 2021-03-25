@@ -736,10 +736,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         }
 
         // Add Discount Order line
-        if ((float)$order->getData('discount_amount') > 0 || (float)$order->getData('shipping_discount_amount') > 0) {
+        if (abs($order->getDiscountAmount()) > 0 || abs($order->getShippingDiscountAmount()) > 0) {
             $taxPercent = 0;
 
-            $totalDiscount = $order->getData('discount_amount') + $order->getData('shipping_discount_amount');
+            $totalDiscount = abs($order->getDiscountAmount() + $order->getShippingDiscountAmount());
 
             $items[] = [
                 OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
@@ -747,21 +747,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 OrderItem::ITEM_NAME => 'Discount',
                 OrderItem::ITEM_DESCRIPTION => 'Discount',
                 OrderItem::ITEM_UNIT_PRICE => -1 * $totalDiscount,
-                OrderItem::ITEM_QTY => 1,
-                OrderItem::ITEM_UNIT_VAT => 0,
-                OrderItem::ITEM_VATCODE => 0,
-                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
-            ];
-        }
-
-        // Add "Store Credit" discount
-        if ($order->getCustomerBalanceAmount() > 0) {
-            $items[] = [
-                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
-                OrderItem::ITEM_ID => 'store_credit',
-                OrderItem::ITEM_NAME => __('Store Credit'),
-                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
-                OrderItem::ITEM_UNIT_PRICE => -1 * $order->getCustomerBalanceAmount(),
                 OrderItem::ITEM_QTY => 1,
                 OrderItem::ITEM_UNIT_VAT => 0,
                 OrderItem::ITEM_VATCODE => 0,
@@ -864,7 +849,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
             OrderField::SHIPPING_COMPANY => $order->getData('shipping_description'),
             OrderField::CUSTOMER_CIVILITY => null,
-            OrderField::CUSTOMER_GENDER => null
+            OrderField::CUSTOMER_GENDER => null,
+            OrderField::ADDITIONAL_DATA => $order->getPayment()->getAdditionalInformation()
         ];
     }
 
@@ -932,21 +918,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 'unit_vat' => 0,
                 'vat_percent' => 0,
                 'vat_included' => 1 // VAT included
-            ];
-        }
-
-        // Add "Store Credit" discount
-        if ($quote->getCustomerBalanceAmountUsed() > 0) {
-            $items[] = [
-                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
-                OrderItem::ITEM_ID => 'store_credit',
-                OrderItem::ITEM_NAME => __('Store Credit'),
-                OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
-                OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getCustomerBalanceAmountUsed(),
-                OrderItem::ITEM_QTY => 1,
-                OrderItem::ITEM_UNIT_VAT => 0,
-                OrderItem::ITEM_VATCODE => 0,
-                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
@@ -1037,7 +1008,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             'customer_dob' => null,
             'customer_civility' => '',
             'items' => $items,
-            'locale' => $this->getLocale()
+            'locale' => $this->getLocale(),
+            OrderField::ADDITIONAL_DATA => $quote->getPayment()->getAdditionalInformation()
         ];
     }
 
@@ -2295,13 +2267,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function retrieveMissingFields($orderId, \IngenicoClient\PaymentMethod\PaymentMethod $pm)
     {
         $result = $this->_coreLibrary->getMissingOrderFields($orderId, $pm);
-        foreach ($result as $key => $field) {
-            // @todo Set labels for fields
-            /** @var \IngenicoClient\OrderField $field */
-            $label = ucfirst(str_replace('_', ' ', $field->getFieldName()));
-
-            $result[$key]->setLabel($label);
-        }
 
         return $result;
     }
@@ -2453,7 +2418,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function getOrderFieldLabel($field)
     {
         // @todo Set labels for fields
-        return __(ucfirst(str_replace('_', ' ', $field)));
+        switch ($field) {
+            case OrderField::CUSTOMER_DOB:
+                return __('Date of Birth');
+            default:
+                return __(ucfirst(str_replace('_', ' ', $field)));
+        }
     }
 
     /**

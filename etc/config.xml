@@ -50,6 +50,7 @@
                 <title>Credit Cards</title>
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
+                <cc_logos>generic</cc_logos>
             </ingenico_cc>
             <ingenico_cb>
                 <active>1</active>
@@ -90,6 +91,7 @@
                 <title>iDeal</title>
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
+                <banks>ABNANL2A,ABNANL2A,RABONL2U,INGBNL2A,SNSBNL2A,RBRBNL21,ASNBNL21,BUNQNL2A,TRIONL2U,FVLBNL22,KNABNL2H,MOYONL21,HANDNL2A,REVOLT21</banks>
             </ingenico_ideal>
             <ingenico_ing>
                 <active>1</active>
@@ -163,6 +165,14 @@
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
             </ingenico_klarna_financing>
+            <ingenico_flex>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\Flex</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Blank payment method</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_flex>
     	</payment>
         <carriers>
             <ingenico_dummy>
