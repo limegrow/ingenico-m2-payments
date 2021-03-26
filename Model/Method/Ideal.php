@@ -16,7 +16,7 @@ class Ideal extends AbstractMethod
     /**
      * @var string
      */
-    protected $_formBlockType = 'Ingenico\Payment\Block\Form\Ideal';
+    protected $_formBlockType = \Ingenico\Payment\Block\Form\Ideal::class;
 
     /**
      * Assign data to info model instance

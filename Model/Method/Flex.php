@@ -16,7 +16,7 @@ class Flex extends AbstractMethod
     /**
      * @var string
      */
-    protected $_formBlockType = 'Ingenico\Payment\Block\Form\Flex';
+    protected $_formBlockType = \Ingenico\Payment\Block\Form\Flex::class;
 
     /**
      * Assign data to info model instance

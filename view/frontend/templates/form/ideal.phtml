@@ -4,7 +4,7 @@
  * @var $block \Ingenico\Payment\Block\Form\Ideal
  */
 $code = $block->escapeHtml($block->getMethodCode());
-$banks = $banks->getAvailableBanks();
+$banks = $block->getAvailableBanks();
 //$issuer_id = $block->getInfoData('issuer_id');
 ?>
 
@@ -17,8 +17,8 @@ $banks = $banks->getAvailableBanks();
             <div class="control">
                 <select class="checkbox required" id="<?php /* @noEscape */ echo $code; ?>_issuer_id" name="payment[issuer_id]"
                         title="<?php echo $block->escapeHtml(__('Select your bank')); ?>">
+                    <option selected disabled value=""><?php echo $block->escapeHtml(__('--Please select--')); ?></option>
                     <?php foreach ($banks as $bank): ?>
-                        <option selected disabled value="">--Please select--</option>
                         <option value="<?php echo $block->escapeHtml($bank['value']); ?>">
                             <?php echo $block->escapeHtml($bank['label']); ?>
                         </option>
