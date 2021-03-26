@@ -10,7 +10,7 @@
         "viison/address-splitter": "~0.3.4"
     },
     "type": "magento2-module",
-    "version": "2.6.1",
+    "version": "2.6.2",
     "license": [
         "OSL-3.0"
     ],
