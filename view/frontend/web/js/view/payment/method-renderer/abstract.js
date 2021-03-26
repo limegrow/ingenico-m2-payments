@@ -62,6 +62,8 @@ define([
             this.iFrameUrl(this.getIFrameUrl());
             this.isPlaceOrderAllowed(this.getPaymentMode() === 'redirect');
 
+            var code = this.getCode();
+
             // Initialize payment methods
             switch (code) {
                 case 'ingenico_flex':
