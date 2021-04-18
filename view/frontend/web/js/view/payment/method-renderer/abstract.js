@@ -66,11 +66,7 @@ define([
             $(document).on('click', '.payment-method._active div[data-role=checkout-agreements] input', function () {
                 var selected = $('input[name="payment[method]"]:checked').val();
                 if (selected === code) {
-                    if (agreement() === true) {
-                        $('.payment-method._active .iframe-wrap').show();
-                    } else {
-                        $('.payment-method._active .iframe-wrap').hide();
-                    }
+                    $('.payment-method._active .iframe-wrap').show();
                 }
             });
 
