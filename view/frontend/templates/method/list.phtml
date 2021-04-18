@@ -40,8 +40,8 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                     <?php // AFTERPAY & KLARNA ?>
                     <?php if ($method->getAdditionalDataRequired()): ?>
                         <div class="payment-logo">
-                            <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo $method->getName() ?>" title="<?php echo $method->getName() ?>" width="50" />
-                            <h3><?php echo $block->escapeHtmlAttr($method->getName()) ?></h3>
+                            <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo __($method->getName()) ?>" title="<?php echo __($method->getName()) ?>" width="50" />
+                            <h3><?php echo $block->escapeHtmlAttr(__($method->getName())) ?></h3>
                         </div>
                         <div class="form-container">
                             <h4 class="subtitle"><?= __('modal.openinvoice.additional_data_required'); ?></h4>
@@ -154,8 +154,8 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                                 <div class="actions-toolbar">
                                     <div class="primary">
                                         <input type="hidden" name="hideit" id="hideit" value="" />
-                                        <button type="submit" title="<?php echo $block->escapeHtmlAttr(__('modal.openinvoice.proceed')) ?>" class="action submit primary">
-                                            <span><?= __('modal.openinvoice.proceed'); ?></span>
+                                        <button type="submit" title="<?php echo $block->escapeHtmlAttr(__('Proceed')) ?>" class="action submit primary">
+                                            <span><?= __('Proceed'); ?></span>
                                         </button>
                                     </div>
                                 </div>

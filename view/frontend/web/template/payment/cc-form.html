@@ -23,7 +23,9 @@
         </div>
 
         <div class="cc-helper-text" data-bind="text: helperText"></div>
-        <iframe title="Payment Form" lazyload="on" data-bind="attr:{'id':iFrameId, 'src':iFrameUrl}, style:{'display':iFrameCssDisplay}" style="width: 100%; min-height: 650px; border: none;"></iframe>
+        <div class="iframe-wrap" data-bind="visible: isAgreementAccepted()">
+            <iframe title="Payment Form" lazyload="on" data-bind="attr:{'id':iFrameId, 'src':iFrameUrl}, style:{'display':iFrameCssDisplay}" style="width: 100%; min-height: 650px; border: none;"></iframe>
+        </div>
 
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->

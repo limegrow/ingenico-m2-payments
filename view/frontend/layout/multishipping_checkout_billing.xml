@@ -17,7 +17,7 @@
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_giropay" template="Ingenico_Payment::form/form.phtml">
         </referenceBlock>
-        <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_ideal" template="Ingenico_Payment::form/form.phtml">
+        <referenceBlock class="Ingenico\Payment\Block\Form\Ideal" name="payment.method.ingenico_ideal" template="Ingenico_Payment::form/ideal.phtml">
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_ing" template="Ingenico_Payment::form/form.phtml">
         </referenceBlock>
@@ -26,6 +26,8 @@
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_paypal" template="Ingenico_Payment::form/form.phtml">
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_paysafecard" template="Ingenico_Payment::form/form.phtml">
+        </referenceBlock>
+        <referenceBlock class="Ingenico\Payment\Block\Form\Flex" name="payment.method.ingenico_flex" template="Ingenico_Payment::form/flex.phtml">
         </referenceBlock>
     </body>
 </page>

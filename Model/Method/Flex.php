@@ -19,6 +19,27 @@ class Flex extends AbstractMethod
     protected $_formBlockType = \Ingenico\Payment\Block\Form\Flex::class;
 
     /**
+     * Check whether payment method can be used
+     *
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
+     * @return bool
+     */
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    {
+        if (!parent::isAvailable($quote)) {
+            return false;
+        }
+
+        // Check if flex methods are exists
+        $methods = $this->cnf->getFlexMethods($quote->getStoreId());
+        if (count($methods) === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Assign data to info model instance
      *
      * @param DataObject|mixed $data

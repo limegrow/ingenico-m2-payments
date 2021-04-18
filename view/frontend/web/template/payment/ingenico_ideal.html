@@ -31,7 +31,9 @@
                     <select class="checkbox required" data-bind="attr: {
                           'name': 'payment[issuer_id]',
                           id: getCode() + '_issuer_id'
-                    }, options: idealBanks(), optionsText: 'label', optionsValue: 'value'">
+                    },
+                    event: {change: onIssuerIdChange},
+                    options: getIdealBanks(), optionsText: 'label', optionsValue: 'value'">
                     </select>
                 </div>
             </div>
@@ -50,7 +52,8 @@
                         click: placeOrder,
                         attr: {'title': $t('Place Order')},
                         enable: (getCode() == isChecked()),
-                        css: {disabled: !isPlaceOrderActionAllowed()}
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: isActive()
                         "
                         disabled>
                     <span data-bind="i18n: 'ingenico.button.label1'"></span>

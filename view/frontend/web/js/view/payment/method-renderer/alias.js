@@ -24,33 +24,24 @@ define([
     return Component.extend({
         defaults: {
             redirectAfterPlaceOrder: false,
-            isPlaceOrderActionAllowed: null,
             template: 'Ingenico_Payment/payment/alias',
+        },
+
+        afterRender: function () {
+            var self = this;
+            var int = setInterval(function () {
+                let data = self.getData();
+
+                if (data.additional_data.alias) {
+                    self.selectSavedCard({code: data.additional_data.alias}, null);
+                    window.clearInterval(int);
+                }
+            }, 1000);
+
         },
 
         initialize: function () {
             this._super();
-            this.isPlaceOrderActionAllowed(true);
-
-            var self = this;
-            $(document).on('click', '.payment-method._active [name="payment[alias]"]', function () {
-                self.togglePlaceOrder();
-            });
-
-            // Check the first item
-            setTimeout(function () {
-                if (!$('.payment-method._active [name="payment[alias]"]:checked').val()) {
-                    $('.payment-method._active [name="payment[alias]"]:first').prop('checked', true).click();
-                }
-            }, 3000);
-
-            return this;
-        },
-
-        initObservable: function () {
-            this._super().observe([
-                'isPlaceOrderActionAllowed'
-            ]);
 
             return this;
         },
@@ -90,25 +81,50 @@ define([
             return window.checkoutConfig.payment.ingenico.ccLogos;
         },
 
+        /**
+         * Get Saved Cards.
+         *
+         * @returns {*}
+         */
         getSavedCards: function () {
-            return window.checkoutConfig.payment.ingenico.savedCards.filter(function (item) {
+            return window.checkoutConfig.payment.ingenico_alias.savedCards.filter(function (item) {
                 return item.code !== '';
             });
         },
 
+        /**
+         * Is Card Selected.
+         *
+         * @param aliasId
+         * @returns {boolean}
+         */
+        isSelected: function (aliasId) {
+            return aliasId === window.checkoutConfig.payment.ingenico_alias.default;
+        },
+
+        /**
+         * Select Saved Card.
+         *
+         * @param data
+         * @param event
+         * @returns {boolean}
+         */
         selectSavedCard: function (data, event) {
-            this.isPlaceOrderActionAllowed = true;
-
-            var redirectUrl = url.build(window.checkoutConfig.payment.ingenico.redirectUrl);
-
             if (data.code) {
-                redirectUrl += '/alias/' + data.code;
+                var redirectUrl = window.checkoutConfig.payment.ingenico_alias.aliasPayUrl.replace('aliasID', data.code);
+                window.checkoutConfig.payment.ingenico.redirectUrl = redirectUrl;
             }
 
-            window.checkoutConfig.payment.ingenico.redirectUrl = redirectUrl;
             return true;
         },
 
+        /**
+         * Remove Saved Card.
+         *
+         * @param data
+         * @param event
+         * @returns {*}
+         */
         removeSavedCard: function (data, event) {
             var serviceUrl = urlBuilder.createUrl('/ingenico/payments/remove_alias/alias/aliasID', {
                 'aliasID': data.code,
@@ -126,7 +142,11 @@ define([
                 fullScreenLoader.stopLoader();
 
                 $(event.target).closest('.card').remove();
-                self.togglePlaceOrder();
+
+                // Deactivate button
+                if ($('.payment-method._active [name="payment[alias]"]').length === 0) {
+                    $('.payment-method._active button.checkout').addClass('disabled');
+                }
             }).error(function (xhr) {
                 fullScreenLoader.stopLoader();
 
@@ -138,31 +158,6 @@ define([
                     }
                 });
             });
-        },
-
-        enablePlaceOrder: function() {
-            console.log('enablePlaceOrder');
-            $('.payment-method._active button.checkout').removeClass('disabled');
-        },
-
-        disablePlaceOrder: function() {
-            console.log('disablePlaceOrder');
-            $('.payment-method._active button.checkout').addClass('disabled');
-        },
-
-        togglePlaceOrder: function () {
-            console.log('togglePlaceOrder');
-            if ($('.payment-method._active [name="payment[alias]"]').length === 0) {
-                this.disablePlaceOrder();
-                return;
-            }
-
-            var selected = $('.payment-method._active [name="payment[alias]"]:checked').val();
-            if (selected) {
-                this.enablePlaceOrder();
-            } else {
-                this.disablePlaceOrder();
-            }
         }
     });
 });

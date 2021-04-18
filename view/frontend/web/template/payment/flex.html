@@ -23,8 +23,9 @@
         </div>
 
         <fieldset class="fieldset payment">
-            <div class="field required">
+            <div class="field required" afterRender="function (target, viewModel) { viewModel.afterRender(); }">
                 <div class="control">
+                    <!-- ko ifnot: isFlexSingleMode() -->
                     <ul style="list-style: none;">
                         <!-- ko foreach: getFlexMethods() -->
                         <li>
@@ -40,6 +41,7 @@
                         </li>
                         <!-- /ko -->
                     </ul>
+                    <!-- /ko -->
                 </div>
             </div>
         </fieldset>

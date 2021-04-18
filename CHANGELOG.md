@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.7.0] - 2021-04-18
+### Added
+- Multi Store configuration
+- New option: Layout of Payment Methods
+- Clean config cache automatically on settings save
+- Multishipping: "Remove" button which allows removing saved alias
+
+### Changes
+- iDeal bufixes
+- Blank payment method bugfixes
+- "Pay with Saved Card" bugfixes
+- Update Klarna translations
+- Multishipping: Fixed missing brand of CC on alias payment
+- Require billing address for Bancontact
+
 ## [2.6.0] - 2021-03-25
 ### Added
 - "Remove" button which allows removing saved alias

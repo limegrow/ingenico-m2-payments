@@ -181,7 +181,7 @@ class Processor
     public function processOrderAuthorization($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        $authorizedStatus = $this->config->getOrderStatusAuth();
+        $authorizedStatus = $this->config->getOrderStatusAuth($order->getStoreId());
 
         // skip already authorized orders (double ping-back)
         if ($order->getStatus() == $authorizedStatus) {
@@ -199,7 +199,7 @@ class Processor
         }
 
         // Set order status
-        $new_status = $this->config->getOrderStatusAuth();
+        $new_status = $this->config->getOrderStatusAuth($order->getStoreId());
         $status = $this->config->getAssignedState($new_status);
 
         $order->setData('state', $status->getState());
@@ -287,7 +287,7 @@ class Processor
 
         if ($processStatus) {
             // Set order status
-            $new_status = $this->config->getOrderStatusSale();
+            $new_status = $this->config->getOrderStatusSale($order->getStoreId());
             $status = $this->config->getAssignedState($new_status);
             $order->setData('state', $status->getState());
             $order->setStatus($status->getStatus());

@@ -156,4 +156,14 @@ class Data extends AbstractHelper
 
         return $result;
     }
+
+    /**
+     * Get Store ID.
+     *
+     * @return string
+     */
+    public function getStoreId()
+    {
+        return $this->storeManager->getStore()->getId();
+    }
 }

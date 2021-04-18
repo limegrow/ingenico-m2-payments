@@ -13,6 +13,10 @@ class Banks implements ArrayInterface
     {
         return [
             [
+                'value' => '',
+                'label' => __('Please select your bank')
+            ],
+            [
                 'value' => 'ABNANL2A',
                 'label' => __('ABN AMRO')
             ],

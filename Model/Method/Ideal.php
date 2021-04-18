@@ -4,6 +4,7 @@ namespace Ingenico\Payment\Model\Method;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 class Ideal extends AbstractMethod
@@ -65,11 +66,6 @@ class Ideal extends AbstractMethod
             return $this;
         }
 
-        // Validate field
-        if (!$info->hasIssuerId()) {
-            throw new CouldNotSaveException(__('Please select bank.'));
-        }
-
         // Save Issuer ID
         $info->setAdditionalInformation('issuer_id', $info->getIssuerId());
 
@@ -96,6 +92,11 @@ class Ideal extends AbstractMethod
 
         if (!empty($isserId)) {
             $this->connector->log(sprintf('initialize: issuer_id: %s', $isserId));
+        }
+
+        // Validate field
+        if (empty($isserId)) {
+            throw new CouldNotSaveException(__('Please select bank.'));
         }
 
         return $this;

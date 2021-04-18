@@ -129,6 +129,10 @@ class MagentoConfigControllerAdminhtmlSystemConfigSave
         $fields = ['pspid', 'signature', 'user', 'password'];
         foreach ($fields as $field) {
             $value = null;
+            if (!empty($data[$mode]['fields'][$field][self::PARAM_NAME_INHERIT])) {
+                continue;
+            }
+
             if (isset($data[$mode]['fields'][$field][self::PARAM_NAME_VALUE])) {
                 $value = $data[$mode]['fields'][$field][self::PARAM_NAME_VALUE];
             }

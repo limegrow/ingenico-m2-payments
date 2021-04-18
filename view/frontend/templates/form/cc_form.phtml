@@ -19,15 +19,62 @@ $code = $block->escapeHtml($block->getMethodCode());
                         <?php echo $card->isChecked ? 'checked' : '' ?>
                     />
 
-                    <img src="<?php echo $block->escapeHtml($card->imgSrc); ?>"
-                         title="<?php echo $block->escapeHtml($card->brand); ?>"
-                         alt="<?php echo $block->escapeHtml($card->brand); ?>"
-                         style="<?php echo !$card->imgSrc ? 'display: none' : '' ?> height:16px; margin-right:8px;" />
+                    <?php if (!empty($card->imgSrc)): ?>
+                        <img src="<?php echo $block->escapeHtml($card->imgSrc); ?>"
+                             title="<?php echo $block->escapeHtml($card->brand); ?>"
+                             alt="<?php echo $block->escapeHtml($card->brand); ?>"
+                             style="<?php echo !$card->imgSrc ? 'display: none' : '' ?> height:16px; margin-right:8px;" />
+                    <?php endif; ?>
 
-                    <span><?php echo $block->escapeHtml($card->title); ?></span>
+                    <span>
+                        <?php echo $block->escapeHtml($card->title); ?>
+                    </span>
+
+                    <?php if (!empty($card->code)): ?>
+                        <button type="button" onClick="removeCC('<?php echo $block->escapeHtml($card->code); ?>', this);">
+                            <?php echo __('Remove'); ?>
+                        </button>
+                    <?php endif; ?>
                 </label>
             </div>
         <?php endforeach; ?>
+        <script type="text/javascript">
+            require([
+                'jquery',
+                'Magento_Checkout/js/model/url-builder',
+                'mage/storage',
+                'Magento_Checkout/js/model/full-screen-loader'
+            ], function (
+                $,
+                urlBuilder,
+                storage,
+                fullScreenLoader
+            ) {
+                window.removeCC = function (code, item) {
+                    var serviceUrl = urlBuilder.createUrl('/ingenico/payments/remove_alias/alias/aliasID', {
+                        'aliasID': code,
+                    });
+
+                    var self = this;
+
+                    fullScreenLoader.startLoader();
+
+                    return storage.post(
+                        serviceUrl
+                    ).always(function () {
+                        fullScreenLoader.stopLoader();
+                    }).done(function (response) {
+                        fullScreenLoader.stopLoader();
+
+                        $(item).closest('.card').remove();
+                    }).error(function (xhr) {
+                        fullScreenLoader.stopLoader();
+
+                        console.log(xhr.responseJSON.message);
+                    });
+                }
+            });
+        </script>
         </div>
     </fieldset>
 </div>

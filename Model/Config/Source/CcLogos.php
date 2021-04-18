@@ -4,7 +4,7 @@ namespace Ingenico\Payment\Model\Config\Source;
 
 use Magento\Framework\Option\ArrayInterface;
 
-class CC_Logos implements ArrayInterface
+class CcLogos implements ArrayInterface
 {
     const LOGO_GENERIC = 'generic';
     const LOGO_VISA = \IngenicoClient\PaymentMethod\Visa::CODE;
