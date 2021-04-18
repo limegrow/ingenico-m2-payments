@@ -6,15 +6,20 @@
         "league/iso3166": "~2.1",
         "graylog2/gelf-php": "~1.5",
         "symfony/translation": ">=4.2",
-        "ingenico/ogone-client": "^5.1.0",
+        "ingenico/ogone-client": "^5.2.0",
         "viison/address-splitter": "~0.3.4"
     },
     "type": "magento2-module",
-    "version": "2.6.3",
+    "version": "2.7.0",
     "license": [
         "OSL-3.0"
     ],
     "authors": [
+        {
+            "name": "Oleg Iskusnyh",
+            "email": "oleg@iskusnyh.pro",
+            "homepage": "http://oleg.iskusnyh.pro/"
+        },
         {
             "name": "Konstantin Zhilin",
             "email": "info@limegrow.com",

@@ -47,8 +47,10 @@ class OrderStatePlugin
     public function afterSave(\Magento\Sales\Api\OrderRepositoryInterface $subject, $result)
     {
         if (in_array($result->getPayment()->getMethod(), $this->ingenicoHelper->getPaymentMethodCodes())) {
-            if ($this->cnf->getOrderConfirmationEmailMode() === OrderEmail::STATUS_ONCHANGE) {
-                $targetStatus = $this->cnf->getOrderStatusForConfirmationEmail();
+            $storeId = $this->ingenicoHelper->getStoreId();
+
+            if ($this->cnf->getOrderConfirmationEmailMode($storeId) === OrderEmail::STATUS_ONCHANGE) {
+                $targetStatus = $this->cnf->getOrderStatusForConfirmationEmail($storeId);
                 if (!$result->getEmailSent()
                     && $result->getData('status') == $targetStatus
                     && $result->getOrigData('status') !== $targetStatus) {

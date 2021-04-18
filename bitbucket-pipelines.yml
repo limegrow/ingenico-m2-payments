@@ -29,7 +29,7 @@ definitions:
                 - sonar
                 - docker
             script:
-                - pipe: sonarsource/sonarcloud-scan:0.1.5
+                - pipe: sonarsource/sonarcloud-scan:1.2.1
                   variables:
                       SONAR_TOKEN: ${SONAR_TOKEN}
                       # EXTRA_ARGS: '-Dsonar.sources=src -Dsonar.tests=src -Dsonar.test.inclusions="**/testing/**,**/*.spec.ts" -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info'
@@ -46,6 +46,7 @@ definitions:
                 - docker-php-ext-configure intl
                 - docker-php-ext-install -j$(nproc) gd intl
                 - docker-php-ext-install bcmath zip sodium
+                - echo 'memory_limit = 2G' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
                 - rm -rf ./composer.json
                 - composer require squizlabs/php_codesniffer
                 - composer require magento/magento-coding-standard
@@ -54,8 +55,8 @@ definitions:
                 #- php vendor/bin/phpcpd ./
                 #- php vendor/bin/phpmd ./ text cleancode,codesize,controversial,design,naming,unusedcode --exclude vendor/
                 #- php vendor/bin/phpcs --standard=PSR1 ./ --ignore=./vendor/*
-                - php vendor/bin/phpcs --config-set ignore_warnings_on_exit 1 --standard=PSR2 ./ --ignore=./vendor/*
-                - php vendor/bin/phpcs --config-set ignore_warnings_on_exit 1 --standard=vendor/magento/magento-coding-standard/Magento2/ruleset.xml --extensions=php,phtml ./  --ignore=./vendor/*
+                - php vendor/bin/phpcs --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 --standard=PSR2 ./ --ignore=./vendor/*
+                - php vendor/bin/phpcs --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 --standard=vendor/magento/magento-coding-standard/Magento2/ruleset.xml --extensions=php,phtml ./  --ignore=./vendor/*
 
 # Currently we run it for all branches and pull requests.
 # Later we would split it up by "branches", where we would have image and script for "master" and same for "develop" and "feature/*" branches.

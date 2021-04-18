@@ -210,8 +210,17 @@ msgstr "Password field is required"
 msgid "modal.openinvoice.additional_data_required"
 msgstr "Forneça os dados adicionais necessários para este método de pagamento"
 
-msgid "modal.openinvoice.proceed"
+msgid "Open Invoice"
+msgstr "Fatura aberta"
+
+msgid "Proceed"
 msgstr "Continuar"
+
+msgid "Billing street address"
+msgstr "Endereço de cobrança"
+
+msgid "Shipping street address"
+msgstr "Endereço de envio"
 
 msgid "Billing state"
 msgstr "Estado da cobrança"
@@ -278,3 +287,15 @@ msgstr "You need to use a signature value that is exactly 40 characters long. We
 
 msgid "Remove"
 msgstr "Retirar"
+
+msgid "Layout of Payment Methods"
+msgstr "Layout de métodos de pagamento"
+
+msgid "Horizontally grouped logo with group name on left"
+msgstr "Logotipo agrupado horizontalmente com o nome do grupo à esquerda"
+
+msgid "Horizontally grouped logo with no group name"
+msgstr "Logotipo agrupado horizontalmente sem nome de grupo"
+
+msgid "Vertical list"
+msgstr "Lista vertical"

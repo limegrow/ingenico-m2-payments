@@ -22,13 +22,12 @@
         <!-- ko foreach: getRegion('messages') -->
         <!-- ko template: getTemplate() --><!-- /ko -->
         <!--/ko-->
-
-        <div class="saved-cards">
+        <div class="saved-cards" afterRender="function (target, viewModel) { viewModel.afterRender(); }">
         <!-- ko foreach: getSavedCards() -->
             <div class="card">
                 <label class="label">
                     <input type="radio" name="payment[alias]" class="radio" data-bind="
-                        attr: {'id': code, 'checked': isChecked},
+                        attr: {'id': code, 'checked': $parent.isSelected(code)},
                         value: code,
                         click: $parent.selectSavedCard">
                     <img data-bind="

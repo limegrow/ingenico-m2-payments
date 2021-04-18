@@ -57,92 +57,92 @@
             </group>
 		</section>
 
-		<section id="ingenico_connection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+		<section id="ingenico_connection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
 			<label>form.connection.title</label>
 			<tab>ingenico</tab>
 			<resource>Ingenico_Payment::config_ingenico</resource>
 
-			<group id="mode" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="mode" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
    				<label>ingenico.settings.label16</label>
    				<attribute type="expanded">1</attribute>
 
-   				<field id="mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>ingenico.settings.label16</label>
    					<source_model>Ingenico\Payment\Model\Config\Source\Connection\Mode</source_model>
 				</field>
    			</group>
 
-			<group id="test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
    				<label>form.connection.label.test_account</label>
    				<attribute type="expanded">1</attribute>
 
-   				<field id="pspid" translate="label tooltip" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="pspid" translate="label tooltip" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>form.connection.label.pspid</label>
    					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\PspidTest</frontend_model>
 				</field>
-				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.signature</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Signature</frontend_model>
 				</field>
 
-				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.webhook_settings</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Webhook</frontend_model>
 				</field>
 
-				<field id="direct_link_heading" translate="label" type="label" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="direct_link_heading" translate="label" type="label" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.directlink.directlink</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\DirectLinkHeading</frontend_model>
 				</field>
 
-				<field id="direct_link" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="direct_link" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.directlink.directlink</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\DirectLink</frontend_model>
 				</field>
 
-				<field id="user" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="user" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.user</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\User</frontend_model>
 				</field>
-				<field id="password" translate="label" type="password" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="password" translate="label" type="password" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.password</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Password</frontend_model>
 				</field>
    			</group>
 
-			<group id="live" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="live" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
    				<label>form.connection.label.live_account</label>
    				<attribute type="expanded">1</attribute>
 
-   				<field id="pspid" translate="label tooltip" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="pspid" translate="label tooltip" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>form.connection.label.pspid</label>
    					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\PspidLive</frontend_model>
 				</field>
-				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="signature" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.signature</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Signature</frontend_model>
 				</field>
 
-				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="webhook" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.webhook_settings</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Webhook</frontend_model>
 				</field>
 
-				<field id="direct_link_heading" translate="label" type="label" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="direct_link_heading" translate="label" type="label" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.directlink.directlink</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\DirectLinkHeading</frontend_model>
 				</field>
 
-				<field id="direct_link" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="direct_link" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.directlink.directlink</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\DirectLink</frontend_model>
 				</field>
 
-				<field id="user" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="user" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.user</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\User</frontend_model>
 				</field>
-				<field id="password" translate="label" type="password" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="password" translate="label" type="password" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.connection.label.password</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Password</frontend_model>
 				</field>
@@ -150,15 +150,15 @@
 
 		</section>
 
-		<section id="ingenico_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+		<section id="ingenico_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 			<label>form.settings.title</label>
 			<tab>ingenico</tab>
 			<resource>Ingenico_Payment::config_ingenico</resource>
 
-			<group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
 				<label>ingenico.settings.label17</label>
    				<attribute type="expanded">1</attribute>
-   				<field id="mode" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+   				<field id="mode" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
    					<label>ingenico.settings.label18</label>
    					<source_model>Ingenico\Payment\Model\Config\Source\Settings\Mode</source_model>
    				</field>
@@ -169,35 +169,35 @@
 				</field>
 
                 <!-- Magento specific settings for order statuses -->
-                <field id="order_status_authorize" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="order_status_authorize" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>ingenico.settings.label26</label>
                     <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
                     <config_path>ingenico_settings/general/order_status_authorize</config_path>
                 </field>
 
-                <field id="order_status_capture" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="order_status_capture" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>ingenico.settings.label27</label>
                     <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
                     <config_path>ingenico_settings/general/order_status_capture</config_path>
                 </field>
 			</group>
 
-			<group id="tokenization" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="tokenization" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
 				<label>form.settings.label.tokenisation</label>
 				<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\TokenizationTitle</frontend_model>
    				<attribute type="expanded">1</attribute>
 
-   				<field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>toggle.enabled</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
 
-				<field id="tokenization" type="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="tokenization" type="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>Tokenization Info</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\Tokenization</frontend_model>
 				</field>
 
-				<field id="stored_cards_heading" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="stored_cards_heading" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.settings.label.stored_cards</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\StoredCardsHeading</frontend_model>
 					<attribute type="shared">1</attribute>
@@ -206,7 +206,7 @@
 					</depends>
 				</field>
 
-   				<field id="stored_cards_enabled" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="stored_cards_enabled" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>toggle.enabled</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\StoredCardsEnabled</frontend_model>
@@ -215,7 +215,7 @@
 					</depends>
 				</field>
 
-   				<field id="skip_security_check" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="skip_security_check" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>form.settings.label.skipsecurity</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 					<depends>
@@ -223,7 +223,7 @@
 					</depends>
 				</field>
 
-				<field id="skip_security_info" type="label" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="skip_security_info" type="label" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>Skip Security Info</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\SkipSecurityCheck</frontend_model>
 					<depends>
@@ -231,18 +231,18 @@
 					</depends>
 				</field>
 
-				<field id="delayed_payment_capture" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="delayed_payment_capture" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.settings.label.capture</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\DelayedPaymentCaptureHeading</frontend_model>
 					<attribute type="shared">1</attribute>
 				</field>
 
-   				<field id="direct_sales" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+   				<field id="direct_sales" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
    					<label>form.settings.label.directsales</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
 
-   				<field id="capture_request_notify" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+   				<field id="capture_request_notify" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
    					<label>form.settings.label.sendemail</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 					<depends>
@@ -250,7 +250,7 @@
 					</depends>
 				</field>
 
-   				<field id="capture_request_email" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="capture_request_email" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
    					<label>form.settings.email</label>
    					<!--validate>required-entry validate-email</validate-->
    					<!--backend_model>Magento\Config\Model\Config\Backend\Email\Address</backend_model-->
@@ -265,25 +265,25 @@
 				</depends>
 			</group>
 
-			<group id="orders" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+			<group id="orders" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
 				<label>form.settings.label.orders</label>
    				<attribute type="expanded">1</attribute>
-				<field id="payment_reminder_email_heading" translate="label" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+				<field id="payment_reminder_email_heading" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.settings.label.payment_reminder</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\PaymentReminderEmailHeading</frontend_model>
 					<attribute type="shared">1</attribute>
 				</field>
-				<field id="payment_reminder_email_info" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+				<field id="payment_reminder_email_info" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.settings.label.payment_reminder_description</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Info</frontend_model>
 					<attribute type="shared">1</attribute>
 				</field>
 
-   				<field id="payment_reminder_email_send" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+   				<field id="payment_reminder_email_send" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
    					<label>form.settings.label.payment_reminder_send</label>
    					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
-				<field id="payment_reminder_email_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+				<field id="payment_reminder_email_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
 					<label>ingenico.settings.label19</label>
 					<validate>required-entry validate-greater-than-zero</validate>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\Settings\Order\PaymentReminderTimeout</frontend_model>
@@ -295,21 +295,21 @@
 
 		</section>
 
-		<section id="ingenico_payment_page" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+		<section id="ingenico_payment_page" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
 			<label>form.payment_page.title</label>
 			<tab>ingenico</tab>
 			<resource>Ingenico_Payment::config_ingenico</resource>
 
-			<group id="presentation" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+			<group id="presentation" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
 				<label>form.payment_page.label.choose_access</label>
 				<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Presentation</frontend_model>
    				<attribute type="expanded">1</attribute>
-   				<field id="mode" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+   				<field id="mode" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>ingenico.settings.label16</label>
 					<source_model>Ingenico\Payment\Model\Config\Source\Settings\PaymentPage\Mode</source_model>
 				</field>
 
-				<field id="inline_payment_info" type="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="inline_payment_info" type="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>Inline Payment Info</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\InlinePaymentInfo</frontend_model>
 					<depends>
@@ -318,27 +318,41 @@
 				</field>
 			</group>
 
-			<group id="custom_template" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+            <group id="options" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <attribute type="expanded">1</attribute>
+
+                <!-- Redirect Payment List Type -->
+                <field id="pmlist" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Layout of Payment Methods</label>
+                    <source_model>Ingenico\Payment\Model\Config\Source\Pmlist</source_model>
+                    <depends>
+                        <field id="ingenico_payment_page/presentation/mode">REDIRECT</field>
+                    </depends>
+                    <validate>required-entry</validate>
+                </field>
+            </group>
+
+			<group id="custom_template" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
 				<label>form.payment_page.label.template</label>
 				<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\OptionalCustomisation</frontend_model>
    				<attribute type="expanded">1</attribute>
 
    				<!-- Inline Steps -->
-				<field id="step_one_inline" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_one_inline" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step1</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Inline\StepOne</frontend_model>
 					<depends>
 						<field id="ingenico_payment_page/presentation/mode">INLINE</field>
 					</depends>
 				</field>
-				<field id="step_two_inline" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_two_inline" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step2</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Inline\StepTwo</frontend_model>
 					<depends>
 						<field id="ingenico_payment_page/presentation/mode">INLINE</field>
 					</depends>
 				</field>
-				<field id="step_three_inline" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_three_inline" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step3</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Inline\StepThree</frontend_model>
 					<depends>
@@ -353,21 +367,21 @@
 				</field> -->
 
    				<!-- Redirect Steps -->
-				<field id="step_one_redirect" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_one_redirect" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step1</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Redirect\StepOne</frontend_model>
 					<depends>
 						<field id="ingenico_payment_page/presentation/mode">REDIRECT</field>
 					</depends>
 				</field>
-				<field id="step_two_redirect" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_two_redirect" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step2</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Redirect\StepTwo</frontend_model>
 					<depends>
 						<field id="ingenico_payment_page/presentation/mode">REDIRECT</field>
 					</depends>
 				</field>
-				<field id="step_three_redirect" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+				<field id="step_three_redirect" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>form.payment_page.label.step3</label>
 					<frontend_model>Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Redirect\StepThree</frontend_model>
 					<depends>
@@ -375,7 +389,7 @@
 					</depends>
 				</field>
 
-                <field id="ingenico_template_name" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="ingenico_template_name" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>form.payment_page.label.template_name</label>
                     <depends>
                         <field id="ingenico_payment_page/presentation/mode">REDIRECT</field>

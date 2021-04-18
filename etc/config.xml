@@ -39,7 +39,7 @@
                 <active>1</active>
                 <model>Ingenico\Payment\Model\Method\Banktransfer</model>
                 <payment_action>authorize_capture</payment_action>
-                <title>Bank transfer</title>
+                <title>Klarna Bank transfer</title>
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
             </ingenico_banktransfer>
@@ -208,6 +208,9 @@
             <presentation>
                 <mode>REDIRECT</mode>
             </presentation>
+            <options>
+                <pmlist>0</pmlist>
+            </options>
         </ingenico_payment_page>
         <ingenico_instalments>
 	        <general>

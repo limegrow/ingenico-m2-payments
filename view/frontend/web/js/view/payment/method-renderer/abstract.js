@@ -29,8 +29,7 @@ define([
             helperText: '',
             isPlaceOrderAllowed: null,
             aliasId: null,
-            cardBrand: null,
-            flexMethod: {title: null, pm: null, brand: null}
+            cardBrand: null
         },
 
         logos: [],
@@ -62,20 +61,18 @@ define([
             this.iFrameUrl(this.getIFrameUrl());
             this.isPlaceOrderAllowed(this.getPaymentMode() === 'redirect');
 
+            // Toggle the iframe wrap depends on agreement
             var code = this.getCode();
-
-            // Initialize payment methods
-            switch (code) {
-                case 'ingenico_flex':
-                    // Check the first item
-                    setTimeout(function () {
-                        if (!$('.payment-method [name="payment[ingenico_flex][method]"]:checked').val()) {
-                            $('.payment-method [name="payment[ingenico_flex][method]"]:first').prop('checked', true).click();
-                        }
-                    }, 3000);
-
-                    break;
-            }
+            $(document).on('click', '.payment-method._active div[data-role=checkout-agreements] input', function () {
+                var selected = $('input[name="payment[method]"]:checked').val();
+                if (selected === code) {
+                    if (agreement() === true) {
+                        $('.payment-method._active .iframe-wrap').show();
+                    } else {
+                        $('.payment-method._active .iframe-wrap').hide();
+                    }
+                }
+            });
 
             return this;
         },
@@ -139,6 +136,10 @@ define([
             document.getElementById(this.getIFrameId()).src = this.getIFrameUrl();
         },
 
+        isAgreementAccepted: ko.computed(function () {
+            return true;
+        }),
+
         fillHelperText: function (html) {
             $('#' + this.getIFrameId()).siblings('.cc-helper-text').html(html);
             $('#' + this.getIFrameRetryId()).on('click', this.resetIFrame.bind(this));
@@ -181,16 +182,12 @@ define([
                 return 'ingenico-e-payments';
             }
 
-            if (this.getCode() === 'ingenico_flex') {
-                return 'flex';
-            }
-
             if (this.getCode() === 'ingenico_bancontact') {
                 return 'redirect';
             }
 
-            if (this.getCode() === 'ingenico_ideal') {
-                return 'ingenico_ideal';
+            if (this.getCode() === 'ingenico_postfinancecard') {
+                return 'redirect';
             }
 
             switch (this.getMethodCategory()) {
@@ -274,65 +271,11 @@ define([
          * @override
          */
         getData: function () {
-            if (this.getCode() === 'ingenico_ideal') {
-                return {
-                    'method': this.getCode(),
-                    'additional_data': {
-                        'issuer_id': $('.payment-method._active [name="payment[issuer_id]"]').val(),
-                    }
-                };
-            }
-
-            if (this.getCode() === 'ingenico_flex') {
-                return {
-                    'method': this.getCode(),
-                    'additional_data': {
-                        'flex_title': this.flexMethod().title,
-                        'flex_pm': this.flexMethod().pm,
-                        'flex_brand': this.flexMethod().brand
-                    }
-                };
-            }
-
             return {
                 'method': this.getCode(),
                 'additional_data': {}
             };
         },
 
-        /**
-         * Get Flex methods.
-         *
-         * @returns {*}
-         */
-        getFlexMethods: function () {
-            var methods = window.checkoutConfig.payment.ingenico_flex.methods;
-            return _.map(methods, function (method) {
-                return {
-                    'title': method.title,
-                    'pm': method.pm,
-                    'brand': method.brand
-                };
-            });
-        },
-
-        /**
-         * Set Flex method.
-         *
-         * @param title
-         * @param pm
-         * @param brand
-         */
-        setFlexMethod: function (title, pm, brand) {
-            this.flexMethod({'title': title, 'pm': pm, 'brand': brand});
-        },
-
-        /**
-         * Get iDeal Banks
-         * @returns []
-         */
-        idealBanks: function () {
-            return window.checkoutConfig.payment.ingenico_ideal.banks;
-        },
     });
 });

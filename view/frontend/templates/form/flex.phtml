@@ -8,22 +8,33 @@ $code = $block->escapeHtml($block->getMethodCode());
 
 <div id="payment_form_<?php echo $block->escapeHtml($code); ?>" class="<?php echo $block->escapeHtml($code); ?>">
     <fieldset class="fieldset payment items payment-method <?php echo $block->escapeHtml($code); ?>" id="payment_form_<?php echo $block->escapeHtml($code); ?>" style="display: none;">
-        <div class="saved-cards">
         <?php $methods = $block->getFlexMethods(); ?>
-        <?php foreach ($methods as $key => $method): ?>
-            <div class="flex_method">
-                <label class="label">
-                    <input type="radio" name="payment[flex]" class="radio"
-                           id="<?php echo $block->escapeHtml($method['flex_pm'] . ':' . $method['flex_brand']); ?>"
-                           value="<?php echo $block->escapeHtml($method['flex_pm'] . ':' . $method['flex_brand']); ?>"
-                        <?php echo $key === 0 ? 'checked' : '' ?>
-                    />
+        <?php if (count($methods) === 1): ?>
+            <?php foreach ($methods as $key => $method): ?>
+                <?php $method = (array) $method; ?>
+                <input type="hidden"
+                       name="payment[flex]"
+                       id="<?php echo $block->escapeHtml($method['pm'] . ':' . $method['brand']); ?>"
+                       value="<?php echo $block->escapeHtml($method['pm'] . ':' . $method['brand']); ?>" />
+            <?php endforeach; ?>
+        <?php else: ?>
+        <div class="saved-cards">
+            <?php foreach ($methods as $key => $method): ?>
+                <?php $method = (array) $method; ?>
+                <div class="flex_method">
+                    <label class="label">
+                        <input type="radio" name="payment[flex]" class="radio"
+                               id="<?php echo $block->escapeHtml($method['pm'] . ':' . $method['brand']); ?>"
+                               value="<?php echo $block->escapeHtml($method['pm'] . ':' . $method['brand']); ?>"
+                            <?php echo $key === 0 ? 'checked' : '' ?>
+                        />
 
-                    <span><?php echo $block->escapeHtml($method['flex_title']); ?></span>
-                </label>
-            </div>
-        <?php endforeach; ?>
+                        <span><?php echo $block->escapeHtml($method['title']); ?></span>
+                    </label>
+                </div>
+            <?php endforeach; ?>
         </div>
+        <?php endif; ?>
     </fieldset>
 </div>
 

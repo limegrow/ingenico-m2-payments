@@ -61,7 +61,7 @@ class Inline extends Base
             } else {
                 // Credit Card time
                 $orderId = $this->_session->getData('last_real_order_id');
-                if ($this->_cnf->isPaymentPageModeInline() && $this->_connector->isOrderCreated($orderId)) {
+                if ($this->_cnf->isPaymentPageModeInline($order->getStoreId()) && $this->_connector->isOrderCreated($orderId)) {
                     $response = $this->_connector->finishReturnInline(
                         $orderId,
                         $this->getRequest()->getParam('cardbrand'),

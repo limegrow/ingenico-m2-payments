@@ -6,6 +6,8 @@ use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Widget\Block\BlockInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Ingenico\Payment\Model\Config;
 
 class Banks extends AbstractBlock implements BlockInterface
 {
@@ -74,12 +76,15 @@ class Banks extends AbstractBlock implements BlockInterface
         $om = ObjectManager::getInstance();
 
         /** @var \Ingenico\Payment\Model\Config $config */
-        $config = $om->get('Ingenico\Payment\Model\Config');
+        $config = $om->get(Config::class);
 
-        $banks = $config->getIDealBanks();
+        /** @var \Magento\Store\Model\StoreManagerInterface $storeManger */
+        $storeManger = $om->get(StoreManagerInterface::class);
+
+        $banks = $config->getIDealBanks($storeManger->getStore()->getId());
 
         /** @var \Ingenico\Payment\Model\Config\Source\Ideal\Banks $source */
-        $source = $om->get('Ingenico\Payment\Model\Config\Source\Ideal\Banks');
+        $source = $om->get(\Ingenico\Payment\Model\Config\Source\Ideal\Banks::class);
         // @codingStandardsIgnoreEnd
 
         // Get Banks
@@ -87,7 +92,7 @@ class Banks extends AbstractBlock implements BlockInterface
 
         $result = [];
         foreach ($options as $option) {
-            if (in_array($option['value'], $banks)) {
+            if (empty($option['value']) || in_array($option['value'], $banks)) {
                 $result[] = $option;
             }
         }

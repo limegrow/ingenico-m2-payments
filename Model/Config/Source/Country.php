@@ -24,7 +24,7 @@ class Country implements \Magento\Framework\Option\ArrayInterface
 
         // Remove countries
         $limitTo = array_flip($limitTo);
-        unset($limitTo['SE'], $limitTo['FI'], $limitTo['DK'], $limitTo['NO']);
+        unset($limitTo['SE'], $limitTo['FI'], $limitTo['DK'], $limitTo['NO'], $limitTo['CN']);
         $limitTo = array_flip($limitTo);
 
         if (!$this->_options) {

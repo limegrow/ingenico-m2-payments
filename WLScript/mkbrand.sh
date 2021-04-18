@@ -5,7 +5,7 @@ CURRENT_DIR=$(pwd)
 TMPDIR="/tmp"
 SOURCE_DIR=$2
 BUILD_DIR=$3
-MAGENTO_PM_CODES=(e_payments alias afterpay banktransfer cc cb belfius cbc giropay ideal ing kbc klarna twint paypal paysafecard klarna_paynow klarna_paylater klarna_banktransfer klarna_directdebit klarna_financing)
+MAGENTO_PM_CODES=(e_payments alias afterpay banktransfer cc cb belfius cbc giropay ideal ing kbc klarna twint paypal paysafecard klarna_paynow klarna_paylater klarna_banktransfer klarna_directdebit klarna_financing flex)
 
 case $1 in
      barclays)
@@ -171,9 +171,14 @@ do
 	sed -i -e "s/Ingenico ePayments/$MODULE_DESC/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/abstract.js
 	sed -i -e "s/$INGENICO_PM_CODE/$BRANDED_PM_CODE/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer.js
 	sed -i -e "s/$INGENICO_PM_CODE/$BRANDED_PM_CODE/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/abstract.js
+	sed -i -e "s/$INGENICO_PM_CODE/$BRANDED_PM_CODE/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/alias.js
+	sed -i -e "s/$INGENICO_PM_CODE/$BRANDED_PM_CODE/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/ideal.js
+	sed -i -e "s/$INGENICO_PM_CODE/$BRANDED_PM_CODE/g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/flex.js
 	sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer.js
 	sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/abstract.js
 	sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/alias.js
+	sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/ideal.js
+	sed -i -e "s/\.ingenico\./\.$MODULE_NAME\./g" $MODULE_DIR/view/frontend/web/js/view/payment/method-renderer/flex.js
 
 	# system/*.xml
 	find $MODULE_DIR/etc/adminhtml/system/ -name '*.xml' -type f|while read fname; do

@@ -20,18 +20,34 @@ class Redirect extends Base
         $corePaymentMethod = $this->ingenicoHelper->getCoreMethod($paymentMethodInstance::CORE_CODE);
 
         try {
-            if (in_array($paymentMethodInstance->getCode(), [
-                \Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE,
-                \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE
-            ])) {
+            if (\Ingenico\Payment\Model\Method\Ingenico::PAYMENT_METHOD_CODE === $paymentMethodInstance->getCode()) {
                 // @see self::showPaymentListRedirectTemplate()
                 $this->_connector->processPaymentRedirect($aliasId);
-            } elseif ($paymentMethodInstance->getCode() === \Ingenico\Payment\Model\Method\Cc::PAYMENT_METHOD_CODE) {
+            } elseif (\Ingenico\Payment\Model\Method\Cc::PAYMENT_METHOD_CODE === $paymentMethodInstance->getCode()) {
                 // @see self::showPaymentListRedirectTemplate()
+                if ($aliasId) {
+                    // There's specified card brand
+                    $alias = $this->_connector->getAlias($aliasId);
+                    $this->_connector->processPaymentRedirectSpecified(
+                        $aliasId,
+                        'CreditCard',
+                        $alias['brand']
+                    );
+                } else {
+                    // Use "CreditCard" brands
+                    $this->_connector->processPaymentRedirectSpecified(
+                        $aliasId,
+                        'CreditCard',
+                        'CreditCard'
+                    );
+                }
+            } elseif (\Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE === $paymentMethodInstance->getCode()) {
+                // @see self::showPaymentListRedirectTemplate()
+                $alias = $this->_connector->getAlias($aliasId);
                 $this->_connector->processPaymentRedirectSpecified(
                     $aliasId,
                     'CreditCard',
-                    'CreditCard'
+                    $alias['brand']
                 );
             } elseif ($corePaymentMethod) {
                 // @see self::showPaymentListRedirectTemplate()

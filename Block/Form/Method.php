@@ -48,6 +48,6 @@ class Method extends Form
      */
     public function isPaymentPageModeRedirect()
     {
-        return $this->cnf->isPaymentPageModeRedirect();
+        return $this->cnf->isPaymentPageModeRedirect($this->_storeManager->getStore()->getId());
     }
 }

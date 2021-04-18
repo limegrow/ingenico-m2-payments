@@ -78,8 +78,9 @@ class IngenicoConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        $paymentMode = strtolower($this->cnf->getPaymentPageMode());
-        $banks = ObjectManager::getInstance()->get('Ingenico\Payment\Block\Ideal\Banks')->getAvailableBanks();
+        $storeId = $this->storeManager->getStore()->getId();
+        $paymentMode = strtolower($this->cnf->getPaymentPageMode($storeId));
+        $banks = ObjectManager::getInstance()->get(\Ingenico\Payment\Block\Ideal\Banks::class)->getAvailableBanks();
 
         return [
             'payment' => [
@@ -92,12 +93,19 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                     'paymentMode' => $paymentMode,
                     'methodLogos' => $this->getPaymentLogos(),
                     'ccLogos' => $this->getCCPaymentLogos(),
-                    'use_saved_cards' => $this->cnf->canUseSavedCards(),
-                    'savedCards' => $this->getSavedCards(),
                     'methods' => $this->getMethodsData(),
                 ],
+                \Ingenico\Payment\Model\Method\Alias::PAYMENT_METHOD_CODE => [
+                    'use_saved_cards' => $this->cnf->canUseSavedCards(),
+                    'savedCards' => $this->getSavedCards(),
+                    'default' => $this->getCustomerDefaultCard(),
+                    'aliasPayUrl' => $this->urlBuilder->getUrl('ingenico/payment/redirect', [
+                        '_secure' => true,
+                        'alias' => 'aliasID'
+                    ])
+                ],
                 \Ingenico\Payment\Model\Method\Flex::PAYMENT_METHOD_CODE => [
-                    'methods' => $this->cnf->getFlexMethods()
+                    'methods' => $this->cnf->getFlexMethods($storeId)
                 ],
                 \Ingenico\Payment\Model\Method\Ideal::PAYMENT_METHOD_CODE => [
                     'banks' => $banks
@@ -112,6 +120,8 @@ class IngenicoConfigProvider implements ConfigProviderInterface
      */
     public function getPaymentLogos()
     {
+        $storeId = $this->storeManager->getStore()->getId();
+
         $result = [];
         foreach ($this->cnf::getAllPaymentMethods() as $className) {
             $classWithNs = '\\Ingenico\\Payment\\Model\\Method\\' . $className;
@@ -131,9 +141,9 @@ class IngenicoConfigProvider implements ConfigProviderInterface
 
             if ($methodCode === \Ingenico\Payment\Model\Method\Cc::PAYMENT_METHOD_CODE) {
                 // Get configured CC logos
-                $logos = $this->cnf->getCCLogos();
+                $logos = $this->cnf->getCCLogos($storeId);
                 foreach ($logos as $logo) {
-                    if (\Ingenico\Payment\Model\Config\Source\CC_Logos::LOGO_GENERIC === $logo) {
+                    if (\Ingenico\Payment\Model\Config\Source\CcLogos::LOGO_GENERIC === $logo) {
                         // Generic card logo
                         $result[$methodCode][] = [
                             'src' => $this->assetRepo->getUrl('Ingenico_Payment::images/card.svg'),
@@ -169,11 +179,11 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                     //];
                 }
             } elseif ($methodCode === \Ingenico\Payment\Model\Method\Flex::PAYMENT_METHOD_CODE) {
-                if ($this->cnf->getFlexLogo()) {
+                if ($this->cnf->getFlexLogo($storeId)) {
                     $base = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
 
                     $result[$methodCode][] = [
-                        'src' => $base . 'ingenico/logo/' . $this->cnf->getFlexLogo(),
+                        'src' => $base . 'ingenico/logo/' . $this->cnf->getFlexLogo($storeId),
                         'title' => $method->getName(),
                     ];
                 }
@@ -200,6 +210,11 @@ class IngenicoConfigProvider implements ConfigProviderInterface
         return $methods[\Ingenico\Payment\Model\Method\Cc::PAYMENT_METHOD_CODE];
     }
 
+    /**
+     * Get Saved cards.
+     *
+     * @return array
+     */
     public function getSavedCards()
     {
         $out = [];
@@ -215,11 +230,13 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                 ];
             }
             foreach ($savedCards as $savedCard) {
+                $brand = $savedCard->getBrand() === 'CB' ? 'Carte Bancaire' : $savedCard->getBrand();
+
                 $out[] = (object) [
                     'code' => $savedCard->getAlias(),
                     self::PARAM_NAME_TITLE_KEY => (string) __(
                         '%1 ends with %2, expires on %3/%4',
-                        $savedCard->getBrand(),
+                        $brand,
                         substr($savedCard->getCardno(), -4, 4),
                         substr($savedCard->getEd(), 0, 2),
                         substr($savedCard->getEd(), 2, 4)
@@ -232,6 +249,25 @@ class IngenicoConfigProvider implements ConfigProviderInterface
         }
 
         return $out;
+    }
+
+    /**
+     * Get Customer's default card.
+     *
+     * @return null|string
+     */
+    private function getCustomerDefaultCard()
+    {
+        if ($this->cnf->canUseSavedCards() && $customerId = $this->customerSession->getId()) {
+            $savedCards = (array) $this->connector->getCoreLibrary()->getCustomerAliases($customerId);
+            if (count($savedCards) > 0) {
+                $savedCard = array_shift($savedCards);
+
+                return $savedCard->getAlias();
+            }
+        }
+
+        return null;
     }
 
     /**

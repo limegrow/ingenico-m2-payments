@@ -207,8 +207,17 @@ msgstr "Password field is required"
 msgid "modal.openinvoice.additional_data_required"
 msgstr "Geef aanvullende informatie op die voor deze betalingsmethode nodig is"
 
-msgid "modal.openinvoice.proceed"
-msgstr "Proceed"
+msgid "Open Invoice"
+msgstr "Open factuur"
+
+msgid "Proceed"
+msgstr "Doorgaan"
+
+msgid "Billing street address"
+msgstr "Factuuradres"
+
+msgid "Shipping street address"
+msgstr "Verzendadres"
 
 msgid "Billing state"
 msgstr "Staat/provincie facturering"
@@ -275,3 +284,15 @@ msgstr "U dient een handtekeningwaarde te gebruiken die exact 40 tekens lang is.
 
 msgid "Remove"
 msgstr "Verwijderen"
+
+msgid "Layout of Payment Methods"
+msgstr "Layout van de betaalmethodes"
+
+msgid "Horizontally grouped logo with group name on left"
+msgstr "Horizontaal gegroepeerde logo's met groepsnaam links"
+
+msgid "Horizontally grouped logo with no group name"
+msgstr "Horizontaal gegroepeerde logo's zonder groepsnaam"
+
+msgid "Vertical list"
+msgstr "Verticale lijst"
