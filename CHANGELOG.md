@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.0] - 2021-05-03
+### Added
+- Implemented Magento Commerce features
+
+### Changes
+- Remove "Open Invoice" title
+- Trim `owneraddress`
+
 ## [2.7.0] - 2021-04-18
 ### Added
 - Multi Store configuration

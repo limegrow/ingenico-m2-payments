@@ -799,6 +799,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             ];
         }
 
+        // Add "Reward Points" discount
+        if ($order->getRewardCurrencyAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'reward_pints',
+                OrderItem::ITEM_NAME => __('Reward Points'),
+                OrderItem::ITEM_DESCRIPTION =>__('Reward Points'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $order->getRewardCurrencyAmount(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add "Gift Cards" discount
+        if ($order->getGiftCardsAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'gift_cards',
+                OrderItem::ITEM_NAME => __('Gift Card'),
+                OrderItem::ITEM_DESCRIPTION =>__('Gift Card'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $order->getGiftCardsAmount(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
         // Add Shipping Order Line
         $shippingIncTax = 0;
         $shippingTax = 0;
@@ -959,6 +989,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 OrderItem::ITEM_NAME => __('Store Credit'),
                 OrderItem::ITEM_DESCRIPTION =>__('Store Credit'),
                 OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getCustomerBalanceAmountUsed(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add "Reward Points" discount
+        if ($quote->getRewardCurrencyAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'reward_pints',
+                OrderItem::ITEM_NAME => __('Reward Points'),
+                OrderItem::ITEM_DESCRIPTION =>__('Reward Points'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getRewardCurrencyAmount(),
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
+            ];
+        }
+
+        // Add "Gift Cards" discount
+        if ($quote->getGiftCardsAmount() > 0) {
+            $items[] = [
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'gift_cards',
+                OrderItem::ITEM_NAME => __('Gift Card'),
+                OrderItem::ITEM_DESCRIPTION =>__('Gift Card'),
+                OrderItem::ITEM_UNIT_PRICE => -1 * $quote->getGiftCardsAmount(),
                 OrderItem::ITEM_QTY => 1,
                 OrderItem::ITEM_UNIT_VAT => 0,
                 OrderItem::ITEM_VATCODE => 0,
