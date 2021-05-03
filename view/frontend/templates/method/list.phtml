@@ -33,7 +33,6 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
     <div class="ingenico-confirmation">
         <ul>
             <?php foreach ($block->getPaymentMethods() as $categoryName => $methods): ?>
-                <h2><?php echo $categoryName; ?></h2>
                 <?php foreach ($methods as $code => $method): ?>
                     <?php /** @var \IngenicoClient\PaymentMethod\PaymentMethod $method */?>
                     <li>
