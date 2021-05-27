@@ -59,43 +59,7 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                                     <?php
                                     $missingFields = $method->getMissingFields();
 
-                                    // There is the dirty soltion of the street number problem
-                                    $order = $block->getOrder();
-                                    if ($order) {
-                                        $streetAddress = $order ? $order->getBillingAddress()->getStreet()[0] : '';
-                                        $streetNumber = '';
-
-                                        try {
-                                            $result = VIISON\AddressSplitter\AddressSplitter::splitAddress($streetAddress);
-                                            $streetAddress = $result['streetName'];
-                                            $streetNumber = $result['houseNumber'];
-
-                                            foreach ($missingFields as &$field2) {
-                                                if ($field2->getFieldName() === 'billing_street_number') {
-                                                    $field2->setValue($streetNumber);
-                                                }
-                                            }
-                                        } catch (\Exception $e) {
-                                            // Ignore it
-                                        }
-
-                                        // Add extra field
-                                        $missingFields = array_merge(
-                                            [
-                                                new OrderField('billing_address_extra', [
-                                                    'field_type' => PaymentMethod::TYPE_TEXT,
-                                                    'label' => __('Billing street address'),
-                                                    'value' => $streetAddress,
-                                                    'required' => true,
-                                                    'is_valid' => true
-                                                ]),
-                                            ],
-                                            $missingFields
-                                        );
-                                    }
-
-                                    ?>
-                                    <?php foreach ($missingFields as $field):
+                                    foreach ($missingFields as $field):
                                         $name = $field->getFieldName();
                                         $type = $field->getFieldType();
                                         $required = $field->getRequired() ? ' required' : '';

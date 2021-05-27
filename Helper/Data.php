@@ -10,6 +10,8 @@ use Ingenico\Payment\Model\Connector;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Store\Model\StoreManagerInterface;
 use Ingenico\Payment\Model\Method\AbstractMethod;
+use Magento\Eav\Model\Config as EavConfig;
+use Magento\Sales\Model\Order;
 
 class Data extends AbstractHelper
 {
@@ -33,12 +35,18 @@ class Data extends AbstractHelper
      */
     private $storeManager;
 
+    /**
+     * @var EavConfig
+     */
+    private $eavConfig;
+
     public function __construct(
         Context $context,
         Connector $connector,
         IngenicoConfig $cnf,
         PaymentHelper $paymentHelper,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        EavConfig $eavConfig
     ) {
         parent::__construct($context);
 
@@ -46,6 +54,7 @@ class Data extends AbstractHelper
         $this->cnf = $cnf;
         $this->paymentHelper = $paymentHelper;
         $this->storeManager = $storeManager;
+        $this->eavConfig = $eavConfig;
     }
 
     /**
@@ -165,5 +174,18 @@ class Data extends AbstractHelper
     public function getStoreId()
     {
         return $this->storeManager->getStore()->getId();
+    }
+
+    /**
+     * Get gender text for customer
+     *
+     * @param Order $order
+     */
+    public function getGender(Order $order)
+    {
+        return $this->eavConfig
+            ->getAttribute('customer', 'gender')
+            ->getSource()
+            ->getOptionText($order->getCustomerGender());
     }
 }

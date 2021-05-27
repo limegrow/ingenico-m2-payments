@@ -230,13 +230,12 @@ class Processor
             return $order;
         }
 
-        if ($order->isCanceled()) {
-            $this->_addOrderMessage($order, __('ingenico.notification.message5'));
+        $processStatus = false;
 
-            return $this->orderRepository->save($order);
+        if ($order->isCanceled()) {
+            $processStatus = true;
         }
 
-        $processStatus = false;
         // check if there is an Invoice with transaction ID
         $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
         if ($order->hasInvoices()) {

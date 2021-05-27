@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.8.1] - 2021-05-27
+### Added
+- Klarna: Rounding workaround
+
+### Changed
+- Klarna parameters update
+- Improved order cancellation code
+- Klarna api updates + Order::isVirtual()
+- Translation update
+- Core library update  
+- Code style formatting
+
 ## [2.8.0] - 2021-05-03
 ### Added
 - Implemented Magento Commerce features

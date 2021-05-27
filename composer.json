@@ -6,11 +6,11 @@
         "league/iso3166": "~2.1",
         "graylog2/gelf-php": "~1.5",
         "symfony/translation": ">=4.2",
-        "ingenico/ogone-client": "^5.2.1",
+        "ingenico/ogone-client": "^5.3.1",
         "viison/address-splitter": "~0.3.4"
     },
     "type": "magento2-module",
-    "version": "2.8.0",
+    "version": "2.8.1",
     "license": [
         "OSL-3.0"
     ],

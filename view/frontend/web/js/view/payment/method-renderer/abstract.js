@@ -150,7 +150,7 @@ define([
          */
         afterPlaceOrder: function () {
             // OpenInvoice require "inline" payment page to pay
-            if (this.getMethodCategory() === 'open_invoice') {
+            if (this.getMethodCategory() === 'open_invoice' || this.getMethodCategory() === 'klarna') {
                 var redirectUrlObj1 = new URL(window.checkoutConfig.payment.ingenico.openInvoiceUrl);
                 redirectOnSuccessAction.redirectUrl = redirectUrlObj1.toString();
                 redirectOnSuccessAction.execute();
@@ -189,6 +189,7 @@ define([
             switch (this.getMethodCategory()) {
                 case 'e_wallet':
                 case 'open_invoice':
+                case 'klarna':
                 case 'real_time_banking':
                 case 'prepaid_vouchers':
                     templateName = 'redirect';

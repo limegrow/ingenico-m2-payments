@@ -2,27 +2,65 @@
 
 namespace Ingenico\Payment\Model;
 
+use IngenicoClient\ConnectorInterface;
+use IngenicoClient\Connector as AbstractConnector;
+use IngenicoClient\IngenicoCoreLibrary;
+use IngenicoClient\Configuration as IngenicoConf;
+use IngenicoClient\OrderItem;
+use IngenicoClient\OrderField;
+use IngenicoClient\PaymentMethod\PaymentMethod;
 use IngenicoClient\Data;
 use IngenicoClient\Exception;
+use Ingenico\Payment\Logger\Main as IngenicoLogger;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Backend\Model\UrlInterface as BackendUrlInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Customer\Model\Session as CustomerSession;
+use Ingenico\Payment\Model\Processor;
+use Ingenico\Payment\Model\TransactionFactory;
+use Ingenico\Payment\Model\ResourceModel\Transaction\CollectionFactory as TransactionCollectionFactory;
+use Ingenico\Payment\Model\AliasFactory;
+use Ingenico\Payment\Model\ResourceModel\Alias\CollectionFactory as AliasCollectionFactory;
+use Ingenico\Payment\Model\ReminderFactory;
+use Ingenico\Payment\Model\ResourceModel\Reminder\CollectionFactory as ReminderCollectionFactory;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\Translate\Inline\StateInterface;
+use Magento\Framework\Registry;
+use Magento\Catalog\Helper\Image as ImageHelper;
+use Magento\Framework\Pricing\Helper\Data as PriceHelper;
+use Magento\Store\Model\App\Emulation as AppEmulation;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Sales\Model\OrderFactory;
+use Magento\Quote\Model\QuoteRepository;
+use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\ProductMetadata;
+use Magento\Framework\Filesystem\Driver\File as FileDriver;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\ActionFlag;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\App\ResponseFactory;
-use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order\Payment\Transaction;
-use IngenicoClient\Connector as AbstractConnector;
-use IngenicoClient\Configuration as IngenicoConf;
-use IngenicoClient\IngenicoCoreLibrary;
-use IngenicoClient\OrderItem;
-use IngenicoClient\OrderField;
-use IngenicoClient\PaymentMethod\PaymentMethod;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\User\Model\ResourceModel\User\CollectionFactory as UserCollectionFactory;
 use Magento\Catalog\Api\ProductRepositoryInterfaceFactory;
-use Ingenico\Payment\Model\Config;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 
-class Connector extends AbstractConnector implements \IngenicoClient\ConnectorInterface
+/**
+ * Class Connector
+ *
+ * @package Ingenico\Payment\Model
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ */
+class Connector extends AbstractConnector implements ConnectorInterface
 {
     const REGISTRY_KEY_TEMPLATE_VARS_OPENINVOICE = 'ingenico_payment_openinvoice_template_vars';
     const REGISTRY_KEY_TEMPLATE_VARS_INLINE = 'ingenico_payment_inline_template_vars';
@@ -54,68 +92,150 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     const PARAM_NAME_EMAIL_TEMPLATE = 'email_template';
     const PARAM_NAME_OPEN_INVOICE_FIELDS = 'open_invoice_fields';
 
-    protected $_logger;
+    /**
+     * @var IngenicoLogger
+     */
+    private $logger;
 
     /**
      * @var Config
      */
-    protected $_cnf;
-    protected $_coreLibrary;
-    protected $_storeManager;
-    protected $_localeResolver;
-    protected $_storeConfig;
-    protected $_customerFactory;
-    protected $_urlBuilder;
-    protected $_backendUrlBuilder;
-    protected $_checkoutSession;
-    protected $_cart;
+    private $cnf;
+
+    /**
+     * @var IngenicoCoreLibrary
+     */
+    private $coreLibrary;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var ResolverInterface
+     */
+    private $localeResolver;
+
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    private $customerRepository;
+
+    /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
+
+    /**
+     * @var BackendUrlInterface
+     */
+    private $backendUrlBuilder;
+
+    /**
+     * @var CheckoutSession
+     */
+    private $checkoutSession;
 
     /**
      * @var \Magento\Customer\Model\Session
      */
-    protected $_customerSession;
-    protected $_processor;
-    protected $_transactionFactory;
-    protected $_transactionCollectionFactory;
-    protected $_aliasFactory;
-    protected $_aliasCollectionFactory;
-    protected $_reminderFactory;
-    protected $_reminderCollectionFactory;
-    protected $_transportBuilder;
-    protected $_inlineTranslation;
-    protected $_registry;
-    protected $_productImageHelper;
-    protected $_productFactory;
+    private $customerSession;
+
+    /**
+     * @var Processor
+     */
+    private $processor;
+
+    /**
+     * @var TransactionFactory
+     */
+    private $transactionFactory;
+
+    /**
+     * @var ResourceModel\Transaction\CollectionFactory
+     */
+    private $transactionCollectionFactory;
+
+    /**
+     * @var AliasFactory
+     */
+    private $aliasFactory;
+
+    /**
+     * @var ResourceModel\Alias\CollectionFactory
+     */
+    private $aliasCollectionFactory;
+
+    /**
+     * @var ReminderFactory
+     */
+    private $reminderFactory;
+
+    /**
+     * @var ResourceModel\Reminder\CollectionFactory
+     */
+    private $reminderCollectionFactory;
+
+    /**
+     * @var TransportBuilder
+     */
+    private $transportBuilder;
+
+    /**
+     * @var StateInterface
+     */
+    private $inlineTranslation;
+
+    /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
+     * @var ImageHelper
+     */
+    private $productImageHelper;
+
+    /**
+     * @var ProductRepositoryInterfaceFactory
+     */
     private $productRepositoryFactory;
-    protected $_priceHelper;
-    protected $_appEmulation;
-    protected $_messageManager;
-    protected $_orderCollectionFactory;
+
+    /**
+     * @var PriceHelper
+     */
+    private $priceHelper;
+
+    /**
+     * @var AppEmulation
+     */
+    private $appEmulation;
+
+    /**
+     * @var ManagerInterface
+     */
+    private $messageManager;
+
+    /**
+     * @var OrderCollectionFactory
+     */
+    private $orderCollectionFactory;
 
     /**
      * @var \Magento\Sales\Model\OrderFactory
      */
-    protected $orderFactory;
-
-    /**
-     * @var \Magento\Quote\Model\ResourceModel\Quote\CollectionFactory
-     */
-    protected $quoteCollectionFactory;
+    private $orderFactory;
 
     /**
      * @var \Magento\Quote\Model\QuoteRepository
      */
-    protected $quoteRepository;
-
-    /**
-     * @var \Magento\Quote\Api\CartManagementInterface
-     */
-    protected $quoteManagement;
+    private $quoteRepository;
 
     /**
      * @var \Magento\Framework\App\Request\Http
      */
-    protected $request;
+    private $request;
 
     /**
      * @var \Magento\Framework\App\ProductMetadata
@@ -140,95 +260,92 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     /**
      * @var ActionFlag
      */
-    protected $actionFlag;
+    private $actionFlag;
 
     /**
      * @var RedirectInterface
      */
-    protected $redirect;
+    private $redirect;
 
     /**
      * @var UserCollectionFactory
      */
-    protected $userCollectionFactory;
+    private $userCollectionFactory;
 
-    protected $_orderId = null;
-    protected $_customerId = null;
+    /**
+     * @var mixed
+     */
+    private $orderId = null;
+
+    /**
+     * @var mixed
+     */
+    private $customerId = null;
 
     public function __construct(
-        \Ingenico\Payment\Logger\Main $logger,
+        IngenicoLogger $logger,
         Config $cnf,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Store\Api\Data\StoreConfigInterface $storeConfig,
-        \Magento\Customer\Model\CustomerFactory $customerFactory,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Backend\Model\UrlInterface $backendUrlBuilder,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Checkout\Model\Cart $cart,
-        \Magento\Customer\Model\Session $customerSession,
-        \Ingenico\Payment\Model\Processor $processor,
-        \Ingenico\Payment\Model\TransactionFactory $transactionFactory,
-        \Ingenico\Payment\Model\ResourceModel\Transaction\CollectionFactory $transactionCollectionFactory,
-        \Ingenico\Payment\Model\AliasFactory $aliasFactory,
-        \Ingenico\Payment\Model\ResourceModel\Alias\CollectionFactory $aliasCollectionFactory,
-        \Ingenico\Payment\Model\ReminderFactory $reminderFactory,
-        \Ingenico\Payment\Model\ResourceModel\Reminder\CollectionFactory $reminderCollectionFactory,
-        \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
-        \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
-        \Magento\Framework\Registry $registry,
-        \Magento\Catalog\Helper\Image $productImageHelper,
-        \Magento\Catalog\Model\ProductFactory $productFactory,
+        StoreManagerInterface $storeManager,
+        ResolverInterface $localeResolver,
+        CustomerRepositoryInterface $customerRepository,
+        UrlInterface $urlBuilder,
+        BackendUrlInterface $backendUrlBuilder,
+        CheckoutSession $checkoutSession,
+        CustomerSession $customerSession,
+        Processor $processor,
+        TransactionFactory $transactionFactory,
+        TransactionCollectionFactory $transactionCollectionFactory,
+        AliasFactory $aliasFactory,
+        AliasCollectionFactory $aliasCollectionFactory,
+        ReminderFactory $reminderFactory,
+        ReminderCollectionFactory $reminderCollectionFactory,
+        TransportBuilder $transportBuilder,
+        StateInterface $inlineTranslation,
+        Registry $registry,
+        ImageHelper $productImageHelper,
         ProductRepositoryInterfaceFactory $productRepositoryFactory,
-        \Magento\Framework\Pricing\Helper\Data $priceHelper,
-        \Magento\Store\Model\App\Emulation $appEmulation,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Quote\Model\ResourceModel\Quote\CollectionFactory $quoteCollectionFactory,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
-        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
-        \Magento\Framework\App\Request\Http $request,
-        \Magento\Framework\App\ProductMetadata $productMetadata,
-        \Magento\Framework\Filesystem\Driver\File $fileDriver,
-        \Magento\Framework\Serialize\Serializer\Json $json,
+        PriceHelper $priceHelper,
+        AppEmulation $appEmulation,
+        ManagerInterface $messageManager,
+        OrderCollectionFactory $orderCollectionFactory,
+        OrderFactory $orderFactory,
+        QuoteRepository $quoteRepository,
+        Http $request,
+        ProductMetadata $productMetadata,
+        FileDriver $fileDriver,
+        Json $json,
         ResponseFactory $responseFactory,
         ActionFlag $actionFlag,
         RedirectInterface $redirect,
         UserCollectionFactory $userCollectionFactory
     ) {
-        $this->_logger = $logger;
-        $this->_cnf = $cnf;
-        $this->_storeManager = $storeManager;
-        $this->_localeResolver = $localeResolver;
-        $this->_storeConfig = $storeConfig;
-        $this->_customerFactory = $customerFactory;
-        $this->_urlBuilder = $urlBuilder;
-        $this->_backendUrlBuilder = $backendUrlBuilder;
-        $this->_checkoutSession = $checkoutSession;
-        $this->_cart = $cart;
-        $this->_customerSession = $customerSession;
-        $this->_processor = $processor;
-        $this->_transactionFactory = $transactionFactory;
-        $this->_transactionCollectionFactory = $transactionCollectionFactory;
-        $this->_aliasFactory = $aliasFactory;
-        $this->_aliasCollectionFactory = $aliasCollectionFactory;
-        $this->_reminderFactory = $reminderFactory;
-        $this->_reminderCollectionFactory = $reminderCollectionFactory;
-        $this->_transportBuilder = $transportBuilder;
-        $this->_inlineTranslation = $inlineTranslation;
-        $this->_registry = $registry;
-        $this->_productImageHelper = $productImageHelper;
-        $this->_productFactory = $productFactory;
+        $this->logger = $logger;
+        $this->cnf = $cnf;
+        $this->storeManager = $storeManager;
+        $this->localeResolver = $localeResolver;
+        $this->customerRepository = $customerRepository;
+        $this->urlBuilder = $urlBuilder;
+        $this->backendUrlBuilder = $backendUrlBuilder;
+        $this->checkoutSession = $checkoutSession;
+        $this->customerSession = $customerSession;
+        $this->processor = $processor;
+        $this->transactionFactory = $transactionFactory;
+        $this->transactionCollectionFactory = $transactionCollectionFactory;
+        $this->aliasFactory = $aliasFactory;
+        $this->aliasCollectionFactory = $aliasCollectionFactory;
+        $this->reminderFactory = $reminderFactory;
+        $this->reminderCollectionFactory = $reminderCollectionFactory;
+        $this->transportBuilder = $transportBuilder;
+        $this->inlineTranslation = $inlineTranslation;
+        $this->registry = $registry;
+        $this->productImageHelper = $productImageHelper;
         $this->productRepositoryFactory = $productRepositoryFactory;
-        $this->_priceHelper = $priceHelper;
-        $this->_appEmulation = $appEmulation;
-        $this->_messageManager = $messageManager;
-        $this->_orderCollectionFactory = $orderCollectionFactory;
+        $this->priceHelper = $priceHelper;
+        $this->appEmulation = $appEmulation;
+        $this->messageManager = $messageManager;
+        $this->orderCollectionFactory = $orderCollectionFactory;
         $this->orderFactory = $orderFactory;
-        $this->quoteCollectionFactory = $quoteCollectionFactory;
         $this->quoteRepository = $quoteRepository;
-        $this->quoteManagement = $quoteManagement;
         $this->request = $request;
         $this->productMetadata = $productMetadata;
         $this->fileDriver = $fileDriver;
@@ -238,68 +355,34 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $this->redirect = $redirect;
         $this->userCollectionFactory = $userCollectionFactory;
 
-        $this->_processor->setConnector($this);
-        $this->_coreLibrary = new \IngenicoClient\IngenicoCoreLibrary($this);
-        $this->_coreLibrary->setLogger($this->_logger);
-    }
-
-    public function getCoreLibrary()
-    {
-        return $this->_coreLibrary;
-    }
-
-    public function getProcessor()
-    {
-        return $this->_processor;
+        $this->processor->setConnector($this);
+        $this->coreLibrary = new IngenicoCoreLibrary($this);
+        $this->coreLibrary->setLogger($this->logger);
     }
 
     /**
-     * Get Store ID
-     * @param null $orderId
-     *
-     * @return false|float|int|null
-     * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return IngenicoCoreLibrary
      */
-    public function getStoreId($orderId = null)
+    public function getCoreLibrary()
     {
-        if ($orderId) {
-            $order = $this->_processor->getOrderByIncrementId($orderId);
-            return $order->getStoreId();
-        } elseif ($orderId = $this->requestOrderId()) {
-            if ($this->isOrderCreated($orderId)) {
-                $order = $this->_processor->getOrderByIncrementId($orderId);
-                return $order->getStoreId();
-            } else {
-                return $this->getStoreIdBeforePlaceOrder();
-            }
-        }
-
-        return $this->_storeManager->getStore()->getId();
+        return $this->coreLibrary;
     }
 
-    public function getStoreIdBeforePlaceOrder()
+    /**
+     * Get Processor.
+     *
+     * @return Processor
+     */
+    public function getProcessor()
     {
-        if ($this->request->getFullActionName() !== 'checkout_index_index') {
-            return false;
-        }
-
-        $this->reserveOrderId();
-
-        return $this->_checkoutSession->getQuote()->getStoreId();
+        return $this->processor;
     }
 
-    public function getUrl($path, $params = [])
+    public function setOrderId($orderId)
     {
-        $defaultParams = ['_nosid' => true, self::CNF_SCOPE_PARAM_NAME => $this->getStoreId()];
-        $params = array_merge($defaultParams, $params);
+        $this->orderId = $orderId;
 
-        if ($params[self::CNF_SCOPE_PARAM_NAME] == 0) {
-            unset($params[self::CNF_SCOPE_PARAM_NAME]);
-            return $this->_backendUrlBuilder->getUrl($path, $params);
-        }
-
-        return $this->_urlBuilder->getUrl($path, $params);
+        return $this;
     }
 
     /**
@@ -329,7 +412,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestSettingsMode()
     {
-        return $this->_cnf->getMode();
+        return $this->cnf->getMode();
     }
 
     /**
@@ -346,69 +429,69 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         $local = [
             //connection
-            IngenicoConf::CONF_CONNECTION_MODE => $this->_cnf->getMode(true),
-            IngenicoConf::CONF_CONNECTION_TEST_PSPID => $this->_cnf->getConnectionPspid(
+            IngenicoConf::CONF_CONNECTION_MODE => $this->cnf->getMode(true),
+            IngenicoConf::CONF_CONNECTION_TEST_PSPID => $this->cnf->getConnectionPspid(
                 Config::MODE_TEST,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_TEST_SIGNATURE => $this->_cnf->getConnectionSignature(
+            IngenicoConf::CONF_CONNECTION_TEST_SIGNATURE => $this->cnf->getConnectionSignature(
                 Config::MODE_TEST,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_TEST_DL_USER => $this->_cnf->getConnectionUser(
+            IngenicoConf::CONF_CONNECTION_TEST_DL_USER => $this->cnf->getConnectionUser(
                 Config::MODE_TEST,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_TEST_DL_PASSWORD => $this->_cnf->getConnectionPassword(
+            IngenicoConf::CONF_CONNECTION_TEST_DL_PASSWORD => $this->cnf->getConnectionPassword(
                 Config::MODE_TEST,
                 $storeId
             ),
             IngenicoConf::CONF_CONNECTION_TEST_WEBHOOK => $this->getUrl('ingenico/payment/webhook'),
-            IngenicoConf::CONF_CONNECTION_LIVE_PSPID => $this->_cnf->getConnectionPspid(
+            IngenicoConf::CONF_CONNECTION_LIVE_PSPID => $this->cnf->getConnectionPspid(
                 Config::MODE_LIVE,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_LIVE_SIGNATURE => $this->_cnf->getConnectionSignature(
+            IngenicoConf::CONF_CONNECTION_LIVE_SIGNATURE => $this->cnf->getConnectionSignature(
                 Config::MODE_LIVE,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_LIVE_DL_USER => $this->_cnf->getConnectionUser(
+            IngenicoConf::CONF_CONNECTION_LIVE_DL_USER => $this->cnf->getConnectionUser(
                 Config::MODE_LIVE,
                 $storeId
             ),
-            IngenicoConf::CONF_CONNECTION_LIVE_DL_PASSWORD => $this->_cnf->getConnectionPassword(
+            IngenicoConf::CONF_CONNECTION_LIVE_DL_PASSWORD => $this->cnf->getConnectionPassword(
                 Config::MODE_LIVE,
                 $storeId
             ),
             IngenicoConf::CONF_CONNECTION_LIVE_WEBHOOK => $this->getUrl('ingenico/payment/webhook'),
 
             // settings general
-            IngenicoConf::CONF_SETTINGS_ADVANCED => $this->_cnf->getIsAdvancedSettingsMode(),
+            IngenicoConf::CONF_SETTINGS_ADVANCED => $this->cnf->getIsAdvancedSettingsMode(),
 
             // settings tokenisation
-            IngenicoConf::CONF_SETTINGS_TOKENIZATION => $this->_cnf->isTokenizationEnabled($storeId),
-            IngenicoConf::CONF_SETTINGS_ONECLICK => $this->_cnf->isStoredCardsEnabled($storeId),
-            IngenicoConf::CONF_SETTINGS_SKIP3DSCVC => $this->_cnf->getSkipSecurityCheck($storeId),
-            IngenicoConf::CONF_SETTINGS_SKIPSECURITYCHECK => $this->_cnf->getSkipSecurityCheck($storeId),
+            IngenicoConf::CONF_SETTINGS_TOKENIZATION => $this->cnf->isTokenizationEnabled($storeId),
+            IngenicoConf::CONF_SETTINGS_ONECLICK => $this->cnf->isStoredCardsEnabled($storeId),
+            IngenicoConf::CONF_SETTINGS_SKIP3DSCVC => $this->cnf->getSkipSecurityCheck($storeId),
+            IngenicoConf::CONF_SETTINGS_SKIPSECURITYCHECK => $this->cnf->getSkipSecurityCheck($storeId),
 
-            IngenicoConf::CONF_SETTINGS_DIRECTSALES => $this->_cnf->isDirectSalesMode($storeId),
-            IngenicoConf::CONF_DIRECT_SALE_EMAIL_OPTION => $this->_cnf->getSendEmailCaptureRequests($storeId),
-            IngenicoConf::CONF_DIRECT_SALE_EMAIL => $this->_cnf->getPaymentAuthorisationNotificationEmail($storeId),
+            IngenicoConf::CONF_SETTINGS_DIRECTSALES => $this->cnf->isDirectSalesMode($storeId),
+            IngenicoConf::CONF_DIRECT_SALE_EMAIL_OPTION => $this->cnf->getSendEmailCaptureRequests($storeId),
+            IngenicoConf::CONF_DIRECT_SALE_EMAIL => $this->cnf->getPaymentAuthorisationNotificationEmail($storeId),
 
             // settings orders
-            IngenicoConf::CONF_SETTINGS_REMINDEREMAIL => $this->_cnf->getPaymentReminderEmailSend($storeId),
-            IngenicoConf::CONF_SETTINGS_REMINDEREMAIL_DAYS => $this->_cnf->getPaymentReminderEmailTimeout($storeId),
+            IngenicoConf::CONF_SETTINGS_REMINDEREMAIL => $this->cnf->getPaymentReminderEmailSend($storeId),
+            IngenicoConf::CONF_SETTINGS_REMINDEREMAIL_DAYS => $this->cnf->getPaymentReminderEmailTimeout($storeId),
 
             // payment page
-            IngenicoConf::CONF_PAYMENTPAGE_TYPE => $this->_cnf->getPaymentPageMode($storeId),
-            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE => $this->_cnf->getPaymentPageTemplateSource($storeId),
-            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_NAME => $this->_cnf->getPaymentPageTemplateName($storeId),
-            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_EXTERNALURL => $this->_cnf->getPaymentPageExternalUrl($storeId),
-            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_LOCALFILENAME => $this->_cnf->getPaymentPageLocal($storeId),
-            IngenicoConf::CONF_PAYMENTPAGE_LIST_TYPE => $this->_cnf->getPaymentPageListType($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_TYPE => $this->cnf->getPaymentPageMode($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE => $this->cnf->getPaymentPageTemplateSource($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_NAME => $this->cnf->getPaymentPageTemplateName($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_EXTERNALURL => $this->cnf->getPaymentPageExternalUrl($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_TEMPLATE_LOCALFILENAME => $this->cnf->getPaymentPageLocal($storeId),
+            IngenicoConf::CONF_PAYMENTPAGE_LIST_TYPE => $this->cnf->getPaymentPageListType($storeId),
 
             // payment methods
-            IngenicoConf::CONF_SELECTED_PAYMENT_METHODS => $this->_cnf->getActivePaymentMethods($storeId)
+            IngenicoConf::CONF_SELECTED_PAYMENT_METHODS => $this->cnf->getActivePaymentMethods($storeId)
         ];
 
         foreach ($local as $key => $val) {
@@ -420,12 +503,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         return $result;
     }
 
-    public function setOrderId($orderId)
-    {
-        $this->_orderId = $orderId;
-        return $this;
-    }
-
     /**
      * Retrieves orderId from checkout session.
      *
@@ -433,16 +510,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestOrderId()
     {
-        if (!$this->_orderId) {
-            if ($reminderOrderId = $this->_checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
-                $this->_orderId = $reminderOrderId;
+        if (!$this->orderId) {
+            if ($reminderOrderId = $this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
+                $this->orderId = $reminderOrderId;
             }
-            if ($sessOrderId = $this->_checkoutSession->getData('last_real_order_id')) {
-                $this->_orderId = $sessOrderId;
+            if ($sessOrderId = $this->checkoutSession->getData('last_real_order_id')) {
+                $this->orderId = $sessOrderId;
             }
         }
 
-        return $this->_orderId;
+        return $this->orderId;
     }
 
     /**
@@ -454,20 +531,20 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestCustomerId()
     {
-        if (!$this->_customerId) {
+        if (!$this->customerId) {
             if ($orderId = $this->requestOrderId()) {
-                $order = $this->_processor->getOrderByIncrementId($orderId);
+                $order = $this->processor->getOrderByIncrementId($orderId);
                 if ($orderCustomerId = $order->getCustomerId()) {
-                    $this->_customerId = $orderCustomerId;
+                    $this->customerId = $orderCustomerId;
                 } else {
-                    $this->_customerId = 0;
+                    $this->customerId = 0;
                 }
-            } elseif ($sessCustomerId = $this->_customerSession->getId()) {
-                $this->_customerId = $sessCustomerId;
+            } elseif ($sessCustomerId = $this->customerSession->getId()) {
+                $this->customerId = $sessCustomerId;
             }
         }
 
-        return $this->_customerId;
+        return $this->customerId;
     }
 
     /**
@@ -485,16 +562,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function buildPlatformUrl($type, array $params = [])
     {
         switch ($type) {
-            case $this->_coreLibrary::CONTROLLER_TYPE_PAYMENT:
+            case $this->coreLibrary::CONTROLLER_TYPE_PAYMENT:
                 return $this->getUrl('ingenico/payment/redirect', ['_query' => $params]);
-            case $this->_coreLibrary::CONTROLLER_TYPE_SUCCESS:
+            case $this->coreLibrary::CONTROLLER_TYPE_SUCCESS:
                 return $this->getUrl('ingenico/payment/result', ['_query' => $params]);
-            case $this->_coreLibrary::CONTROLLER_TYPE_ORDER_SUCCESS:
+            case $this->coreLibrary::CONTROLLER_TYPE_ORDER_SUCCESS:
                 return $this->getUrl('checkout/onepage/success');
-            case $this->_coreLibrary::CONTROLLER_TYPE_ORDER_CANCELLED:
+            case $this->coreLibrary::CONTROLLER_TYPE_ORDER_CANCELLED:
                 return $this->getUrl(self::PARAM_NAME_CHECKOUT_CART);
             default:
-                throw new \Magento\Framework\Exception\LocalizedException(__('Unknown page type.'));
+                throw new LocalizedException(__('Unknown page type.'));
         }
     }
 
@@ -508,7 +585,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function processSuccessUrls()
     {
         try {
-            $this->_coreLibrary->processReturnUrls();
+            $this->coreLibrary->processReturnUrls();
         } catch (\IngenicoClient\Exception $e) {
             $this->setOrderErrorPage($e->getMessage());
         }
@@ -523,14 +600,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * @param bool $forceAliasSave
      *
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function processPayment($aliasId = null, $forceAliasSave = false)
     {
         $orderId = $this->requestOrderId();
 
         try {
-            $this->_coreLibrary->processPayment($orderId, $aliasId, $forceAliasSave);
+            $this->coreLibrary->processPayment($orderId, $aliasId, $forceAliasSave);
             // @see self::showPaymentListRedirectTemplate()
             // @see self::showPaymentListInlineTemplate()
         } catch (\IngenicoClient\Exception $e) {
@@ -543,14 +620,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
      * @param mixed|null $aliasId
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function processPaymentRedirect($aliasId)
     {
         $orderId = $this->requestOrderId();
 
         try {
-            $this->_coreLibrary->processPaymentRedirect($orderId, $aliasId);
+            $this->coreLibrary->processPaymentRedirect($orderId, $aliasId);
             // @see self::showPaymentListRedirectTemplate()
         } catch (\IngenicoClient\Exception $e) {
             // Show Error Page
@@ -564,14 +641,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * @param string $paymentMethod
      * @param string $brand
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function processPaymentRedirectSpecified($aliasId, $paymentMethod, $brand)
     {
         $orderId = $this->requestOrderId();
 
         try {
-            $this->_coreLibrary->processPaymentRedirectSpecified($orderId, $aliasId, $paymentMethod, $brand);
+            $this->coreLibrary->processPaymentRedirectSpecified($orderId, $aliasId, $paymentMethod, $brand);
             // @see self::showPaymentListRedirectTemplate()
         } catch (\IngenicoClient\Exception $e) {
             // Show Error Page
@@ -583,16 +660,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
      * @param mixed|null $aliasId
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function processPaymentInline($aliasId = null)
     {
         $orderId = $this->requestOrderId();
 
         try {
-            $this->_coreLibrary->processPaymentInline($orderId, $aliasId);
+            $this->coreLibrary->processPaymentInline($orderId, $aliasId);
             // @see self::showPaymentListInlineTemplate()
-        } catch (\IngenicoClient\Exception $e) {
+        } catch (Exception $e) {
             // Show Error Page
             $this->setOrderErrorPage($e->getMessage());
         }
@@ -611,36 +688,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $storeId = $this->getStoreId($orderId);
 
         switch ($paymentResult->getPaymentStatus()) {
-            case $this->_coreLibrary::STATUS_PENDING:
+            case $this->coreLibrary::STATUS_PENDING:
                 break;
-            case $this->_coreLibrary::STATUS_AUTHORIZED:
-                $this->_processor->processOrderAuthorization($orderId, $paymentResult, $message);
-                if (!$this->_cnf->isDirectSalesMode($storeId) && $this->_cnf->getMode(false, $storeId) == 'test') {
-                    $this->_messageManager->addNotice(__('checkout.test_mode_warning').' '.__('checkout.manual_capture_required'));
+            case $this->coreLibrary::STATUS_AUTHORIZED:
+                $this->processor->processOrderAuthorization($orderId, $paymentResult, $message);
+                if ( !$this->cnf->isDirectSalesMode($storeId) && $this->cnf->getMode(false, $storeId) == 'test') {
+                    $this->messageManager->addNotice(__('checkout.test_mode_warning') . ' ' . __('checkout.manual_capture_required'));
                 }
                 break;
-            case $this->_coreLibrary::STATUS_CAPTURE_PROCESSING:
-                $this->_processor->processOrderCaptureProcessing($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_CAPTURE_PROCESSING:
+                $this->processor->processOrderCaptureProcessing($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_CAPTURED:
-                $this->_processor->processOrderPayment($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_CAPTURED:
+                $this->processor->processOrderPayment($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_CANCELLED:
-                $this->_processor->processOrderCancellation($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_CANCELLED:
+                $this->processor->processOrderCancellation($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_REFUND_PROCESSING:
-                $this->_processor->processOrderRefundProcessing($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_REFUND_PROCESSING:
+                $this->processor->processOrderRefundProcessing($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_REFUND_REFUSED:
-                $this->_processor->processOrderDefault($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_REFUND_REFUSED:
+                $this->processor->processOrderDefault($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_REFUNDED:
-                $this->_processor->processOrderRefund($orderId, $paymentResult, $message);
+            case $this->coreLibrary::STATUS_REFUNDED:
+                $this->processor->processOrderRefund($orderId, $paymentResult, $message);
                 break;
-            case $this->_coreLibrary::STATUS_ERROR:
+            case $this->coreLibrary::STATUS_ERROR:
                 break;
             default:
-                throw new \Magento\Framework\Exception\LocalizedException(__('Unknown Payment Status'));
+                throw new LocalizedException(__('Unknown Payment Status'));
         }
     }
 
@@ -654,10 +731,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function isCartPaid($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
-        $orders = $this->_orderCollectionFactory->create()
-            ->addFieldToSelect('*')
-            ->addFieldToFilter('quote_id', $order->getQuoteId());
+        $order = $this->processor->getOrderByIncrementId($orderId);
+        $orders = $this->orderCollectionFactory->create()
+                                               ->addFieldToSelect('*')
+                                               ->addFieldToFilter('quote_id', $order->getQuoteId());
 
         foreach ($orders as $order) {
             /** @var \Magento\Sales\Model\Order $order */
@@ -681,16 +758,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function submitOnboardingRequest($companyName, $email, $countryCode)
     {
-        $this->_coreLibrary->submitOnboardingRequest(
+        $this->coreLibrary->submitOnboardingRequest(
             $companyName,
             $email,
             $countryCode,
             'Magento 2',
             $this->requestShoppingCartExtensionId(),
-            $this->_cnf->getStoreName($this->getStoreId()),
+            $this->cnf->getStoreName($this->getStoreId()),
             $this->_getStoreEmailLogo(),
             $this->getUrl('/'),
-            $this->_cnf->getIngenicoLogo(),
+            $this->cnf->getIngenicoLogo(),
             $this->getLocale()
         );
     }
@@ -704,29 +781,29 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestOrderInfo($orderId = null)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $order = $this->processor->getOrderByIncrementId($orderId);
 
         $currentState = $order->getState();
 
         // Mapping between Magento Order status and Ingenico Payment status
         switch ($currentState) {
             case $order::STATE_NEW:
-                $status = $this->_coreLibrary::STATUS_PENDING;
+                $status = $this->coreLibrary::STATUS_PENDING;
                 break;
             case $order::STATE_PENDING_PAYMENT:
-                $status = $this->_coreLibrary::STATUS_AUTHORIZED;
+                $status = $this->coreLibrary::STATUS_AUTHORIZED;
                 break;
             case $order::STATE_PROCESSING:
-                $status = $this->_coreLibrary::STATUS_CAPTURED;
+                $status = $this->coreLibrary::STATUS_CAPTURED;
                 break;
             case $order::STATE_CANCELED:
-                $status = $this->_coreLibrary::STATUS_CANCELLED;
+                $status = $this->coreLibrary::STATUS_CANCELLED;
                 break;
             case $order::STATE_CLOSED:
-                $status = $this->_coreLibrary::STATUS_REFUNDED;
+                $status = $this->coreLibrary::STATUS_REFUNDED;
                 break;
             default:
-                $status = $this->_coreLibrary::STATUS_UNKNOWN;
+                $status = $this->coreLibrary::STATUS_UNKNOWN;
                 break;
         }
 
@@ -738,6 +815,27 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $customerId = 0;
         if ($order->getCustomerId()) {
             $customerId = $order->getCustomerId();
+        }
+
+        $customerDob = null;
+        $customerGender = null;
+
+        // Get customer's Date of Birth
+        try {
+            $customer = $this->customerRepository->getById($customerId);
+            $customerDob = $customer->getDob();
+
+            // Get customer's gender
+            switch ($customer->getGender()) {
+                case 1:
+                    $customerGender = 'M';
+                    break;
+                case 2:
+                    $customerGender = 'F';
+            }
+        } catch (NoSuchEntityException $exception) {
+            $customerDob = null;
+            $customerGender = null;
         }
 
         // Calculate refunded, cancelled, and captured totals
@@ -858,6 +956,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             ];
         }
 
+        // @codingStandardsIgnoreStart
         return [
             OrderField::ORDER_ID => $this->requestOrderId(),
             OrderField::PAY_ID => $this->getIngenicoPayIdByOrderId($this->requestOrderId()),
@@ -867,7 +966,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             OrderField::TOTAL_CANCELLED => $cancelledAmount,
             OrderField::CURRENCY => $order->getOrderCurrencyCode(),
             OrderField::STATUS => $status,
-            OrderField::CREATED_AT => date('Y-m-d H:i:s', strtotime($order->getData('created_at'))), // Y-m-d H:i:s
+            OrderField::CREATED_AT => (new \DateTime($order->getData('created_at')))->format('Y-m-d H:i:s'), // Y-m-d H:i:s
+            OrderField::BILLING_CUSTOMER_TITLE => $billingAddress->getPrefix(),
             OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
             OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
             OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
@@ -880,7 +980,9 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             OrderField::BILLING_EMAIL => $order->getData('customer_email'),
             OrderField::BILLING_FIRST_NAME => $billingAddress->getFirstname(),
             OrderField::BILLING_LAST_NAME => $billingAddress->getLastname(),
+            OrderField::BILLING_FAX => $billingAddress->getFax(),
             OrderField::IS_SHIPPING_SAME => false,
+            OrderField::SHIPPING_CUSTOMER_TITLE => $shippingAddress->getPrefix(),
             OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
@@ -893,9 +995,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             OrderField::SHIPPING_EMAIL => $order->getData('customer_email'),
             OrderField::SHIPPING_FIRST_NAME => $shippingAddress->getFirstname(),
             OrderField::SHIPPING_LAST_NAME => $shippingAddress->getLastname(),
+            OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
             OrderField::CUSTOMER_ID => (int) $customerId,
             OrderField::CUSTOMER_IP => $order->getData('remote_ip'),
-            OrderField::CUSTOMER_DOB => null, //null or timestamp
+            OrderField::CUSTOMER_DOB => $customerDob ?? (new \DateTime($customerDob))->getTimestamp(), //null or timestamp
+            OrderField::IS_VIRTUAL => $order->getIsVirtual(),
             OrderField::ITEMS => $items,
             OrderField::LOCALE => $this->getLocale($orderId),
             OrderField::SHIPPING_METHOD => $order->getShippingDescription(),
@@ -905,13 +1009,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             OrderField::COMPANY_NAME => $billingAddress->getCompany(),
             OrderField::COMPANY_VAT => null,
             OrderField::CHECKOUT_TYPE => \IngenicoClient\Checkout::TYPE_B2C,
-            OrderField::BILLING_FAX => $billingAddress->getFax(),
-            OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
             OrderField::SHIPPING_COMPANY => $order->getData('shipping_description'),
             OrderField::CUSTOMER_CIVILITY => null,
-            OrderField::CUSTOMER_GENDER => null,
+            OrderField::CUSTOMER_GENDER => $customerGender, // M or F or null
             OrderField::ADDITIONAL_DATA => $order->getPayment()->getAdditionalInformation()
         ];
+        // @codingStandardsIgnoreEnd
     }
 
     /**
@@ -923,9 +1026,9 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function requestOrderInfoBeforePlaceOrder($reservedOrderId)
     {
-        $quote = $this->_checkoutSession->getQuote();
+        $quote = $this->checkoutSession->getQuote();
 
-        $status = $this->_coreLibrary::STATUS_UNKNOWN;
+        $status = $this->coreLibrary::STATUS_UNKNOWN;
 
         $billingAddress = $quote->getBillingAddress();
         $shippingAddress = $quote->getShippingAddress();
@@ -950,15 +1053,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $taxPercent = (int) $item->getTaxPercent();
 
             $items[] = [
-                'type' => OrderItem::TYPE_PRODUCT,
-                'id' => $item->getSku(),
-                'name' => $item->getName(),
-                'description' => $item->getName(),
-                'unit_price' => round($item->getRowTotalInclTax() / $item->getQty(), 2),
-                'qty' => $item->getQtyOrdered(),
-                'unit_vat' => round(($item->getRowTotalInclTax() - $item->getRowTotal()) / $item->getQty(), 2),
-                'vat_percent' => $taxPercent,
-                'vat_included' => 1 // VAT included
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_PRODUCT,
+                OrderItem::ITEM_ID => $item->getSku(),
+                OrderItem::ITEM_NAME => $item->getName(),
+                OrderItem::ITEM_DESCRIPTION => $item->getName(),
+                OrderItem::ITEM_UNIT_PRICE => round($item->getRowTotalInclTax() / $item->getQty(), 2),
+                OrderItem::ITEM_QTY => $item->getQtyOrdered(),
+                OrderItem::ITEM_UNIT_VAT => round(($item->getRowTotalInclTax() - $item->getRowTotal()) / $item->getQty(), 2),
+                OrderItem::ITEM_VATCODE => $taxPercent,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
@@ -969,15 +1072,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $totalDiscount = $quote->getData('discount_amount') + $quote->getData('shipping_discount_amount');
 
             $items[] = [
-                'type' => OrderItem::TYPE_DISCOUNT,
-                'id' => 'discount',
-                'name' => 'Discount',
-                'description' => 'Discount',
-                'unit_price' => -1 * $totalDiscount,
-                'qty' => 1,
-                'unit_vat' => 0,
-                'vat_percent' => 0,
-                'vat_included' => 1 // VAT included
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_DISCOUNT,
+                OrderItem::ITEM_ID => 'discount',
+                OrderItem::ITEM_NAME => 'Discount',
+                OrderItem::ITEM_DESCRIPTION => 'Discount',
+                OrderItem::ITEM_UNIT_PRICE => -1 * $totalDiscount,
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => 0,
+                OrderItem::ITEM_VATCODE => 0,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
@@ -1040,67 +1143,72 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             }
 
             $items[] = [
-                'type' => OrderItem::TYPE_SHIPPING,
-                'id' => 'shipping',
-                'name' => $shippingAddress->getShippingDescription(),
-                'description' => $shippingAddress->getShippingDescription(),
-                'unit_price' => $shippingIncTax,
-                'qty' => 1,
-                'unit_vat' => $shippingTax,
-                'vat_percent' => $shippingTaxRate,
-                'vat_included' => 1 // VAT included
+                OrderItem::ITEM_TYPE => OrderItem::TYPE_SHIPPING,
+                OrderItem::ITEM_ID => 'shipping',
+                OrderItem::ITEM_NAME => $shippingAddress->getShippingDescription(),
+                OrderItem::ITEM_DESCRIPTION => $shippingAddress->getShippingDescription(),
+                OrderItem::ITEM_UNIT_PRICE => $shippingIncTax,
+                OrderItem::ITEM_QTY => 1,
+                OrderItem::ITEM_UNIT_VAT => $shippingTax,
+                OrderItem::ITEM_VATCODE => $shippingTaxRate,
+                OrderItem::ITEM_VAT_INCLUDED => 1 // VAT included
             ];
         }
 
+        // @codingStandardsIgnoreStart
         return [
-            self::PARAM_NAME_ORDER_ID => $reservedOrderId,
-            self::PARAM_NAME_PAY_ID => $this->getIngenicoPayIdByOrderId($reservedOrderId),
-            'amount' => $totalAmount,
-            'total_captured' => $capturedAmount,
-            'total_refunded' => $refundedAmount,
-            'total_cancelled' => $cancelledAmount,
-            'currency' => $quote->getQuoteCurrencyCode(),
-            'customer_id' => (int) $customerId,
-            'status' => $status,
-            'created_at' => date('Y-m-d H:i:s', strtotime($quote->getCreatedAt())), // Y-m-d H:i:s
-            'billing_country' => $billingAddress->getCountryId(),
-            'billing_country_code' => $billingAddress->getCountryId(),
-            'billing_address1' => $billingAddress->getStreet()[0],
-            'billing_address2' => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : '.',
-            'billing_address3' => null,
-            'billing_city' => $billingAddress->getCity(),
-            'billing_state' => $billingAddress->getRegionId(),
-            'billing_postcode' => $billingAddress->getPostcode(),
-            'billing_phone' => $billingAddress->getTelephone(),
-            'billing_email' => $billingAddress->getEmail(),
-            'billing_first_name' => $billingAddress->getFirstname(),
-            'billing_last_name' => $billingAddress->getLastname(),
-            'is_shipping_same' => false,
-            'shipping_country' => $shippingAddress->getCountryId(),
-            'shipping_country_code' => $shippingAddress->getCountryId(),
-            'shipping_address1' => $shippingAddress->getStreet()[0],
-            'shipping_address2' => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : '.',
-            'shipping_address3' => null,
-            'shipping_city' => $shippingAddress->getCity(),
-            'shipping_state' => $shippingAddress->getRegionId(),
-            'shipping_postcode' => $shippingAddress->getPostcode(),
-            'shipping_phone' => $shippingAddress->getTelephone(),
-            'shipping_email' => $billingAddress->getEmail(),
-            'shipping_first_name' => $shippingAddress->getFirstname(),
-            'shipping_last_name' => $shippingAddress->getLastname(),
-            'shipping_company' => $shippingAddress->getShippingDescription(),
-            'shipping_method' => $shippingAddress->getShippingDescription(),
-            'shipping_amount' => $shippingAddress->getShippingAmount(),
-            'shipping_tax_amount' => $shippingAddress->getShippingTaxAmount(),
-            'shipping_tax_code' => 0,
-            'shipping_fax' => '-',
-            'customer_ip' => $quote->getRemoteIp(),
-            'customer_dob' => null,
-            'customer_civility' => '',
-            'items' => $items,
-            'locale' => $this->getLocale(),
+            OrderField::ORDER_ID => $reservedOrderId,
+            OrderField::PAY_ID => $this->getIngenicoPayIdByOrderId($reservedOrderId),
+            OrderField::AMOUNT => $totalAmount,
+            OrderField::TOTAL_CAPTURED => $capturedAmount,
+            OrderField::TOTAL_REFUNDED => $refundedAmount,
+            OrderField::TOTAL_CANCELLED => $cancelledAmount,
+            OrderField::CURRENCY => $quote->getQuoteCurrencyCode(),
+            OrderField::CUSTOMER_ID => (int) $customerId,
+            OrderField::STATUS => $status,
+            OrderField::CREATED_AT => date('Y-m-d H:i:s', strtotime($quote->getCreatedAt())), // Y-m-d H:i:s
+            OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
+            OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
+            OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
+            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : '.',
+            OrderField::BILLING_ADDRESS3 => null,
+            OrderField::BILLING_CITY => $billingAddress->getCity(),
+            OrderField::BILLING_STATE => $billingAddress->getRegionId(),
+            OrderField::BILLING_POSTCODE => $billingAddress->getPostcode(),
+            OrderField::BILLING_PHONE => $billingAddress->getTelephone(),
+            OrderField::BILLING_EMAIL => $billingAddress->getEmail(),
+            OrderField::BILLING_FIRST_NAME => $billingAddress->getFirstname(),
+            OrderField::BILLING_LAST_NAME => $billingAddress->getLastname(),
+            OrderField::IS_SHIPPING_SAME => false,
+            OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
+            OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
+            OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
+            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : '.',
+            OrderField::SHIPPING_ADDRESS3 => null,
+            OrderField::SHIPPING_CITY => $shippingAddress->getCity(),
+            OrderField::SHIPPING_STATE => $shippingAddress->getRegionId(),
+            OrderField::SHIPPING_POSTCODE => $shippingAddress->getPostcode(),
+            OrderField::SHIPPING_PHONE => $shippingAddress->getTelephone(),
+            OrderField::SHIPPING_EMAIL => $billingAddress->getEmail(),
+            OrderField::SHIPPING_FIRST_NAME => $shippingAddress->getFirstname(),
+            OrderField::SHIPPING_LAST_NAME => $shippingAddress->getLastname(),
+            OrderField::SHIPPING_COMPANY => $shippingAddress->getShippingDescription(),
+            OrderField::SHIPPING_METHOD => $shippingAddress->getShippingDescription(),
+            OrderField::SHIPPING_AMOUNT => $shippingAddress->getShippingAmount(),
+            OrderField::SHIPPING_TAX_AMOUNT => $shippingAddress->getShippingTaxAmount(),
+            OrderField::SHIPPING_TAX_CODE => 0,
+            OrderField::SHIPPING_FAX => '-',
+            OrderField::CUSTOMER_IP => $quote->getRemoteIp(),
+            OrderField::CUSTOMER_DOB => null,
+            OrderField::CUSTOMER_CIVILITY => null,
+            OrderField::CUSTOMER_GENDER => null, // M or F or null
+            OrderField::IS_VIRTUAL => $quote->getIsVirtual(),
+            OrderField::ITEMS => $items,
+            OrderField::LOCALE => $this->getLocale(),
+            OrderField::CHECKOUT_TYPE => \IngenicoClient\Checkout::TYPE_B2C,
             OrderField::ADDITIONAL_DATA => $quote->getPayment()->getAdditionalInformation()
         ];
+        // @codingStandardsIgnoreEnd
     }
 
     /**
@@ -1113,7 +1221,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function getOrderPaymentMethod($orderId)
     {
         try {
-            $order = $this->_processor->getOrderByIncrementId($orderId);
+            $order = $this->processor->getOrderByIncrementId($orderId);
             $method = $order->getPayment()->getMethodInstance();
 
             return $method::CORE_CODE;
@@ -1133,7 +1241,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         try {
             if (!$quoteId) {
-                $quote = $this->_checkoutSession->getQuote();
+                $quote = $this->checkoutSession->getQuote();
             } else {
                 $quote = $this->quoteRepository->get($quoteId);
             }
@@ -1159,22 +1267,6 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         // do nothing
     }
 
-    public function setEmailTemplate($templateName)
-    {
-        $this->_registry->unregister(self::PARAM_NAME_EMAIL_TEMPLATE);
-        $this->_registry->register(self::PARAM_NAME_EMAIL_TEMPLATE, $templateName);
-    }
-
-    public function getEmailTemplate()
-    {
-        if ($tpl = $this->_registry->registry(self::PARAM_NAME_EMAIL_TEMPLATE)) {
-            $this->_registry->unregister(self::PARAM_NAME_EMAIL_TEMPLATE);
-            return $tpl;
-        }
-
-        return 'ingenico_formatted';
-    }
-
     /**
      * Sends an e-mail using platform's email engine.
      *
@@ -1198,11 +1290,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         array $attachedFiles = []
     ) {
         if (!$template instanceof \IngenicoClient\MailTemplate) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Template variable must be instance of MailTemplate'));
+            throw new LocalizedException(__('Template variable must be instance of MailTemplate'));
         }
 
         try {
-            $this->_inlineTranslation->suspend();
+            $this->inlineTranslation->suspend();
             $emailData = new \Magento\Framework\DataObject();
             $emailData->setData([
                 'subject' => $subject,
@@ -1211,13 +1303,13 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 'bodytext' => $template->getPlainText(),
             ]);
 
-            $sender = $this->_cnf->getValue(
+            $sender = $this->cnf->getValue(
                 \Magento\Sales\Model\Order\Email\Container\OrderIdentity::XML_PATH_EMAIL_IDENTITY,
                 ScopeInterface::SCOPE_STORE,
                 $this->getStoreId()
             );
 
-            $transport = $this->_transportBuilder
+            $transport = $this->transportBuilder
                 ->setTemplateIdentifier($this->getEmailTemplate())
                 ->setTemplateOptions([
                     'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
@@ -1283,7 +1375,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             }
 
             $transport->sendMessage();
-            $this->_inlineTranslation->resume();
+            $this->inlineTranslation->resume();
 
             return true;
         } catch (\Exception $e) {
@@ -1302,15 +1394,15 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getLocale($orderId = null)
     {
-        $currentStoreId = $this->_storeManager->getStore()->getId();
-        $locale = $this->_localeResolver->getLocale();
+        $currentStoreId = $this->storeManager->getStore()->getId();
+        $locale = $this->localeResolver->getLocale();
 
         if ($orderId) {
-            $order = $this->_processor->getOrderByIncrementId($orderId);
+            $order = $this->processor->getOrderByIncrementId($orderId);
             $orderStoreId = $order->getStoreId();
             if ($currentStoreId !== $orderStoreId) {
-                $locale = $this->_localeResolver->emulate($orderStoreId);
-                $this->_localeResolver->revert();
+                $locale = $this->localeResolver->emulate($orderStoreId);
+                $this->localeResolver->revert();
             }
         }
 
@@ -1361,18 +1453,18 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendOrderPaidCustomerEmail($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $order = $this->processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
 
         try {
-            return $this->_coreLibrary->sendMailNotificationPaidOrder(
+            return $this->coreLibrary->sendMailNotificationPaidOrder(
                 $order->getCustomerEmail(),
                 null,
                 null,
                 null,
-                $this->_coreLibrary->__('order_paid.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('order_paid.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
@@ -1412,22 +1504,22 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendNotificationAuthorization($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $order = $this->processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
 
-        if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
+        if (!$this->registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
             return null;
         }
 
         try {
-            return $this->_coreLibrary->sendMailNotificationAuthorization(
+            return $this->coreLibrary->sendMailNotificationAuthorization(
                 $order->getCustomerEmail(),
                 null,
                 null,
                 null,
-                $this->_coreLibrary->__('authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
@@ -1456,16 +1548,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendNotificationAdminAuthorization($orderId)
     {
-        if (!$this->_registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
+        if (!$this->registry->registry(self::REGISTRY_KEY_CAN_SEND_AUTH_EMAIL)) {
             return null;
         }
 
-        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $order = $this->processor->getOrderByIncrementId($orderId);
 
         // Get recipient's email
-        $recipient = $this->_cnf->getPaymentAuthorisationNotificationEmail($order->getStoreId());
+        $recipient = $this->cnf->getPaymentAuthorisationNotificationEmail($order->getStoreId());
         if (!$recipient) {
-            $recipient = $this->_cnf->getValue(
+            $recipient = $this->cnf->getValue(
                 'trans_email/ident_general/email',
                 ScopeInterface::SCOPE_STORE,
                 $order->getStoreId()
@@ -1475,10 +1567,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         // Get locale of admin if possible
         $locale = $this->getAdminUserLocale($recipient);
         if (!$locale) {
-            $locale = $this->_localeResolver->getDefaultLocale();
+            $locale = $this->localeResolver->getDefaultLocale();
         }
 
-        $this->_appEmulation->startEnvironmentEmulation(
+        $this->appEmulation->startEnvironmentEmulation(
             $order->getStoreId(),
             \Magento\Framework\App\Area::AREA_FRONTEND,
             true
@@ -1487,14 +1579,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         try {
             $this->setEmailTemplate('ingenico_empty');
 
-            return $this->_coreLibrary->sendMailNotificationAdminAuthorization(
+            return $this->coreLibrary->sendMailNotificationAdminAuthorization(
                 $recipient,
                 null,
                 null,
                 null,
-                $this->_coreLibrary->__('admin_authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('admin_authorization.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
@@ -1507,7 +1599,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                         ]
                     ),
                     'path_uri' => '',
-                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->_cnf->getIngenicoLogo()
+                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->cnf->getIngenicoLogo()
                 ],
                 $locale
             );
@@ -1515,7 +1607,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->log(self::PARAM_NAME_MAIL_SENDING_FAILED . $e->getMessage(), 'crit');
         }
 
-        $this->_appEmulation->stopEnvironmentEmulation();
+        $this->appEmulation->stopEnvironmentEmulation();
 
         return false;
     }
@@ -1530,16 +1622,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         try {
             /** @var \Ingenico\Payment\Model\Reminder $reminder */
-            $reminder = $this->_reminderFactory->create()->load($orderId, self::PARAM_NAME_ORDER_ID);
+            $reminder = $this->reminderFactory->create()->load($orderId, self::PARAM_NAME_ORDER_ID);
             if (!$reminder->getId() || $reminder->getIsSent()) {
                 return null;
             }
 
             $this->setOrderId($orderId);
 
-            $order = $this->_processor->getOrderByIncrementId($orderId);
+            $order = $this->processor->getOrderByIncrementId($orderId);
 
-            $this->_appEmulation->startEnvironmentEmulation(
+            $this->appEmulation->startEnvironmentEmulation(
                 $order->getStoreId(),
                 \Magento\Framework\App\Area::AREA_FRONTEND,
                 true
@@ -1554,30 +1646,30 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                     continue;
                 }
 
-                $imageUrl = $this->_productImageHelper->init($product, 'product_small_image')->getUrl();
+                $imageUrl = $this->productImageHelper->init($product, 'product_small_image')->getUrl();
                 $products[] = [
                     'image' => $imageUrl,
                     'name' => $item->getData('name') . ' ('.$item->getData('sku').')',
-                    'price' => $this->_priceHelper->currency($product->getFinalPrice(), true, false)
+                    'price' => $this->priceHelper->currency($product->getFinalPrice(), true, false)
                 ];
             }
 
             // Get Customer's locale
             $locale = $this->getLocale($orderId);
 
-            $result = $this->_coreLibrary->sendMailNotificationReminder(
+            $result = $this->coreLibrary->sendMailNotificationReminder(
                 $order->getCustomerEmail(),
                 null,
                 null,
                 null,
-                $this->_coreLibrary->__('reminder.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('reminder.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '',//$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
                     AbstractConnector::PARAM_NAME_PRODUCTS => $products,
-                    AbstractConnector::PARAM_NAME_ORDER_TOTAL => $this->_priceHelper->currency($order->getGrandTotal(), true, false),
+                    AbstractConnector::PARAM_NAME_ORDER_TOTAL => $this->priceHelper->currency($order->getGrandTotal(), true, false),
                     AbstractConnector::PARAM_NAME_PAYMENT_LINK => $this->getUrl('ingenico/payment/resume', [
                         'token' => $reminder->getSecureToken(),
                         self::CNF_SCOPE_PARAM_NAME => $order->getStoreId()
@@ -1586,7 +1678,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                 $locale
             );
 
-            $this->_appEmulation->stopEnvironmentEmulation();
+            $this->appEmulation->stopEnvironmentEmulation();
 
             return $result;
         } catch (\Exception $e) {
@@ -1604,18 +1696,18 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendRefundFailedCustomerEmail($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
+        $order = $this->processor->getOrderByIncrementId($orderId);
         $locale = $this->getLocale($orderId);
 
         try {
-            return $this->_coreLibrary->sendMailNotificationRefundFailed(
+            return $this->coreLibrary->sendMailNotificationRefundFailed(
                 $order->getCustomerEmail(),
                 null,
                 null,
                 null,
-                $this->_coreLibrary->__('refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
@@ -1644,8 +1736,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function sendRefundFailedAdminEmail($orderId)
     {
-        $order = $this->_processor->getOrderByIncrementId($orderId);
-        $recipient = $this->_cnf->getValue(
+        $order = $this->processor->getOrderByIncrementId($orderId);
+        $recipient = $this->cnf->getValue(
             'trans_email/ident_sales/email',
             ScopeInterface::SCOPE_STORE,
             $order->getStoreId()
@@ -1654,20 +1746,20 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         // Get locale of admin if possible
         $locale = $this->getAdminUserLocale($recipient);
         if (!$locale) {
-            $locale = $this->_localeResolver->getDefaultLocale();
+            $locale = $this->localeResolver->getDefaultLocale();
         }
 
         try {
             $this->setEmailTemplate('ingenico_empty');
 
-            return $this->_coreLibrary->sendMailNotificationAdminRefundFailed(
+            return $this->coreLibrary->sendMailNotificationAdminRefundFailed(
                 $recipient,
-                $this->_cnf->getStoreName($order->getStoreId()),
+                $this->cnf->getStoreName($order->getStoreId()),
                 null,
                 null,
-                $this->_coreLibrary->__('admin_refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
+                $this->coreLibrary->__('admin_refund_failed.subject', [], self::PARAM_NAME_EMAIL, $locale),
                 [
-                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($order->getStoreId()),
+                    AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_LOGO => '', //$this->_getStoreEmailLogo($order->getStoreId()),
                     AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
                     AbstractConnector::PARAM_NAME_CUSTOMER_NAME => $order->getCustomerName(),
@@ -1679,7 +1771,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                         ]
                     ),
                     'path_uri' => '',
-                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->_cnf->getIngenicoLogo()
+                    AbstractConnector::PARAM_NAME_INGENICO_LOGO => $this->cnf->getIngenicoLogo()
                 ],
                 $locale
             );
@@ -1719,7 +1811,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             [
                 AbstractConnector::PARAM_NAME_PLATFORM => $this->requestShoppingCartExtensionId(),
                 AbstractConnector::PARAM_NAME_SHOP_URL => $this->getUrl(''),
-                AbstractConnector::PARAM_NAME_SHOP_NAME => $this->_cnf->getStoreName($this->getStoreId()),
+                AbstractConnector::PARAM_NAME_SHOP_NAME => $this->cnf->getStoreName($this->getStoreId()),
                 AbstractConnector::PARAM_NAME_TICKET => '',
                 AbstractConnector::PARAM_NAME_DESCRIPTION => ''
             ],
@@ -1731,31 +1823,12 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
             $this->getCoreLibrary()->getWhiteLabelsData()->getSupportEmail(),
             $this->getCoreLibrary()->getWhiteLabelsData()->getSupportName(),
             $email,
-            $this->_cnf->getStoreName($this->getStoreId()),
+            $this->cnf->getStoreName($this->getStoreId()),
             $subject,
             $fields,
             $this->getLocale(),
             $attachedFiles
         );
-    }
-
-    protected function _getStoreEmailLogo($storeId = 0)
-    {
-        if ($storeId) {
-            $this->_appEmulation->startEnvironmentEmulation(
-                $storeId,
-                \Magento\Framework\App\Area::AREA_FRONTEND,
-                true
-            );
-        }
-
-        $logoUrl = $this->_cnf->getStoreEmailLogo($storeId);
-
-        if ($storeId) {
-            $this->_appEmulation->stopEnvironmentEmulation();
-        }
-
-        return $logoUrl;
     }
 
     /**
@@ -1773,7 +1846,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $trxData['order_id'] = $orderId;
         $trxData['transaction_data'] = json_encode($data->getData());
 
-        $collection = $this->_transactionCollectionFactory
+        $collection = $this->transactionCollectionFactory
             ->create()
             ->addFieldToSelect('*')
             ->addFieldToFilter('pay_id', $data->getPayId())
@@ -1788,23 +1861,23 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                     ->addData($trxData)
                     ->save();
             } else {
-                $trx = $this->_transactionFactory->create();
+                $trx = $this->transactionFactory->create();
                 $trx->setCreatedAt(date('Y-m-d H:i:s', time()))
                     ->setUpdatedAt(date('Y-m-d H:i:s', time()))
                     ->addData($trxData)
                     ->save();
             }
         } catch (\Exception $e) {
-            $this->_logger->crit('Failed saving payment transaction: ' . $e->getMessage());
+            $this->logger->crit('Failed saving payment transaction: ' . $e->getMessage());
         }
 
         // process Magento Transaction if needed
-        $transactionStatus = $this->_coreLibrary->getStatusByCode($data->getStatus());
+        $transactionStatus = $this->coreLibrary->getStatusByCode($data->getStatus());
         $transactionTypeMap = [
-            $this->_coreLibrary::STATUS_AUTHORIZED => Transaction::TYPE_AUTH,
-            $this->_coreLibrary::STATUS_CAPTURED => Transaction::TYPE_CAPTURE,
-            $this->_coreLibrary::STATUS_CANCELLED => Transaction::TYPE_VOID,
-            $this->_coreLibrary::STATUS_REFUNDED => Transaction::TYPE_REFUND
+            $this->coreLibrary::STATUS_AUTHORIZED => Transaction::TYPE_AUTH,
+            $this->coreLibrary::STATUS_CAPTURED   => Transaction::TYPE_CAPTURE,
+            $this->coreLibrary::STATUS_CANCELLED  => Transaction::TYPE_VOID,
+            $this->coreLibrary::STATUS_REFUNDED   => Transaction::TYPE_REFUND
         ];
 
         // only create relevant Magento Transactions
@@ -1840,7 +1913,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getIngenicoPaymentLog($orderId)
     {
-        $collection = $this->_transactionCollectionFactory
+        $collection = $this->transactionCollectionFactory
             ->create()
             ->addFieldToSelect('*')
             ->addFieldToFilter('order_id', $orderId)
@@ -1866,7 +1939,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getIngenicoPaymentById($payId)
     {
-        $collection = $this->_transactionCollectionFactory
+        $collection = $this->transactionCollectionFactory
             ->create()
             ->addFieldToSelect('*')
             ->addFieldToFilter('pay_id', $payId)
@@ -1891,7 +1964,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getIngenicoPayIdByOrderId($orderId)
     {
-        $collection = $this->_transactionCollectionFactory
+        $collection = $this->transactionCollectionFactory
             ->create()
             ->addFieldToSelect('pay_id')
             ->addFieldToFilter('order_id', $orderId)
@@ -1913,8 +1986,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getCustomerAliases($customerId)
     {
-        $aliasColl = $this->_aliasCollectionFactory->create()
-            ->addFieldToFilter('customer_id', $customerId);
+        $aliasColl = $this->aliasCollectionFactory->create()
+                                                  ->addFieldToFilter('customer_id', $customerId);
 
         return $aliasColl->getData();
     }
@@ -1928,7 +2001,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getAlias($aliasId)
     {
-        $alias = $this->_aliasFactory->create()->load($aliasId, self::PARAM_NAME_ALIAS);
+        $alias = $this->aliasFactory->create()->load($aliasId, self::PARAM_NAME_ALIAS);
         if ($alias->getId()) {
             $alias->unsId();
             $alias->setAliasId($alias->getAlias());
@@ -1951,7 +2024,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         $data['customer_id'] = $customerId;
         $data = array_change_key_case($data, CASE_LOWER);
 
-        $collection = $this->_aliasCollectionFactory
+        $collection = $this->aliasCollectionFactory
             ->create()
             ->addFieldToSelect('*')
             ->addFieldToFilter('alias', $data['alias']);
@@ -1965,14 +2038,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
                     ->addData($data)
                     ->save();
             } else {
-                $trx = $this->_aliasFactory->create();
+                $trx = $this->aliasFactory->create();
                 $trx->setCreatedAt(date('Y-m-d H:i:s', time()))
                     ->setUpdatedAt(date('Y-m-d H:i:s', time()))
                     ->addData($data)
                     ->save();
             }
         } catch (\Exception $e) {
-            $this->_logger->crit('Failed saving alias: ' . $e->getMessage());
+            $this->logger->crit('Failed saving alias: ' . $e->getMessage());
 
             return false;
         }
@@ -1991,7 +2064,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function showSuccessTemplate(array $fields, \IngenicoClient\Payment $payment)
     {
         $this->emptyShoppingCart();
-        $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('checkout/onepage/success'));
+        $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('checkout/onepage/success'));
     }
 
     /**
@@ -2005,7 +2078,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function showSecurityCheckTemplate(array $fields, \IngenicoClient\Payment $payment)
     {
         // Render $fields['html']
-        $this->_registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_ALIAS, $fields);
+        $this->registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_ALIAS, $fields);
     }
 
     /**
@@ -2018,23 +2091,36 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function showCancellationTemplate(array $fields, \IngenicoClient\Payment $payment)
     {
-        $this->_messageManager->addError(__('checkout.payment_cancelled'));
-        if ($this->_checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
-            $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
+        $message = $fields[self::PARAM_NAME_MESSAGE] ?? __('checkout.payment_cancelled');
+
+        $this->messageManager->addError($message);
+        if ($this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
+            $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
             $this->restoreShoppingCart();
 
             $incrementId = $fields[self::PARAM_NAME_ORDER_ID];
             if ($incrementId) {
-                $order = $this->_processor->getOrderByIncrementId($incrementId);
+                $order = $this->processor->getOrderByIncrementId($incrementId);
 
-                // Cancel order if the store customer balance wasn't set only to prevent double refund
-                if (abs($order->getBaseCustomerBalanceAmount()) === 0) {
-                    $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
+                // Commerce: Cancel order if the store customer balance wasn't set only to prevent double refund
+                if (class_exists('\Magento\CustomerBalance\Helper\Data', false)) {
+                    /** @var \Magento\CustomerBalance\Helper\Data $helper */
+                    $helper = ObjectManager::getInstance()->create('Magento\CustomerBalance\Helper\Data');
+                    if ($helper->isEnabled() &&
+                        !$helper->isAutoRefundEnabled() &&
+                        abs($order->getBaseCustomerBalanceAmount()) === 0
+                    ) {
+                        $this->processor->processOrderCancellation(
+                            $fields[self::PARAM_NAME_ORDER_ID],
+                            $payment,
+                            $message
+                        );
+                    }
                 }
             }
 
-            $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
+            $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
         }
     }
 
@@ -2047,13 +2133,13 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function showInlineLoaderTemplate(array $fields)
     {
-        $this->_registry->register(self::REGISTRY_KEY_INLINE_LOADER_PARAMS, $fields);
+        $this->registry->register(self::REGISTRY_KEY_INLINE_LOADER_PARAMS, $fields);
     }
 
     public function finishReturnInline($orderId, $cardBrand, $aliasId)
     {
         try {
-            $result = $this->_coreLibrary->finishReturnInline($orderId, $cardBrand, $aliasId);
+            $result = $this->coreLibrary->finishReturnInline($orderId, $cardBrand, $aliasId);
             if (isset($result[self::PARAM_NAME_MESSAGE])) {
                 $this->restoreShoppingCart();
             }
@@ -2078,33 +2164,39 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function setOrderErrorPage($message)
     {
         $this->restoreShoppingCart();
-        throw new \Magento\Framework\Exception\LocalizedException(__($message));
+        throw new LocalizedException(__($message));
     }
 
     /**
      * Renders the template with the payment error.
      *
      * @param array $fields
-     * @param Payment $payment
+     * @param \IngenicoClient\Payment $payment
      *
      * @return void
      */
     public function showPaymentErrorTemplate(array $fields, \IngenicoClient\Payment $payment)
     {
-        if (!$this->_checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
-            $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
+        $message = $fields[self::PARAM_NAME_MESSAGE] ?? __('ingenico.exception.message4');
+
+        if (!$this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
+            $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
             $this->restoreShoppingCart();
-            $this->_processor->processOrderCancellation($fields[self::PARAM_NAME_ORDER_ID], $payment);
-            $this->_registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl(self::PARAM_NAME_CHECKOUT_CART));
+
+            $this->processor->processOrderCancellation(
+                $fields[self::PARAM_NAME_ORDER_ID],
+                $payment,
+                $message
+            );
+
+            $this->registry->register(
+                self::REGISTRY_KEY_REDIRECT_URL,
+                $this->getUrl(self::PARAM_NAME_CHECKOUT_CART)
+            );
         }
 
-        $message = 'ingenico.exception.message4';
-        if (isset($fields[self::PARAM_NAME_MESSAGE]) && $fields[self::PARAM_NAME_MESSAGE] !== '') {
-            $message = $fields[self::PARAM_NAME_MESSAGE];
-        }
-
-        throw new \Magento\Framework\Exception\LocalizedException(__($message));
+        throw new LocalizedException(__($message));
     }
 
     /**
@@ -2116,7 +2208,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function showPaymentListRedirectTemplate(array $fields)
     {
-        $this->_registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_REDIRECT, $fields);
+        $this->registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_REDIRECT, $fields);
     }
 
     /**
@@ -2128,7 +2220,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function showPaymentListInlineTemplate(array $fields)
     {
-        $this->_registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_INLINE, $fields);
+        $this->registry->register(self::REGISTRY_KEY_TEMPLATE_VARS_INLINE, $fields);
     }
 
     /**
@@ -2177,7 +2269,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function getPendingReminders()
     {
         $result = [];
-        $coll = $this->_reminderCollectionFactory->create()->addFieldToFilter('is_sent', 0);
+        $coll = $this->reminderCollectionFactory->create()->addFieldToFilter('is_sent', 0);
         foreach ($coll as $reminder) {
             $result[] = $reminder->getOrderId();
         }
@@ -2194,7 +2286,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function setReminderSent($orderId)
     {
-        $this->_reminderFactory->create()->markAsSent($orderId);
+        $this->reminderFactory->create()->markAsSent($orderId);
     }
 
     /**
@@ -2207,8 +2299,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     public function enqueueReminder($orderId)
     {
         try {
-            $order = $this->_processor->getOrderByIncrementId($orderId);
-            $this->_reminderFactory->create()->register($order);
+            $order = $this->processor->getOrderByIncrementId($orderId);
+            $this->reminderFactory->create()->register($order);
         } catch (\Exception $e) {
             $this->log($e->getMessage(), 'crit');
         }
@@ -2232,9 +2324,9 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getOrdersForReminding()
     {
-        $existingReminderOrderIds = $this->_reminderCollectionFactory->create()->getColumnValues(self::PARAM_NAME_ORDER_ID);
-        $orders = $this->_orderCollectionFactory->create()
-            ->addFieldToFilter('state', ['in' => [\Magento\Sales\Model\Order::STATE_NEW]]);
+        $existingReminderOrderIds = $this->reminderCollectionFactory->create()->getColumnValues(self::PARAM_NAME_ORDER_ID);
+        $orders = $this->orderCollectionFactory->create()
+                                               ->addFieldToFilter('state', ['in' => [\Magento\Sales\Model\Order::STATE_NEW]]);
         if (count($existingReminderOrderIds) > 0) {
             $orders->addFieldToFilter('increment_id', ['nin' => $existingReminderOrderIds]);
         }
@@ -2249,7 +2341,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getPaymentCategories()
     {
-        return $this->_coreLibrary->getPaymentCategories();
+        return $this->coreLibrary->getPaymentCategories();
     }
 
     /**
@@ -2260,7 +2352,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getPaymentMethodsByCategory($category)
     {
-        return $this->_coreLibrary->getPaymentMethodsByCategory($category);
+        return $this->coreLibrary->getPaymentMethodsByCategory($category);
     }
 
     /**
@@ -2271,7 +2363,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getAllCountries()
     {
-        return $this->_coreLibrary->getAllCountries();
+        return $this->coreLibrary->getAllCountries();
     }
 
     /**
@@ -2281,7 +2373,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getPaymentMethods()
     {
-        return $this->_coreLibrary->getPaymentMethods();
+        return $this->coreLibrary->getPaymentMethods();
     }
 
     /**
@@ -2293,7 +2385,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getUnusedPaymentMethods()
     {
-        return $this->_coreLibrary->getUnusedPaymentMethods();
+        return $this->coreLibrary->getUnusedPaymentMethods();
     }
 
     /**
@@ -2304,7 +2396,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getPaymentMethodByBrand($brand)
     {
-        return $this->_coreLibrary->getPaymentMethodByBrand($brand);
+        return $this->coreLibrary->getPaymentMethodByBrand($brand);
     }
 
     /**
@@ -2336,15 +2428,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
 
         $this->reserveOrderId();
 
-        return $this->_coreLibrary->getCcIFrameUrlBeforePlaceOrder($this->_checkoutSession->getQuote()->getReservedOrderId());
-    }
-
-    private function reserveOrderId()
-    {
-        if ($this->_checkoutSession->getQuote()->getReservedOrderId() === null || $this->isOrderCreated($this->_checkoutSession->getQuote()->getReservedOrderId())) {
-            $quote = $this->_checkoutSession->getQuote()->reserveOrderId();
-            $this->quoteRepository->save($quote);
-        }
+        return $this->coreLibrary->getCcIFrameUrlBeforePlaceOrder($this->checkoutSession->getQuote()->getReservedOrderId());
     }
 
     /**
@@ -2354,7 +2438,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function cronHandler()
     {
-        $this->_coreLibrary->cronHandler();
+        $this->coreLibrary->cronHandler();
     }
 
     /**
@@ -2367,7 +2451,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function webhookListener()
     {
-        $this->_coreLibrary->webhookListener();
+        $this->coreLibrary->webhookListener();
     }
 
     /**
@@ -2377,8 +2461,8 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function emptyShoppingCart()
     {
-        $this->_checkoutSession->getQuote()->setIsActive(0)->save();
-        $this->_checkoutSession->setData('invalidate_cart', 1);
+        $this->checkoutSession->getQuote()->setIsActive(0)->save();
+        $this->checkoutSession->setData('invalidate_cart', 1);
     }
 
     /**
@@ -2386,10 +2470,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function restoreShoppingCart()
     {
-        if ($this->_checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
+        if ($this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
             return;
         }
-        $this->_checkoutSession->restoreQuote();
+        $this->checkoutSession->restoreQuote();
     }
 
     /**
@@ -2424,7 +2508,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function retrieveMissingFields($orderId, \IngenicoClient\PaymentMethod\PaymentMethod $pm)
     {
-        $result = $this->_coreLibrary->getMissingOrderFields($orderId, $pm);
+        $result = $this->coreLibrary->getMissingOrderFields($orderId, $pm);
 
         return $result;
     }
@@ -2461,11 +2545,11 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         // @see Connector::showPaymentListRedirectTemplate()
         // @see Connector::clarifyOpenInvoiceAdditionalFields()
 
-        if (isset($fields['customer_dob'])) {
-            $fields['customer_dob'] = strtotime($fields['customer_dob']);
+        if (isset($fields[OrderField::CUSTOMER_DOB])) {
+            $fields[OrderField::CUSTOMER_DOB] = (new \DateTime($fields[OrderField::CUSTOMER_DOB]))->getTimestamp();
         }
 
-        $this->_coreLibrary->initiateOpenInvoicePayment($orderId, $alias, $fields);
+        $this->coreLibrary->initiateOpenInvoicePayment($orderId, $alias, $fields);
     }
 
     /**
@@ -2479,10 +2563,10 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         foreach ($fields as $field) {
             if (!$field->getIsValid()) {
-                $this->_messageManager->addError(__('%1: %2', $field->getLabel(), $field->getValidationMessage()));
+                $this->messageManager->addError(__('%1: %2', $field->getLabel(), $field->getValidationMessage()));
             }
         }
-        $this->_registry->register(self::REGISTRY_KEY_REDIRECT_TO_REFERER, 1);
+        $this->registry->register(self::REGISTRY_KEY_REDIRECT_TO_REFERER, 1);
     }
 
     /**
@@ -2499,7 +2583,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         foreach ($fields as $field) {
             /** @var \IngenicoClient\OrderField $field */
             if (!$field->getIsValid()) {
-                $this->_messageManager->addErrorMessage(__($field->getValidationMessage()));
+                $this->messageManager->addErrorMessage(__($field->getValidationMessage()));
             }
         }
 
@@ -2521,7 +2605,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function getSessionValues()
     {
-        if ($fields = $this->_customerSession->getCoreSessionStorage()) {
+        if ($fields = $this->customerSession->getCoreSessionStorage()) {
             return $fields;
         }
 
@@ -2551,7 +2635,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $fields = $this->getSessionValues();
         $fields[$key] = $value;
-        $this->_customerSession->setCoreSessionStorage($fields);
+        $this->customerSession->setCoreSessionStorage($fields);
     }
 
     /**
@@ -2564,7 +2648,7 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
     {
         $fields = $this->getSessionValues();
         unset($fields[$key]);
-        $this->_customerSession->setCoreSessionStorage($fields);
+        $this->customerSession->setCoreSessionStorage($fields);
     }
 
     /**
@@ -2611,14 +2695,14 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
      */
     public function log($str, $mode = 'info')
     {
-        if (!$this->_cnf->isLoggingEnabled()) {
+        if (!$this->cnf->isLoggingEnabled()) {
             return null;
         }
         if (is_array($str) || is_object($str)) {
             $str = json_encode($str);
         }
 
-        $this->_logger->$mode($str);
+        $this->logger->$mode($str);
     }
 
     /**
@@ -2660,6 +2744,90 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         return \IngenicoClient\IngenicoCoreLibrary::PLATFORM_INGENICO;
     }
 
+
+    /**
+     * Get Store ID
+     * @param null $orderId
+     *
+     * @return false|float|int|null
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function getStoreId($orderId = null)
+    {
+        if ($orderId) {
+            $order = $this->processor->getOrderByIncrementId($orderId);
+            return $order->getStoreId();
+        } elseif ($orderId = $this->requestOrderId()) {
+            if ($this->isOrderCreated($orderId)) {
+                $order = $this->processor->getOrderByIncrementId($orderId);
+                return $order->getStoreId();
+            } else {
+                return $this->getStoreIdBeforePlaceOrder();
+            }
+        }
+
+        return $this->storeManager->getStore()->getId();
+    }
+
+    private function getUrl($path, $params = [])
+    {
+        $defaultParams = ['_nosid' => true, self::CNF_SCOPE_PARAM_NAME => $this->getStoreId()];
+        $params = array_merge($defaultParams, $params);
+
+        if ($params[self::CNF_SCOPE_PARAM_NAME] == 0) {
+            unset($params[self::CNF_SCOPE_PARAM_NAME]);
+            return $this->backendUrlBuilder->getUrl($path, $params);
+        }
+
+        return $this->urlBuilder->getUrl($path, $params);
+    }
+
+
+    private function setEmailTemplate($templateName)
+    {
+        $this->registry->unregister(self::PARAM_NAME_EMAIL_TEMPLATE);
+        $this->registry->register(self::PARAM_NAME_EMAIL_TEMPLATE, $templateName);
+    }
+
+    private function getEmailTemplate()
+    {
+        if ($tpl = $this->registry->registry(self::PARAM_NAME_EMAIL_TEMPLATE)) {
+            $this->registry->unregister(self::PARAM_NAME_EMAIL_TEMPLATE);
+            return $tpl;
+        }
+
+        return 'ingenico_formatted';
+    }
+
+
+    private function _getStoreEmailLogo($storeId = 0)
+    {
+        if ($storeId) {
+            $this->appEmulation->startEnvironmentEmulation(
+                $storeId,
+                \Magento\Framework\App\Area::AREA_FRONTEND,
+                true
+            );
+        }
+
+        $logoUrl = $this->cnf->getStoreEmailLogo($storeId);
+
+        if ($storeId) {
+            $this->appEmulation->stopEnvironmentEmulation();
+        }
+
+        return $logoUrl;
+    }
+
+    private function reserveOrderId()
+    {
+        if ($this->checkoutSession->getQuote()->getReservedOrderId() === null || $this->isOrderCreated($this->checkoutSession->getQuote()->getReservedOrderId())) {
+            $quote = $this->checkoutSession->getQuote()->reserveOrderId();
+            $this->quoteRepository->save($quote);
+        }
+    }
+
     /**
      * Get Admin Locale by email.
      *
@@ -2678,5 +2846,16 @@ class Connector extends AbstractConnector implements \IngenicoClient\ConnectorIn
         }
 
         return false;
+    }
+
+    private function getStoreIdBeforePlaceOrder()
+    {
+        if ($this->request->getFullActionName() !== 'checkout_index_index') {
+            return false;
+        }
+
+        $this->reserveOrderId();
+
+        return $this->checkoutSession->getQuote()->getStoreId();
     }
 }
