@@ -2,28 +2,58 @@
 
 namespace Ingenico\Payment\Block\Adminhtml\System\Config\Support\Settings;
 
+use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Backend\Block\Template\Context;
+use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Backend\Model\UrlInterface as BackendUrlInterface;
+use Magento\Framework\UrlInterface;
+
 /**
  * Provides field with additional information
  */
-class Export extends \Magento\Config\Block\System\Config\Form\Field
+class Export extends Field
 {
-    protected $_connector;
+    /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
+
+    /**
+     * @var BackendUrlInterface
+     */
+    private $backendUrlBuilder;
 
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Ingenico\Payment\Model\Connector $connector,
+        Context $context,
+        UrlInterface $urlBuilder,
+        BackendUrlInterface $backendUrlBuilder,
         array $data = []
     ) {
-        $this->_connector = $connector;
+        $this->urlBuilder = $urlBuilder;
+        $this->backendUrlBuilder = $backendUrlBuilder;
+
         parent::__construct($context, $data);
     }
 
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element)
     {
         $id = $element->getHtmlId();
-        $link = $this->_connector->getUrl('ingenico/settings/export', [\Ingenico\Payment\Model\Connector::CNF_SCOPE_PARAM_NAME => 0]);
+        $link = $this->getUrlPath('ingenico/settings/export', ['_scope' => 0]);
         return implode('', [
             '<a href="' . $link . '">' . __('form.support.download_settings') . '</a>',
         ]);
+    }
+
+    private function getUrlPath($path, $params = [])
+    {
+        $defaultParams = ['_nosid' => true, '_scope' => $this->getStoreId()];
+        $params = array_merge($defaultParams, $params);
+
+        if ($params['_scope'] == 0) {
+            unset($params['_scope']);
+            return $this->backendUrlBuilder->getUrl($path, $params);
+        }
+
+        return $this->urlBuilder->getUrl($path, $params);
     }
 }
