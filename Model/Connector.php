@@ -281,6 +281,10 @@ class Connector extends AbstractConnector implements ConnectorInterface
      * @var mixed
      */
     private $customerId = null;
+    /**
+     * @var QuoteProviderByOrderId
+     */
+    private $quoteProviderByOrderId;
 
     public function __construct(
         IngenicoLogger $logger,
@@ -317,7 +321,8 @@ class Connector extends AbstractConnector implements ConnectorInterface
         ResponseFactory $responseFactory,
         ActionFlag $actionFlag,
         RedirectInterface $redirect,
-        UserCollectionFactory $userCollectionFactory
+        UserCollectionFactory $userCollectionFactory,
+        QuoteProviderByOrderId $quoteProviderByOrderId
     ) {
         $this->logger = $logger;
         $this->cnf = $cnf;
@@ -354,10 +359,12 @@ class Connector extends AbstractConnector implements ConnectorInterface
         $this->actionFlag = $actionFlag;
         $this->redirect = $redirect;
         $this->userCollectionFactory = $userCollectionFactory;
+        $this->quoteProviderByOrderId = $quoteProviderByOrderId;
 
         $this->processor->setConnector($this);
         $this->coreLibrary = new IngenicoCoreLibrary($this);
         $this->coreLibrary->setLogger($this->logger);
+
     }
 
     /**
@@ -971,8 +978,9 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
             OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
             OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
-            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : '.',
+            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : null,
             OrderField::BILLING_ADDRESS3 => null,
+            OrderField::BILLING_STREET_NUMBER => null,
             OrderField::BILLING_CITY => $billingAddress->getCity(),
             OrderField::BILLING_STATE => $billingAddress->getRegionId(),
             OrderField::BILLING_POSTCODE => $billingAddress->getPostcode(),
@@ -986,8 +994,9 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
-            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : '.',
+            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : null,
             OrderField::SHIPPING_ADDRESS3 => null,
+            OrderField::SHIPPING_STREET_NUMBER => null,
             OrderField::SHIPPING_CITY => $shippingAddress->getCity(),
             OrderField::SHIPPING_STATE => $shippingAddress->getRegionId(),
             OrderField::SHIPPING_POSTCODE => $shippingAddress->getPostcode(),
@@ -998,7 +1007,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
             OrderField::CUSTOMER_ID => (int) $customerId,
             OrderField::CUSTOMER_IP => $order->getData('remote_ip'),
-            OrderField::CUSTOMER_DOB => $customerDob ?? (new \DateTime($customerDob))->getTimestamp(), //null or timestamp
+            OrderField::CUSTOMER_DOB => $customerDob ? (new \DateTime($customerDob))->getTimestamp() : null, //null or timestamp
             OrderField::IS_VIRTUAL => $order->getIsVirtual(),
             OrderField::ITEMS => $items,
             OrderField::LOCALE => $this->getLocale($orderId),
@@ -1027,6 +1036,10 @@ class Connector extends AbstractConnector implements ConnectorInterface
     public function requestOrderInfoBeforePlaceOrder($reservedOrderId)
     {
         $quote = $this->checkoutSession->getQuote();
+
+        if (!$quote->getId()) {
+            $quote = $this->quoteProviderByOrderId->execute($reservedOrderId);
+        }
 
         $status = $this->coreLibrary::STATUS_UNKNOWN;
 
@@ -1167,6 +1180,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::CUSTOMER_ID => (int) $customerId,
             OrderField::STATUS => $status,
             OrderField::CREATED_AT => date('Y-m-d H:i:s', strtotime($quote->getCreatedAt())), // Y-m-d H:i:s
+            OrderField::BILLING_CUSTOMER_TITLE => $billingAddress->getPrefix(),
             OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
             OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
             OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
@@ -1179,7 +1193,9 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::BILLING_EMAIL => $billingAddress->getEmail(),
             OrderField::BILLING_FIRST_NAME => $billingAddress->getFirstname(),
             OrderField::BILLING_LAST_NAME => $billingAddress->getLastname(),
+            OrderField::BILLING_FAX => $billingAddress->getFax(),
             OrderField::IS_SHIPPING_SAME => false,
+            OrderField::SHIPPING_CUSTOMER_TITLE => $shippingAddress->getPrefix(),
             OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
@@ -1192,12 +1208,12 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::SHIPPING_EMAIL => $billingAddress->getEmail(),
             OrderField::SHIPPING_FIRST_NAME => $shippingAddress->getFirstname(),
             OrderField::SHIPPING_LAST_NAME => $shippingAddress->getLastname(),
+            OrderField::SHIPPING_FAX => $shippingAddress->getFax(),
             OrderField::SHIPPING_COMPANY => $shippingAddress->getShippingDescription(),
             OrderField::SHIPPING_METHOD => $shippingAddress->getShippingDescription(),
             OrderField::SHIPPING_AMOUNT => $shippingAddress->getShippingAmount(),
             OrderField::SHIPPING_TAX_AMOUNT => $shippingAddress->getShippingTaxAmount(),
             OrderField::SHIPPING_TAX_CODE => 0,
-            OrderField::SHIPPING_FAX => '-',
             OrderField::CUSTOMER_IP => $quote->getRemoteIp(),
             OrderField::CUSTOMER_DOB => null,
             OrderField::CUSTOMER_CIVILITY => null,

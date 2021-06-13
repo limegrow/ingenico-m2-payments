@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.9.0] - 2021-06-12
+## Changed
+- Fixed: Date of birth problem
+- Fixed: "Access denied." occurred during created alias.
+- Allow to use any countries for payments
+- Fixed Bank Transfer title
+- Excluded some payment methods for Generic method
+- Fix Klarna parameters  
+- Substitute street number from address
+- Branding fixes
+- Disable refunds for Intersolve
+
 ## [2.8.1] - 2021-05-27
 ### Added
 - Klarna: Rounding workaround

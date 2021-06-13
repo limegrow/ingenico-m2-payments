@@ -35,7 +35,7 @@ define([
         },
 
         getTemplateName: function () {
-            return 'ingenico_ideal';
+            return 'ideal';
         },
 
         /**

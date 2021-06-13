@@ -29,7 +29,7 @@
 
         <field id="specificcountry" translate="label" type="multiselect" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Payment from Specific Countries</label>
-            <source_model>Ingenico\Payment\Model\Config\Source\Country\Banktransfer</source_model>
+            <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
             <can_be_empty>1</can_be_empty>
             <config_path>payment/ingenico_bancontact/specificcountry</config_path>
         </field>
