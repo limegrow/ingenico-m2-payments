@@ -106,11 +106,6 @@ class Data extends AbstractHelper
             $methods = $this->connector->getPaymentMethods();
         }
 
-        // ingenico_e_payments PM nor visa PM can not be used to identify the cc name/class used
-        if ((empty($methodId) || $methodId === \IngenicoClient\PaymentMethod\Visa::CODE) && count($methods) === 1) {
-            return array_values($methods)[0];
-        }
-
         foreach ($methods as $methodName => $instance) {
             if ($instance->getId() === $methodId) {
                 return $instance;

@@ -225,7 +225,10 @@ find $MODULE_DIR/ -name '*.php' -type f|while read fname; do
 done
 
 # Change branding in Config.php file
-sed -i -e "s/ingenico_e_payments/$MODULE_NAME/g" $MODULE_DIR/Model/Config.php
+sed -i -e "s/ingenico_e_payments/${MAGENTO_PM_PREFIX}e_payments/g" $MODULE_DIR/Model/Config.php
+sed -i -e "s/ingenico_flex/${MAGENTO_PM_PREFIX}flex/g" $MODULE_DIR/Model/Config.php
+sed -i -e "s/ingenico_ideal/${MAGENTO_PM_PREFIX}ideal/g" $MODULE_DIR/Model/Config.php
+sed -i -e "s/ingenico_cc/${MAGENTO_PM_PREFIX}cc/g" $MODULE_DIR/Model/Config.php
 sed -i -e "s/ingenico\_/$MODULE_NAME\_/g" $MODULE_DIR/Model/Config.php
 sed -i -e "s/\%ingenico\%/\%$MODULE_NAME\%/g" $MODULE_DIR/Model/Config.php
 

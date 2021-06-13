@@ -6,7 +6,8 @@ define([
     'Magento_Checkout/js/view/payment/default',
     'Magento_Checkout/js/action/redirect-on-success',
     'mage/url',
-    'Ingenico_Payment/js/action/sprintf'
+    'Ingenico_Payment/js/action/sprintf',
+    'Ingenico_Payment/js/model/agreement-check'
 ], function (
     ko,
     $,
@@ -15,7 +16,8 @@ define([
     Component,
     redirectOnSuccessAction,
     url,
-    sprintf
+    sprintf,
+    agreement
 ) {
     'use strict';
 
@@ -66,7 +68,11 @@ define([
             $(document).on('click', '.payment-method._active div[data-role=checkout-agreements] input', function () {
                 var selected = $('input[name="payment[method]"]:checked').val();
                 if (selected === code) {
-                    $('.payment-method._active .iframe-wrap').show();
+                    if (agreement() === true) {
+                        $('.payment-method._active .iframe-wrap').show();
+                    } else {
+                        $('.payment-method._active .iframe-wrap').hide();
+                    }
                 }
             });
 
@@ -133,7 +139,7 @@ define([
         },
 
         isAgreementAccepted: ko.computed(function () {
-            return true;
+            return agreement() === true;
         }),
 
         fillHelperText: function (html) {
@@ -175,7 +181,7 @@ define([
             var templateName;
 
             if (this.getCode() === 'ingenico_e_payments') {
-                return 'ingenico-e-payments';
+                return 'payments';
             }
 
             if (this.getCode() === 'ingenico_bancontact') {

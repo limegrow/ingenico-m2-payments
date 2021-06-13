@@ -38,12 +38,12 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                     <li>
                     <?php // AFTERPAY & KLARNA ?>
                     <?php if ($method->getAdditionalDataRequired()): ?>
+                        <?php $missingFields = $method->getMissingFields(); ?>
                         <div class="payment-logo">
                             <img src="<?php echo $method->getEmbeddedLogo(); ?>" alt="<?php echo __($method->getName()) ?>" title="<?php echo __($method->getName()) ?>" width="50" />
                             <h3><?php echo $block->escapeHtmlAttr(__($method->getName())) ?></h3>
                         </div>
                         <div class="form-container">
-                            <h4 class="subtitle"><?= __('modal.openinvoice.additional_data_required'); ?></h4>
                             <form
                                 action="<?php echo $block->escapeHtmlAttr($block->getOpenInvoicePostUrl()) ?>"
                                 method="post"
@@ -55,37 +55,38 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                                 <input type="hidden" name="pm" value="<?php echo $block->escapeHtmlAttr($method->getPM()) ?>" />
                                 <input type="hidden" name="brand" value="<?php echo $block->escapeHtmlAttr($method->getBrand()) ?>" />
 
-                                <fieldset class="fieldset">
-                                    <?php
-                                    $missingFields = $method->getMissingFields();
+                                <?php if (count($missingFields) > 0): ?>
+                                    <h4 class="subtitle"><?= __('modal.openinvoice.additional_data_required'); ?></h4>
 
-                                    foreach ($missingFields as $field):
-                                        $name = $field->getFieldName();
-                                        $type = $field->getFieldType();
-                                        $required = $field->getRequired() ? ' required' : '';
-                                        $value = $field->getValue();
-                                        $length = $field->getLength();
-                                        $id = implode('-', [$method->getId(), $type, $name, hash('sha256', $value)]);
-                                        ?>
-                                        <div class="field <?php echo $block->escapeHtmlAttr($name) ?><?php echo $block->escapeHtmlAttr($required); ?>">
-                                            <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>
-                                            <div class="control">
-                                                <?php if ($type === 'radio'): ?>
-                                                    <?php foreach ($field->getValues() as $key => $value): ?>
-                                                        <input
-                                                            name="<?php echo $block->escapeHtmlAttr($name); ?>"
-                                                            id="<?php echo $block->escapeHtmlAttr($id) ?>"
-                                                            title="<?php echo $block->escapeHtmlAttr($value) ?>"
-                                                            value="<?php echo $block->escapeHtmlAttr($key) ?>"
-                                                            class="input-radio"
-                                                            type="<?php echo $block->escapeHtmlAttr($type) ?>"
-                                                            data-validate="{required:true}" >
+                                    <fieldset class="fieldset">
+                                        <?php
+                                        foreach ($missingFields as $field):
+                                            $name = $field->getFieldName();
+                                            $type = $field->getFieldType();
+                                            $required = $field->getRequired() ? ' required' : '';
+                                            $value = $field->getValue();
+                                            $length = $field->getLength();
+                                            $id = implode('-', [$method->getId(), $type, $name, hash('sha256', $value)]);
+                                            ?>
+                                            <div class="field <?php echo $block->escapeHtmlAttr($name) ?><?php echo $block->escapeHtmlAttr($required); ?>">
+                                                <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>"><span><?php echo $block->escapeHtmlAttr($field->getLabel()); ?></span></label>
+                                                <div class="control">
+                                                    <?php if ($type === 'radio'): ?>
+                                                        <?php foreach ($field->getValues() as $key => $value): ?>
+                                                    <input
+                                                        name="<?php echo $block->escapeHtmlAttr($name); ?>"
+                                                        id="<?php echo $block->escapeHtmlAttr($id) ?>"
+                                                        title="<?php echo $block->escapeHtmlAttr($value) ?>"
+                                                        value="<?php echo $block->escapeHtmlAttr($key) ?>"
+                                                        class="input-radio"
+                                                        type="<?php echo $block->escapeHtmlAttr($type) ?>"
+                                                        data-validate="{required:true}" >
                                                         <label class="label" for="<?php echo $block->escapeHtmlAttr($id) ?>">
                                                             <span><?php echo $block->escapeHtmlAttr($value) ?></span>
                                                         </label>
-                                                        <br/>
+                                                    <br/>
                                                     <?php endforeach; ?>
-                                                <?php else: ?>
+                                                    <?php else: ?>
                                                     <input
                                                         name="<?php echo $block->escapeHtmlAttr($name); ?>"
                                                         id="<?php echo $block->escapeHtmlAttr($id); ?>"
@@ -95,33 +96,45 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
                                                         type="<?php echo $type === 'date' ? 'text' : $block->escapeHtmlAttr($type); ?>"
                                                         data-validate="{<?php echo $field->getRequired() ? 'required:true' : ''; ?>}" >
 
-                                                        <?php if ($type === 'date'): ?>
-                                                            <script>
-                                                                require(["jquery", "mage/calendar"], function($){
-                                                                    $("#<?php echo $block->escapeHtmlAttr($id); ?>").datepicker({
-                                                                        showMonthAfterYear: false,
-                                                                        dateFormat:'dd-mm-yy',
-                                                                        changeMonth: true,
-                                                                        changeYear: true,
-                                                                        yearRange: '<?php echo '1940:' . date('Y'); ?>',
-                                                                        defaultDate: '-1y'
-                                                                    });
+                                                    <?php if ($type === 'date'): ?>
+                                                        <script>
+                                                            require(["jquery", "mage/calendar"], function($){
+                                                                $("#<?php echo $block->escapeHtmlAttr($id); ?>").datepicker({
+                                                                    showMonthAfterYear: false,
+                                                                    dateFormat:'dd-mm-yy',
+                                                                    changeMonth: true,
+                                                                    changeYear: true,
+                                                                    yearRange: '<?php echo '1940:' . date('Y'); ?>',
+                                                                    defaultDate: '-1y'
                                                                 });
-                                                            </script>
-                                                        <?php endif; ?>
-                                                <?php endif; ?>
+                                                            });
+                                                        </script>
+                                                    <?php endif; ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
+                                        <?php endforeach; ?>
+                                    </fieldset>
+                                    <div class="actions-toolbar">
+                                        <div class="primary">
+                                            <input type="hidden" name="hideit" id="hideit" value="" />
+                                            <button type="submit" title="<?php echo $block->escapeHtmlAttr(__('Proceed')) ?>" class="action submit primary">
+                                                <span><?= __('Proceed'); ?></span>
+                                            </button>
                                         </div>
-                                    <?php endforeach; ?>
-                                </fieldset>
-                                <div class="actions-toolbar">
-                                    <div class="primary">
-                                        <input type="hidden" name="hideit" id="hideit" value="" />
-                                        <button type="submit" title="<?php echo $block->escapeHtmlAttr(__('Proceed')) ?>" class="action submit primary">
-                                            <span><?= __('Proceed'); ?></span>
-                                        </button>
                                     </div>
-                                </div>
+                                <?php else: ?>
+                                    <?php // Submit the form if there aren't any missing fields ?>
+                                    <div class="ingenico-loader">
+                                        <img src="<?php echo $block->escapeHtmlAttr($block->getLoaderUrl()); ?>" alt="<?= __('checkout.please_wait'); ?>">
+                                    </div>
+                                    <script>
+                                        // Submit form
+                                        window.addEventListener("DOMContentLoaded", function () {
+                                            document.getElementById("open-invoice").submit();
+                                        });
+                                    </script>
+                                <?php endif; ?>
                             </form>
                         </div>
                         <?php // REDIRECT PMs ?>
