@@ -24,13 +24,12 @@ class QuoteProviderByOrderId
      * QuoteProviderByOrderId constructor.
      *
      * @param QuoteFactory $quoteFactory
-     * @param Quote        $quoteResourceModel
+     * @param Quote $quoteResourceModel
      */
     public function __construct(
         QuoteFactory $quoteFactory,
         Quote $quoteResourceModel
-    )
-    {
+    ) {
         $this->quoteFactory = $quoteFactory;
         $this->quoteResourceModel = $quoteResourceModel;
     }
@@ -42,14 +41,11 @@ class QuoteProviderByOrderId
      *
      * @return CartInterface
      */
-    public function execute($reservedOrderId) : CartInterface
+    public function execute($reservedOrderId): CartInterface
     {
         $quote = $this->quoteFactory->create();
-        $this->quoteResourceModel->load(
-            $quote, $reservedOrderId,'reserved_order_id'
-        );
+        $this->quoteResourceModel->load($quote, $reservedOrderId, 'reserved_order_id');
 
         return $quote;
     }
-
 }

@@ -23,7 +23,7 @@ define([
             var self = this;
             if (this.isFlexSingleMode()) {
                 // Select the single item automatically
-                _.each(window.checkoutConfig.payment.ingenico_flex.methods, function(method, index, list) {
+                _.each(window.checkoutConfig.payment.ingenico_flex.methods, function (method, index, list) {
                     self.setFlexMethod(null, method.pm, method.brand);
                 });
             } else {

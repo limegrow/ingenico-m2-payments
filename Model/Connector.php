@@ -364,7 +364,6 @@ class Connector extends AbstractConnector implements ConnectorInterface
         $this->processor->setConnector($this);
         $this->coreLibrary = new IngenicoCoreLibrary($this);
         $this->coreLibrary->setLogger($this->logger);
-
     }
 
     /**
@@ -699,7 +698,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
                 break;
             case $this->coreLibrary::STATUS_AUTHORIZED:
                 $this->processor->processOrderAuthorization($orderId, $paymentResult, $message);
-                if ( !$this->cnf->isDirectSalesMode($storeId) && $this->cnf->getMode(false, $storeId) == 'test') {
+                if (!$this->cnf->isDirectSalesMode($storeId) && $this->cnf->getMode(false, $storeId) == 'test') {
                     $this->messageManager->addNotice(__('checkout.test_mode_warning') . ' ' . __('checkout.manual_capture_required'));
                 }
                 break;

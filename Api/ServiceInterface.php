@@ -11,5 +11,5 @@ interface ServiceInterface
      * @param string $alias
      * @return string
      */
-    public function remove_alias($alias);
+    public function removeAlias($alias);
 }

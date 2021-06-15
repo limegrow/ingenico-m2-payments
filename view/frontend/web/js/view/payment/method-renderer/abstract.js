@@ -138,10 +138,6 @@ define([
             document.getElementById(this.getIFrameId()).src = this.getIFrameUrl();
         },
 
-        isAgreementAccepted: ko.computed(function () {
-            return agreement() === true;
-        }),
-
         fillHelperText: function (html) {
             $('#' + this.getIFrameId()).siblings('.cc-helper-text').html(html);
             $('#' + this.getIFrameRetryId()).on('click', this.resetIFrame.bind(this));
@@ -279,6 +275,11 @@ define([
                 'additional_data': {}
             };
         },
+
+        // phpcs:disable
+        isAgreementAccepted: ko.computed(function () {
+            return agreement() === true;
+        }),
 
     });
 });
