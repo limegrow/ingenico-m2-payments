@@ -1,0 +1,47 @@
+name: Integration tests
+
+on:
+  push:
+    branches:
+    - '*'
+    tags:
+    - '*'
+  pull_request:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: m2-payments
+
+      - name: Install dependencies
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: '7.3'
+          extension: intl, mbstring, json, bcmath, sodium, zip
+          coverage: xdebug
+          tools: composer, php-cs-fixer, phpunit:7.5.19, phpcpd, phpmd
+
+      - name: Install tools
+        run: |
+          cd $GITHUB_WORKSPACE/m2-payments
+          rm -rf ./composer.json
+          composer require squizlabs/php_codesniffer
+          composer require magento/magento-coding-standard
+          composer require phpmd/phpmd
+          composer require sebastian/phpcpd
+
+      - name: Run PHPCS inspection
+        run: |
+          cd $GITHUB_WORKSPACE/m2-payments
+          php vendor/bin/phpcs --config-set installed_paths vendor/magento/magento-coding-standard/Magento2
+          #php vendor/bin/phpcpd ./
+          #php vendor/bin/phpmd ./ text cleancode,codesize,controversial,design,naming,unusedcode --exclude vendor/
+          #php vendor/bin/phpcs --standard=PSR1 ./ --ignore=./vendor/*
+          php vendor/bin/phpcs --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 --standard=PSR2 ./ --ignore=./vendor/*
+          php vendor/bin/phpcs --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 --standard=vendor/magento/magento-coding-standard/Magento2/ruleset.xml --extensions=php,phtml ./  --ignore=./vendor/*
