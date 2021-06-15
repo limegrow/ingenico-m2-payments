@@ -38,9 +38,9 @@ jobs:
       - name: Run PHPCS inspection
         run: |
           cd $GITHUB_WORKSPACE/m2-payments
-          php phpcs --config-set installed_paths ~/.composer/vendor/magento/magento-coding-standard/Magento2
-          #php phpcpd ./
-          #php phpmd ./ text cleancode,codesize,controversial,design,naming,unusedcode --exclude vendor/
-          #php phpcs --standard=PSR1 ./ --ignore=./vendor/*
-          php phpcs --runtime-set ignore_warnings_on_exit 1 --standard=PSR2 ./ --ignore=./vendor/*
-          php phpcs --runtime-set ignore_warnings_on_exit 1 --standard=~/.composer/vendor/magento/magento-coding-standard/Magento2/ruleset.xml --extensions=php,phtml ./  --ignore=./vendor/*
+          php ~/.composer/vendor/bin/phpcs --config-set installed_paths ~/.composer/vendor/magento/magento-coding-standard/Magento2
+          #php ~/.composer/vendor/bin/phpcpd ./
+          #php ~/.composer/vendor/bin/phpmd ./ text cleancode,codesize,controversial,design,naming,unusedcode --exclude vendor/
+          #php ~/.composer/vendor/bin/phpcs --standard=PSR1 ./ --ignore=./vendor/*
+          php ~/.composer/vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=PSR2 ./ --ignore=./vendor/*
+          php ~/.composer/vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=~/.composer/vendor/magento/magento-coding-standard/Magento2/ruleset.xml --extensions=php,phtml ./  --ignore=./vendor/*
