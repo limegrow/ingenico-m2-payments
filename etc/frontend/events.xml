@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="controller_action_predispatch_checkout_cart_index">
+        <observer name="ingenico_predispatch_cart" instance="Ingenico\Payment\Observer\RestoreQuoteAfterIngenicoPaymentInlinePage" />
+    </event>
+    <event name="controller_action_predispatch_checkout_onepage_success">
+        <observer name="ingenico_predispatch_success" instance="Ingenico\Payment\Observer\ClearIngenicoPaymentInlineFlag" />
+    </event>
+</config>

@@ -165,6 +165,14 @@
                 <allowspecific>0</allowspecific>
                 <order_status>pending</order_status>
             </ingenico_klarna_financing>
+            <ingenico_intersolve>
+                <active>1</active>
+                <model>Ingenico\Payment\Model\Method\InterSolve</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>InterSolve</title>
+                <allowspecific>0</allowspecific>
+                <order_status>pending</order_status>
+            </ingenico_intersolve>
             <ingenico_flex>
                 <active>1</active>
                 <model>Ingenico\Payment\Model\Method\Flex</model>
@@ -192,7 +200,7 @@
             <general>
                 <mode>basic</mode>
                 <logging_enabled>0</logging_enabled>
-                <order_status_authorize>pending_payment</order_status_authorize>
+                <order_status_authorize>processing</order_status_authorize>
                 <order_status_capture>processing</order_status_capture>
             </general>
             <tokenization>

@@ -16,12 +16,6 @@
             <config_path>payment/ingenico_e_payments/title</config_path>
         </field>
 
-        <field id="order_status" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-            <label>New Order Status</label>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
-            <config_path>payment/ingenico_e_payments/order_status</config_path>
-        </field>
-
         <field id="order_confirmation_email" translate="label comment" sortOrder="41" type="select" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>ingenico.settings.label8</label>
             <source_model>Ingenico\Payment\Model\Config\Source\Settings\OrderEmail</source_model>
@@ -58,5 +52,19 @@
             <label>ingenico.settings.label13</label>
             <config_path>payment/ingenico_e_payments/sort_order</config_path>
         </field>
+
+        <!-- Magento specific settings for order statuses -->
+        <field id="order_status_authorize" translate="label" type="select" sortOrder="103" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>ingenico.settings.label26</label>
+            <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
+            <config_path>payment/ingenico_e_payments/order_status_authorize</config_path>
+        </field>
+
+        <field id="order_status_capture" translate="label" type="select" sortOrder="104" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>ingenico.settings.label27</label>
+            <source_model>Ingenico\Payment\Model\Config\Source\Order\Status</source_model>
+            <config_path>payment/ingenico_e_payments/order_status_capture</config_path>
+        </field>
+
     </group>
 </include>

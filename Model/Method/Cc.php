@@ -87,6 +87,8 @@ class Cc extends AbstractMethod
      */
     public function initialize($paymentAction, $stateObject)
     {
+        parent::initialize($paymentAction, $stateObject);
+
         /** @var \Magento\Quote\Model\Quote\Payment $info */
         $info = $this->getInfoInstance();
         $alias = $info->getAdditionalInformation('alias');

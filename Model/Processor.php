@@ -175,32 +175,21 @@ class Processor
      * @param \IngenicoClient\Payment $paymentResult
      * @param string $message
      *
-     * @return \Magento\Sales\Api\Data\OrderInterface|null
+     * @return \Magento\Sales\Api\Data\OrderInterface
      * @throws LocalizedException
      */
     public function processOrderAuthorization($incrementId, $paymentResult, $message)
     {
         $order = $this->getOrderByIncrementId($incrementId);
-        $authorizedStatus = $this->config->getOrderStatusAuth($order->getStoreId());
+        $authorizedStatus = $this->config->getOrderStatusAuth($order);
 
         // skip already authorized orders (double ping-back)
         if ($order->getStatus() == $authorizedStatus) {
-            return null;
-        }
-
-        // accept only authorizations for new (pending) orders
-        if ($order->getStatus() !== $order->getConfig()->getStateDefaultStatus($order::STATE_NEW)) {
-            $this->_addOrderMessage(
-                $order,
-                __('ingenico.notification.message2', $authorizedStatus, $order->getStatus())
-            );
-
-            return $this->orderRepository->save($order);
+            return $order;
         }
 
         // Set order status
-        $new_status = $this->config->getOrderStatusAuth($order->getStoreId());
-        $status = $this->config->getAssignedState($new_status);
+        $status = $this->config->getAssignedState($authorizedStatus);
 
         $order->setData('state', $status->getState());
         $order->setStatus($status->getStatus());
@@ -230,11 +219,7 @@ class Processor
             return $order;
         }
 
-        $processStatus = false;
-
-        if ($order->isCanceled()) {
-            $processStatus = true;
-        }
+        $new_status = $this->config->getOrderStatusSale($order);
 
         // check if there is an Invoice with transaction ID
         $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
@@ -244,56 +229,61 @@ class Processor
                 if ($invoice->getTransactionId() == $trxId && $invoice->canCancel()) {
                     $invoice->pay();
                     $order->addRelatedObject($invoice);
-                    $this->orderRepository->save($invoice->getOrder());
+
+                    // Set order status
+                    $status = $this->config->getAssignedState($new_status);
+                    $order->setData('state', $status->getState());
+                    $order->setStatus($status->getStatus());
+                    $this->_addOrderMessage($order, $message, __('ingenico.notification.message6'));
+
+                    $this->orderRepository->save($order);
 
                     if (!$invoice->getEmailSent() && $this->salesData->canSendNewInvoiceEmail()) {
                         $this->invoiceSender->send($invoice);
                     }
 
-                    $processStatus = true;
+                    return $order;
                 }
-            }
-        } else {
-            try {
-                $invoice = $this->invoiceService->prepareInvoice($order);
-                $invoice->setRequestedCaptureCase($invoice::CAPTURE_ONLINE);
-                $invoice->register();
-                $invoice->getOrder()->setIsInProcess(true);
-                $invoice->setIsPaid(true);
-
-                if ($paymentResult->getPm() !== 'Bank transfer') {
-                    $invoice->setTransactionId($trxId);
-                }
-
-                $dbTransaction = $this->transactionFactory->create();
-                $dbTransaction->addObject($invoice)
-                              ->addObject($invoice->getOrder())
-                              ->save();
-
-                if ($this->salesData->canSendNewInvoiceEmail()) {
-                    $this->invoiceSender->send($invoice);
-                }
-
-                $processStatus = true;
-            } catch (LocalizedException $e) {
-                $this->connector->log(sprintf('%s::%s %s', __CLASS__, __METHOD__, $e->getMessage()));
-
-                throw $e;
-            } catch (\Exception $e) {
-                $this->connector->log($e->getMessage(), 'crit');
             }
         }
 
-        if ($processStatus) {
+        // Create Invoice
+        try {
+            $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setRequestedCaptureCase($invoice::CAPTURE_ONLINE);
+            $invoice->register();
+            $invoice->getOrder()->setIsInProcess(true);
+            $invoice->setIsPaid(true);
+
+            if ($paymentResult->getPm() !== 'Bank transfer') {
+                $invoice->setTransactionId($trxId);
+            }
+
             // Set order status
-            $new_status = $this->config->getOrderStatusSale($order->getStoreId());
             $status = $this->config->getAssignedState($new_status);
             $order->setData('state', $status->getState());
             $order->setStatus($status->getStatus());
             $this->_addOrderMessage($order, $message, __('ingenico.notification.message6'));
+
+            $dbTransaction = $this->transactionFactory->create();
+            $dbTransaction->addObject($invoice)
+                          ->addObject($order)
+                          ->save();
+
+            if ($this->salesData->canSendNewInvoiceEmail()) {
+                $this->invoiceSender->send($invoice);
+            }
+
+            return $order;
+        } catch (LocalizedException $e) {
+            $this->connector->log(sprintf('%s %s', __METHOD__, $e->getMessage()));
+
+            throw $e;
+        } catch (\Exception $e) {
+            $this->connector->log($e->getMessage(), 'crit');
         }
 
-        return $this->orderRepository->save($order);
+        return $order;
     }
 
     /**
