@@ -12,6 +12,10 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
     <?php echo /* @noEscape */ $html; ?>
 <?php else: ?>
     <?php if ($data = $block->getOpenInvoicePaymentData()): ?>
+        <?php
+        // Mark order status "Redirected"
+        $block->setOrderRedirected();
+        ?>
         <div class="ingenico-confirmation">
             <div class="ingenico-loader">
                 <img src="<?php echo $block->escapeHtmlAttr($block->getLoaderUrl()); ?>" alt="<?= __('checkout.please_wait'); ?>">
@@ -165,4 +169,11 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
         </ul>
     </div>
     <?php endif; ?>
+<script>
+    require(['Magento_Customer/js/customer-data'], function(customerData) {
+        customerData.getInitCustomerData().then(function() {
+            customerData.invalidate(['cart','cart-data']);
+        });
+    });
+</script>
 <?php endif; ?>

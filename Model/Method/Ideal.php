@@ -86,6 +86,8 @@ class Ideal extends AbstractMethod
      */
     public function initialize($paymentAction, $stateObject)
     {
+        parent::initialize($paymentAction, $stateObject);
+
         /** @var \Magento\Quote\Model\Quote\Payment $info */
         $info = $this->getInfoInstance();
         $isserId = $info->getAdditionalInformation('issuer_id');

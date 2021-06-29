@@ -29,5 +29,7 @@
         </referenceBlock>
         <referenceBlock class="Ingenico\Payment\Block\Form\Flex" name="payment.method.ingenico_flex" template="Ingenico_Payment::form/flex.phtml">
         </referenceBlock>
+        <referenceBlock class="Ingenico\Payment\Block\Form" name="payment.method.ingenico_intersolve" template="Ingenico_Payment::form/form.phtml">
+        </referenceBlock>
     </body>
 </page>

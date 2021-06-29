@@ -8,4 +8,8 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Checkout\CustomerData\Cart">
+        <plugin name="restore-quote" type="Ingenico\Payment\Plugin\RestoreQuoteAfterIngenicoPaymentInlinePage"/>
+    </type>
 </config>

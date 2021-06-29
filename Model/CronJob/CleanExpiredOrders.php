@@ -12,6 +12,7 @@ use Magento\Store\Model\StoresConfig;
 use Magento\Sales\Model\Order;
 use Ingenico\Payment\Logger\Main as IngenicoLogger;
 use Ingenico\Payment\Model\Config as IngenicoConfig;
+use Ingenico\Payment\Model\Connector;
 
 /**
  * Class that provides functionality of cleaning expired orders by cron
@@ -34,6 +35,11 @@ class CleanExpiredOrders
     private $logger;
 
     /**
+     * @var Connector
+     */
+    private $connector;
+
+    /**
      * @var OrderCollectionFactory
      */
     private $orderCollectionFactory;
@@ -42,6 +48,11 @@ class CleanExpiredOrders
      * @var PaymentCollectionFactory
      */
     private $paymentCollectionFactory;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
 
     /**
      * @var OrderManagementInterface
@@ -60,6 +71,7 @@ class CleanExpiredOrders
         StoresConfig $storesConfig,
         IngenicoConfig $ingenicoConfig,
         IngenicoLogger $logger,
+        Connector $connector,
         OrderCollectionFactory $orderCollectionFactory,
         PaymentCollectionFactory $paymentCollectionFactory,
         OrderRepositoryInterface $orderRepository,
@@ -68,6 +80,7 @@ class CleanExpiredOrders
         $this->storesConfig = $storesConfig;
         $this->ingenicoConfig = $ingenicoConfig;
         $this->logger = $logger;
+        $this->connector = $connector;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->paymentCollectionFactory = $paymentCollectionFactory;
         $this->orderRepository = $orderRepository;
@@ -85,19 +98,6 @@ class CleanExpiredOrders
 
         // Check orders which were paid with Ingenico
         foreach ($lifetimes as $storeId => $lifetime) {
-            // Ingenico statuses
-            $authorizedStatus = $this->ingenicoConfig->getValue(
-                IngenicoConfig::XML_PATH_ORDER_STATUS_AUTHORIZED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $storeId
-            );
-
-            $capturedStatus = $this->ingenicoConfig->getValue(
-                IngenicoConfig::XML_PATH_ORDER_STATUS_CAPTURED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $storeId
-            );
-
             /** @var $orders \Magento\Sales\Model\ResourceModel\Order\Collection */
             $orders = $this->orderCollectionFactory->create();
             $orders->addFieldToFilter('store_id', $storeId);
@@ -115,41 +115,42 @@ class CleanExpiredOrders
 
             // Check orders
             foreach ($orders->getAllIds() as $entityId) {
-                $paymentMethod = $this->getOrderPayment($entityId)->getMethod();
-
-                // Check Ingenico statuses to prevent refunds or capture issues
-                // Get status which represent "Pending payment" status
-                $newOrderStatus = $this->ingenicoConfig->getValue(
-                    'payment/' . $paymentMethod . '/order_status',
-                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                    $storeId
-                );
-
-                // Skip the cancellation if "Pending payment" is used for "authorized" or "captured" payments
-                if ($authorizedStatus === $newOrderStatus ||
-                    $capturedStatus === $newOrderStatus
-                ) {
-                    $this->logger->info(
-                        sprintf('CleanExpiredOrders: Unable to cancel #%s.', $entityId)
-                    );
-
+                /** @var \Magento\Sales\Model\Order $order */
+                $order = $this->orderRepository->get($entityId);
+                if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
                     continue;
                 }
 
-                // Check if "Pending payment / New order" status
-                $order = $this->orderRepository->get($entityId);
-                if ($order->getStatus() === $newOrderStatus) {
-                    try {
+                if ($order->hasInvoices() || $order->hasCreditmemos()) {
+                    continue;
+                }
+
+                /** @var \Ingenico\Payment\Model\Method\AbstractMethod $paymentMethod */
+                $paymentMethod = $this->getOrderPayment($entityId)->getMethod();
+
+                // Check if the order wasn't paid
+                try {
+                    // Get payment information from the gateway
+                    $result = $this->connector->getCoreLibrary()->getPaymentInfo($order->getIncrementId(), null);
+                    if ($result->isPaymentSuccessful()) {
                         $this->logger->info(
-                            sprintf('CleanExpiredOrders: Cancel #%s.', $entityId)
+                            sprintf('CleanExpiredOrders: Order #%s. It was paid, no cancel.', $entityId)
+                        );
+                    } elseif ($result->getNcError() === '50001130' || (int) $result->getStatus() === 0) {
+                        // Check for error: "unknown orderid xxx for merchant xxx" or zero status
+                        $this->logger->info(
+                            sprintf('CleanExpiredOrders: Order #%s. Cancel.', $entityId)
                         );
 
+                        // Cancel the order
                         $this->orderManagement->cancel((int) $entityId);
-                    } catch (\Exception $e) {
-                        $this->logger->info(
-                            sprintf('CleanExpiredOrders: Failed to cancel #%s. %s', $entityId, $e->getMessage())
-                        );
+                        $order->addCommentToStatusHistory(__('The order was cancelled by the cron task.'));
+                        $this->orderRepository->save($order);
                     }
+                } catch (\Exception $e) {
+                    $this->logger->info(
+                        sprintf('CleanExpiredOrders: Order #%s. %s', $entityId, $e->getMessage())
+                    );
                 }
             }
         }

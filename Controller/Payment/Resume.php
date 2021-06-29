@@ -23,7 +23,7 @@ class Resume extends \Ingenico\Payment\Controller\Payment\Base
         $url = $this->_urlBuilder->getUrl('/');
         try {
             $order = $this->_connector->getProcessor()->getOrderByIncrementId($reminder->getOrderId());
-            if ($order->getStatus() !== $order->getConfig()->getStateDefaultStatus($order::STATE_NEW)) {
+            if ($order->getStatus() !== $order->getConfig()->getStateDefaultStatus($order::STATE_PENDING_PAYMENT)) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('ingenico.exception.message3', $order->getIncrementId()));
             }
 

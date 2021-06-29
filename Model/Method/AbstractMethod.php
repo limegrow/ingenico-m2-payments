@@ -4,6 +4,7 @@ namespace Ingenico\Payment\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction;
 
 class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
@@ -96,6 +97,58 @@ class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
         return parent::isActive($storeId);
+    }
+
+    /**
+     * Method that will be executed instead of authorize or capture
+     * if flag isInitializeNeeded set to true
+     *
+     * @param string $paymentAction
+     * @param object $stateObject
+     *
+     * @return $this
+     * @throws LocalizedException
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @api
+     */
+    public function initialize($paymentAction, $stateObject)
+    {
+        $this->connector->log(sprintf('initialize: %s', $paymentAction));
+
+        /** @var \Magento\Quote\Model\Quote\Payment $info */
+        $info = $this->getInfoInstance();
+
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $info->getOrder();
+        $order->setCanSendNewEmailFlag(false);
+
+        // Set state object
+        /** @var \Magento\Sales\Model\Order\Status $status */
+        $status = $this->cnf->getAssignedStatus(Order::STATE_PENDING_PAYMENT);
+        $stateObject->setState($status->getState());
+        $stateObject->setStatus($status->getStatus());
+        $stateObject->setIsNotified(false);
+
+        return $this;
+    }
+
+    /**
+     * Retrieve information from payment configuration
+     *
+     * @param string $field
+     * @param int|string|null|\Magento\Store\Model\Store $storeId
+     *
+     * @return mixed
+     */
+    public function getConfigData($field, $storeId = null)
+    {
+        // Get default status for "Pending payment" state (instead of "New" state)
+        if ('order_status' === $field) {
+            $status = $this->cnf->getAssignedStatus(Order::STATE_PENDING_PAYMENT);
+            return $status->getStatus();
+        }
+
+        return parent::getConfigData($field, $storeId);
     }
 
     /**
@@ -248,6 +301,12 @@ class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function cancel(\Magento\Payment\Model\InfoInterface $payment)
     {
+        /** @var Transaction $transaction */
+        $transaction = $payment->getAuthorizationTransaction();
+        if (!$transaction) {
+            return $this;
+        }
+
         /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
 

@@ -14,6 +14,9 @@
         // Check Redirect data of initiateRedirectPayment()
         $data = $block->getRedirectPaymentData();
     }
+
+    // Mark order status "Redirected"
+    $block->setOrderRedirected();
     ?>
     <div class="ingenico-confirmation">
         <div class="ingenico-loader">

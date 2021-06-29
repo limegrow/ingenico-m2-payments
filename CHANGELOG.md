@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.9.1] - 2021-06-29
+### Added
+- Order status for "authorized or sale payments" per payment method
+
+## Changed
+- Change default status and state for reminder cron from new and pending to pending_payment
+- Fixed: sales_order_save_commit_after event fired twice
+- Fixed: Street number is sent twice
+- Order status changes
+- Buyer is stack on the Checkout/Review&Payments page when the "Cancel" button submitted on the Credit Cards -> Input card data
+- Improve CleanExpiredOrders
+- Added product in the "Сart" should not be cleared when the user returning to the store from the selected payment method like "Klarna Pay Now" or "AfterPay"
+- Strange behaviour identified when the user automatically logout in case of emulation of "Uncertain" or "Refused" action to cancel payment.
+- "Cart" cleanup when the user submits emulation of "Failues" or "Cancelled" action like for "Belfius" or "IngHomePay" payment methods.
+- Added Product in the "Cart" should not be cleared whtn the user go "Back" from the Payment page or "Canceling" the payment.
+
 ## [2.9.0] - 2021-06-12
 ## Changed
 - Fixed: Date of birth problem

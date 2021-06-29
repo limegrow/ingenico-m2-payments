@@ -13,6 +13,8 @@ use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderSta
 use IngenicoClient\Configuration;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\DataObject;
+use Magento\Sales\Api\Data\OrderInterface;
 
 class Config extends \Magento\Framework\App\Config
 {
@@ -712,13 +714,37 @@ class Config extends \Magento\Framework\App\Config
      *
      * @return string
      */
-    public function getOrderStatusAuth($scopeId = null)
+    public function getOrderStatusAuth(OrderInterface $order)
     {
-        return $this->getValue(
+        $scopeId = $order->getStoreId();
+
+        // Get value per payment method
+        if ($order->getPayment() && $order->getPayment()->getMethod()) {
+            $method_id = $order->getPayment()->getMethod();
+
+            $value = $this->getValue(
+                'payment/' . $method_id . '/order_status_authorize',
+                ScopeInterface::SCOPE_STORE,
+                $scopeId
+            );
+
+            if (!empty($value)) {
+                return $value;
+            }
+        }
+
+        // Get global value
+        $value = $this->getValue(
             self::XML_PATH_ORDER_STATUS_AUTHORIZED,
             ScopeInterface::SCOPE_STORE,
             $scopeId
         );
+
+        if (empty($value)) {
+            $value = $order->getStatus();
+        }
+
+        return $value;
     }
 
     /**
@@ -726,13 +752,37 @@ class Config extends \Magento\Framework\App\Config
      *
      * @return string
      */
-    public function getOrderStatusSale($scopeId = null)
+    public function getOrderStatusSale(OrderInterface $order)
     {
-        return $this->getValue(
+        $scopeId = $order->getStoreId();
+
+        // Get value per payment method
+        if ($order->getPayment() && $order->getPayment()->getMethod()) {
+            $method_id = $order->getPayment()->getMethod();
+
+            $value = $this->getValue(
+                'payment/' . $method_id . '/order_status_capture',
+                ScopeInterface::SCOPE_STORE,
+                $scopeId
+            );
+
+            if (!empty($value)) {
+                return $value;
+            }
+        }
+
+        // Get global value
+        $value = $this->getValue(
             self::XML_PATH_ORDER_STATUS_CAPTURED,
             ScopeInterface::SCOPE_STORE,
             $scopeId
         );
+
+        if (empty($value)) {
+            $value = $order->getStatus();
+        }
+
+        return $value;
     }
 
     /**
@@ -843,7 +893,7 @@ class Config extends \Magento\Framework\App\Config
     /**
      * Get Assigned State
      * @param $status
-     * @return \Magento\Framework\DataObject
+     * @return DataObject
      */
     public function getAssignedState($status)
     {
@@ -852,6 +902,18 @@ class Config extends \Magento\Framework\App\Config
                              ->addAttributeToSort('state_table.is_default', 'desc')
                              ->getFirstItem();
         return $status;
+    }
+
+    /**
+     * Get Assigned Status.
+     *
+     * @param string $state
+     * @return DataObject
+     */
+    public function getAssignedStatus($state)
+    {
+        $collection = $this->orderStatusCollectionFactory->create()->addStateFilter($state);
+        return $collection->getFirstItem();
     }
 
     /**

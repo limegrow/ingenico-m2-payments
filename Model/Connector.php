@@ -2,6 +2,7 @@
 
 namespace Ingenico\Payment\Model;
 
+use Ingenico\Payment\Model\Config as IngenicoConfig;
 use IngenicoClient\ConnectorInterface;
 use IngenicoClient\Connector as AbstractConnector;
 use IngenicoClient\IngenicoCoreLibrary;
@@ -12,6 +13,7 @@ use IngenicoClient\PaymentMethod\PaymentMethod;
 use IngenicoClient\Data;
 use IngenicoClient\Exception;
 use Ingenico\Payment\Logger\Main as IngenicoLogger;
+use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\UrlInterface;
@@ -625,7 +627,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
     /**
      * Executed on the moment when a buyer submits checkout form with an intention to start the payment process.
      * @param mixed|null $aliasId
-     *
+     *showPaymentListRedirectTemplate
      * @throws LocalizedException
      */
     public function processPaymentRedirect($aliasId)
@@ -673,6 +675,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
         $orderId = $this->requestOrderId();
 
         try {
+            $this->checkoutSession->setData(CheckIsReturnFromPaymentInline::PROCESS_PAYMENT_INLINE_FLAG_KEY, true);
             $this->coreLibrary->processPaymentInline($orderId, $aliasId);
             // @see self::showPaymentListInlineTemplate()
         } catch (Exception $e) {
@@ -743,7 +746,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
                                                ->addFieldToFilter('quote_id', $order->getQuoteId());
 
         foreach ($orders as $order) {
-            /** @var \Magento\Sales\Model\Order $order */
+            /** @var Order $order */
             if ($order->hasInvoices()) {
                 return true;
             }
@@ -789,28 +792,40 @@ class Connector extends AbstractConnector implements ConnectorInterface
     {
         $order = $this->processor->getOrderByIncrementId($orderId);
 
-        $currentState = $order->getState();
+        // Ingenico statuses
+        $authorizedStatus = $this->cnf->getValue(
+            IngenicoConfig::XML_PATH_ORDER_STATUS_AUTHORIZED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $order->getStoreId()
+        );
+
+        $capturedStatus = $this->cnf->getValue(
+            IngenicoConfig::XML_PATH_ORDER_STATUS_CAPTURED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $order->getStoreId()
+        );
 
         // Mapping between Magento Order status and Ingenico Payment status
-        switch ($currentState) {
-            case $order::STATE_NEW:
-                $status = $this->coreLibrary::STATUS_PENDING;
-                break;
-            case $order::STATE_PENDING_PAYMENT:
-                $status = $this->coreLibrary::STATUS_AUTHORIZED;
-                break;
-            case $order::STATE_PROCESSING:
-                $status = $this->coreLibrary::STATUS_CAPTURED;
-                break;
-            case $order::STATE_CANCELED:
-                $status = $this->coreLibrary::STATUS_CANCELLED;
-                break;
-            case $order::STATE_CLOSED:
-                $status = $this->coreLibrary::STATUS_REFUNDED;
-                break;
-            default:
-                $status = $this->coreLibrary::STATUS_UNKNOWN;
-                break;
+        if ($order->getStatus() === $authorizedStatus) {
+            $status = $this->coreLibrary::STATUS_AUTHORIZED;
+        } elseif ($order->getStatus() === $capturedStatus) {
+            $status = $this->coreLibrary::STATUS_CAPTURED;
+        } else {
+            switch ($order->getState()) {
+                case $order::STATE_NEW:
+                case $order::STATE_PENDING_PAYMENT:
+                    $status = $this->coreLibrary::STATUS_PENDING;
+                    break;
+                case $order::STATE_CANCELED:
+                    $status = $this->coreLibrary::STATUS_CANCELLED;
+                    break;
+                case $order::STATE_CLOSED:
+                    $status = $this->coreLibrary::STATUS_REFUNDED;
+                    break;
+                default:
+                    $status = $this->coreLibrary::STATUS_UNKNOWN;
+                    break;
+            }
         }
 
         $billingAddress = $order->getBillingAddress();
@@ -1183,7 +1198,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::BILLING_COUNTRY => $billingAddress->getCountryId(),
             OrderField::BILLING_COUNTRY_CODE => $billingAddress->getCountryId(),
             OrderField::BILLING_ADDRESS1 => $billingAddress->getStreet()[0],
-            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : '.',
+            OrderField::BILLING_ADDRESS2 => count($billingAddress->getStreet()) > 1 ? $billingAddress->getStreet()[1] : null,
             OrderField::BILLING_ADDRESS3 => null,
             OrderField::BILLING_CITY => $billingAddress->getCity(),
             OrderField::BILLING_STATE => $billingAddress->getRegionId(),
@@ -1198,7 +1213,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             OrderField::SHIPPING_COUNTRY => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_COUNTRY_CODE => $shippingAddress->getCountryId(),
             OrderField::SHIPPING_ADDRESS1 => $shippingAddress->getStreet()[0],
-            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : '.',
+            OrderField::SHIPPING_ADDRESS2 => count($shippingAddress->getStreet()) > 1 ? $shippingAddress->getStreet()[1] : null,
             OrderField::SHIPPING_ADDRESS3 => null,
             OrderField::SHIPPING_CITY => $shippingAddress->getCity(),
             OrderField::SHIPPING_STATE => $shippingAddress->getRegionId(),
@@ -1899,7 +1914,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
         if (isset($transactionTypeMap[$transactionStatus])) {
             $trxType = $transactionTypeMap[$transactionStatus];
 
-            /** @var \Magento\Sales\Model\Order $order */
+            /** @var Order $order */
             $order = $this->orderFactory->create()->loadByIncrementId($orderId);
             if (!$order->getId()) {
                 throw new \Exception('Order doesn\'t exists in store');
@@ -2097,6 +2112,25 @@ class Connector extends AbstractConnector implements ConnectorInterface
     }
 
     /**
+     * Restore Customer Session.
+     * Some Payment Methods ( like Paysafecard or CBC/KBC) Logged out customer after order cancellation
+     * @param ?string $orderId
+     */
+    private function restoreCustomerSession($orderId = null): void
+    {
+        $sessionCustomerId = $this->customerSession->getCustomerId();
+        if ($sessionCustomerId) {
+            return ;
+        }
+
+        $this->restoreCheckoutSessionLastRealOrderId($orderId);
+        $orderCustomerId = $this->checkoutSession->getLastRealOrder()->getCustomerId();
+        if ($orderCustomerId) {
+            $this->customerSession->loginById($orderCustomerId);
+        }
+    }
+
+    /**
      * Renders the template with the order cancellation.
      *
      * @param array $fields
@@ -2112,7 +2146,8 @@ class Connector extends AbstractConnector implements ConnectorInterface
         if ($this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
             $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
-            $this->restoreShoppingCart();
+            $this->restoreShoppingCart($payment->getOrderId());
+            $this->restoreCustomerSession($payment->getOrderId());
 
             $incrementId = $fields[self::PARAM_NAME_ORDER_ID];
             if ($incrementId) {
@@ -2194,11 +2229,10 @@ class Connector extends AbstractConnector implements ConnectorInterface
     {
         $message = $fields[self::PARAM_NAME_MESSAGE] ?? __('ingenico.exception.message4');
 
-        if (!$this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
+        if ($this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
             $this->registry->register(self::REGISTRY_KEY_REDIRECT_URL, $this->getUrl('/'));
         } else {
-            $this->restoreShoppingCart();
-
+            $this->restoreShoppingCart($payment->getOrderId());
             $this->processor->processOrderCancellation(
                 $fields[self::PARAM_NAME_ORDER_ID],
                 $payment,
@@ -2339,9 +2373,12 @@ class Connector extends AbstractConnector implements ConnectorInterface
      */
     public function getOrdersForReminding()
     {
-        $existingReminderOrderIds = $this->reminderCollectionFactory->create()->getColumnValues(self::PARAM_NAME_ORDER_ID);
+        $existingReminderOrderIds = $this->reminderCollectionFactory->create()
+            ->getColumnValues(self::PARAM_NAME_ORDER_ID);
+
         $orders = $this->orderCollectionFactory->create()
-                                               ->addFieldToFilter('state', ['in' => [\Magento\Sales\Model\Order::STATE_NEW]]);
+                                               ->addFieldToFilter('state', ['in' => [Order::STATE_PENDING_PAYMENT]]);
+
         if (count($existingReminderOrderIds) > 0) {
             $orders->addFieldToFilter('increment_id', ['nin' => $existingReminderOrderIds]);
         }
@@ -2443,7 +2480,9 @@ class Connector extends AbstractConnector implements ConnectorInterface
 
         $this->reserveOrderId();
 
-        return $this->coreLibrary->getCcIFrameUrlBeforePlaceOrder($this->checkoutSession->getQuote()->getReservedOrderId());
+        return $this->coreLibrary->getCcIFrameUrlBeforePlaceOrder(
+            $this->checkoutSession->getQuote()->getReservedOrderId()
+        );
     }
 
     /**
@@ -2480,14 +2519,22 @@ class Connector extends AbstractConnector implements ConnectorInterface
         $this->checkoutSession->setData('invalidate_cart', 1);
     }
 
+    private function restoreCheckoutSessionLastRealOrderId($orderId = null)
+    {
+        if ($orderId && !$this->checkoutSession->getLastRealOrderId()) {
+            $this->checkoutSession->setLastRealOrderId($orderId);
+        }
+    }
     /**
      * Restore Shopping Cart.
      */
-    public function restoreShoppingCart()
+    public function restoreShoppingCart($orderId = null)
     {
         if ($this->checkoutSession->getData(self::PARAM_NAME_REMINDER_ORDER_ID)) {
             return;
         }
+
+        $this->restoreCheckoutSessionLastRealOrderId($orderId);
         $this->checkoutSession->restoreQuote();
     }
 

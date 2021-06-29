@@ -3,7 +3,10 @@
 namespace Ingenico\Payment\Block\Method;
 
 use IngenicoClient\Data;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
+use Ingenico\Payment\Model\Config as IngenicoConfig;
 
 class View extends \Magento\Framework\View\Element\Template
 {
@@ -14,7 +17,16 @@ class View extends \Magento\Framework\View\Element\Template
     protected $_assetRepo;
     protected $_urlBuilder;
     protected $_registry;
-    protected $_cnf;
+
+    /**
+     * @var IngenicoConfig
+     */
+    private $cnf;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
 
     /**
      * Constructor
@@ -26,8 +38,9 @@ class View extends \Magento\Framework\View\Element\Template
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Registry $registry,
-        \Ingenico\Payment\Model\Config $cnf,
+        IngenicoConfig $cnf,
         OrderFactory $orderFactory,
+        OrderRepositoryInterface $orderRepository,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -37,8 +50,9 @@ class View extends \Magento\Framework\View\Element\Template
         $this->_assetRepo = $assetRepo;
         $this->_urlBuilder = $urlBuilder;
         $this->_registry = $registry;
-        $this->_cnf = $cnf;
+        $this->cnf = $cnf;
         $this->orderFactory = $orderFactory;
+        $this->orderRepository = $orderRepository;
     }
 
     public function getPaymentMethods()
@@ -121,6 +135,30 @@ class View extends \Magento\Framework\View\Element\Template
         }
 
         return false;
+    }
+
+    /**
+     * Set Order redirected.
+     *
+     * @return void
+     */
+    public function setOrderRedirected()
+    {
+        $order = $this->getOrder();
+
+        if ($order) {
+            $status = $this->cnf->getAssignedStatus(Order::STATE_PENDING_PAYMENT);
+
+            $order->setData('state', $status->getState());
+            $order->setStatus($status->getStatus());
+
+            $order->addStatusToHistory(
+                $status->getStatus(),
+                __('The customer was redirected to the payment gateway')
+            );
+
+            $this->orderRepository->save($order);
+        }
     }
 
     public function getLoaderUrl()

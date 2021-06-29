@@ -137,14 +137,16 @@ define([
             // Workaround: this.iFrameUrl(this.getIFrameUrl()) does not update the iframe
             document.getElementById(this.getIFrameId()).src = this.getIFrameUrl();
         },
-
+        getHelperTextContainer: function () {
+             return $('#' + this.getIFrameId()).parent().siblings('.cc-helper-text');
+        },
         fillHelperText: function (html) {
-            $('#' + this.getIFrameId()).siblings('.cc-helper-text').html(html);
+            this.getHelperTextContainer().html(html);
             $('#' + this.getIFrameRetryId()).on('click', this.resetIFrame.bind(this));
         },
 
         emptyHelperText: function () {
-            $('#' + this.getIFrameId()).siblings('.cc-helper-text').html('');
+            this.getHelperTextContainer().html('');
         },
 
         /**
