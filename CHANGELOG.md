@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.9.2] - 2021-07-08
+## Changed
+- Fixed: Add Street number for Klarna payment methods only
+
 ## [2.9.1] - 2021-06-29
 ### Added
 - Order status for "authorized or sale payments" per payment method
