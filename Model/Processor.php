@@ -220,13 +220,12 @@ class Processor
         }
 
         $new_status = $this->config->getOrderStatusSale($order);
-
-        // check if there is an Invoice with transaction ID
         $trxId = $paymentResult->getPayId() . '-' . $paymentResult->getPayIdSub();
         if ($order->hasInvoices()) {
+            // Check if there is an Invoice with transaction ID
             foreach ($order->getInvoiceCollection() as $invoice) {
                 /** @var Invoice $invoice */
-                if ($invoice->getTransactionId() == $trxId && $invoice->canCancel()) {
+                if ($invoice->getTransactionId() === $trxId) {
                     $invoice->pay();
                     $order->addRelatedObject($invoice);
 
