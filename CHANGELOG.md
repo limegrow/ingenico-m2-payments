@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.9.3] - 2021-08-12
+## Changed
+- Fixed: Double invoicing
+- Fixed: address fixes for Oney
+
 ## [2.9.2] - 2021-07-08
 ## Changed
 - Fixed: Add Street number for Klarna payment methods only
