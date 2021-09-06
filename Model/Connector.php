@@ -1253,8 +1253,11 @@ class Connector extends AbstractConnector implements ConnectorInterface
         try {
             $order = $this->processor->getOrderByIncrementId($orderId);
             $method = $order->getPayment()->getMethodInstance();
-
-            return $method::CORE_CODE;
+            if ($method instanceof AbstractMethod) {
+                return $method::CORE_CODE;
+            } else {
+                return $method->getCode();
+            }
         } catch (\Exception $exception) {
             return false;
         }
@@ -1278,7 +1281,11 @@ class Connector extends AbstractConnector implements ConnectorInterface
 
             $method = $quote->getPayment()->getMethodInstance();
 
-            return $method::CORE_CODE;
+            if ($method instanceof AbstractMethod) {
+                return $method::CORE_CODE;
+            } else {
+                return $method->getCode();
+            }
         } catch (\Exception $exception) {
             return false;
         }
