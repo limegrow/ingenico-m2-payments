@@ -1255,9 +1255,8 @@ class Connector extends AbstractConnector implements ConnectorInterface
             $method = $order->getPayment()->getMethodInstance();
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
-            } else {
-                return $method->getCode();
             }
+            return $method->getCode();
         } catch (\Exception $exception) {
             return false;
         }
@@ -1283,9 +1282,8 @@ class Connector extends AbstractConnector implements ConnectorInterface
 
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
-            } else {
-                return $method->getCode();
             }
+            return $method->getCode();
         } catch (\Exception $exception) {
             return false;
         }
