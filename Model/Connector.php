@@ -1925,15 +1925,19 @@ class Connector extends AbstractConnector implements ConnectorInterface
                 throw new \Exception('Order doesn\'t exists in store');
             }
 
+            $payment = $order->getPayment();
+
             // Register Magento Transaction
-            $order->getPayment()->setTransactionId($data->getPayId() . '-' . $data->getPayIdSub());
+            $payment->setTransactionId($data->getPayId() . '-' . $data->getPayIdSub());
 
             /** @var \Magento\Sales\Model\Order\Payment\Transaction $transaction */
-            $transaction = $order->getPayment()->addTransaction($trxType, null, true);
+            $transaction = $payment->addTransaction($trxType, null, true);
             $transaction
                 ->setIsClosed(0)
                 ->setAdditionalInformation(Transaction::RAW_DETAILS, $data->getData())
                 ->save();
+
+            $payment->save();
         }
 
         return true;
