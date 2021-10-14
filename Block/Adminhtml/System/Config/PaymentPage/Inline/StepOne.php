@@ -3,13 +3,33 @@
 namespace Ingenico\Payment\Block\Adminhtml\System\Config\PaymentPage\Inline;
 
 use Magento\Backend\Block\AbstractBlock;
-use Magento\Framework\App\ObjectManager;
+use Magento\Backend\Block\Context;
 use Magento\Framework\Data\Form\Element\Renderer\RendererInterface;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Ingenico\Payment\Model\Connector;
 
 class StepOne extends AbstractBlock implements RendererInterface
 {
+    /**
+     * @var Connector
+     */
+    private $connector;
+
+    /**
+     * @param Context   $context
+     * @param Connector $connector
+     * @param array     $data
+     */
+    public function __construct(
+        Context $context,
+        Connector $connector,
+        array $data = []
+    ) {
+        $this->connector = $connector;
+
+        parent::__construct($context, $data);
+    }
+
     public function render(AbstractElement $element)
     {
         return implode('', [
@@ -29,11 +49,9 @@ class StepOne extends AbstractBlock implements RendererInterface
 
     /**
      * @return \IngenicoClient\WhiteLabels
-     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     private function getWhiteLabelsData()
     {
-        $connector = ObjectManager::getInstance()->create(Connector::class);
-        return $connector->getCoreLibrary()->getWhiteLabelsData();
+        return $this->connector->getCoreLibrary()->getWhiteLabelsData();
     }
 }

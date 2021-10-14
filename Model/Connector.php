@@ -1390,8 +1390,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
                     // The Magento\Framework\Mail\Template\TransportBuilder
                     // structures were refactored to use this new EmailMessageInterface instead of MessageInterface,
                     // which was previously used.
-                    $transportBuilder = ObjectManager::getInstance()->create(\Ingenico\Payment\Model\Email\Template\TransportBuilder::class);
-                    $transport = $transportBuilder
+                    $transport = $this->transportBuilder
                         ->setTemplateIdentifier($this->getEmailTemplate())
                         ->setTemplateOptions([
                             'area' => \Magento\Framework\App\Area::AREA_FRONTEND,

@@ -10,8 +10,8 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\View\Asset\Repository as AssetRepository;
 use Magento\Framework\UrlInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\StoreManagerInterface;
+use Ingenico\Payment\Block\Ideal\Banks;
 
 class IngenicoConfigProvider implements ConfigProviderInterface
 {
@@ -53,6 +53,11 @@ class IngenicoConfigProvider implements ConfigProviderInterface
     private $storeManager;
 
     /**
+     * @var Banks
+     */
+    private $banks;
+
+    /**
      * Constructor
      */
     public function __construct(
@@ -62,7 +67,8 @@ class IngenicoConfigProvider implements ConfigProviderInterface
         AssetRepository $assetRepo,
         UrlInterface $urlBuilder,
         CustomerSession $customerSession,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Banks $banks
     ) {
         $this->connector = $connector;
         $this->cnf = $cnf;
@@ -71,6 +77,7 @@ class IngenicoConfigProvider implements ConfigProviderInterface
         $this->urlBuilder = $urlBuilder;
         $this->customerSession = $customerSession;
         $this->storeManager = $storeManager;
+        $this->banks = $banks;
     }
 
     /**
@@ -80,7 +87,6 @@ class IngenicoConfigProvider implements ConfigProviderInterface
     {
         $storeId = $this->storeManager->getStore()->getId();
         $paymentMode = strtolower($this->cnf->getPaymentPageMode($storeId));
-        $banks = ObjectManager::getInstance()->get(\Ingenico\Payment\Block\Ideal\Banks::class)->getAvailableBanks();
 
         return [
             'payment' => [
@@ -108,7 +114,7 @@ class IngenicoConfigProvider implements ConfigProviderInterface
                     'methods' => $this->cnf->getFlexMethods($storeId)
                 ],
                 \Ingenico\Payment\Model\Method\Ideal::PAYMENT_METHOD_CODE => [
-                    'banks' => $banks
+                    'banks' => $this->banks->getAvailableBanks()
                 ]
             ],
         ];

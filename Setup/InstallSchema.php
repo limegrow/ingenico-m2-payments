@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile InstallSchema scripts are obsolete. Please use declarative schema approach in module's etc/db_schema.xml file
 
 namespace Ingenico\Payment\Setup;
 
@@ -8,6 +9,9 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 
+/**
+ * @codingStandardsIgnoreStart
+ */
 class InstallSchema implements InstallSchemaInterface
 {
     const PARAM_NAME_TABLE_NAME_TRANSACTION = 'ingenico_payment_transaction';
