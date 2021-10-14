@@ -250,7 +250,11 @@ class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
             $this->connector->setOrderId($order->getIncrementId());
 
             // Has it been paid with "Bank transfer"?
-            $result = $this->connector->getCoreLibrary()->getPaymentInfo($order->getIncrementId(), $payId);
+            $result = $this->connector->getCoreLibrary()->getPaymentInfo(
+                $order->getIncrementId(),
+                $payId,
+                null
+            );
             if (mb_strpos($result->getPm(), 'Bank transfer', null, 'UTF-8') !== false) {
                 throw new LocalizedException(__('modal.refund_failed.not_refundable', $result->getPm()));
             }
@@ -346,7 +350,7 @@ class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMethod
             throw new LocalizedException(__('Unable to retrieve data.'));
         }
 
-        $data = $this->connector->getCoreLibrary()->getPaymentInfo($trxData['order_id'], $transactionId);
+        $data = $this->connector->getCoreLibrary()->getPaymentInfo($trxData['order_id'], $transactionId, null);
         if (!$data->isTransactionSuccessful()) {
             throw new LocalizedException(__('Unable to retrieve online data.'));
         }

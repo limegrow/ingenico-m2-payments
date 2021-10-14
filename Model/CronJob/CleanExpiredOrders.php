@@ -131,7 +131,11 @@ class CleanExpiredOrders
                 // Check if the order wasn't paid
                 try {
                     // Get payment information from the gateway
-                    $result = $this->connector->getCoreLibrary()->getPaymentInfo($order->getIncrementId(), null);
+                    $result = $this->connector->getCoreLibrary()->getPaymentInfo(
+                        $order->getIncrementId(),
+                        null,
+                        null
+                    );
                     if ($result->isPaymentSuccessful()) {
                         $this->logger->info(
                             sprintf('CleanExpiredOrders: Order #%s. It was paid, no cancel.', $entityId)
