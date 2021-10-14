@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile An error occurred during processing; checking has been aborted.
 
 namespace Ingenico\Payment\Model;
 
@@ -2148,6 +2149,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
      * @param \IngenicoClient\Payment $payment
      *
      * @return void
+     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     public function showCancellationTemplate(array $fields, \IngenicoClient\Payment $payment)
     {
