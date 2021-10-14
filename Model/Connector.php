@@ -52,6 +52,7 @@ use Magento\User\Model\ResourceModel\User\CollectionFactory as UserCollectionFac
 use Magento\Catalog\Api\ProductRepositoryInterfaceFactory;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Ingenico\Payment\Model\Method\AbstractMethod;
 
 /**
  * Class Connector
@@ -1256,6 +1257,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
             }
+
             return $method->getCode();
         } catch (\Exception $exception) {
             return false;
@@ -1283,6 +1285,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
             }
+
             return $method->getCode();
         } catch (\Exception $exception) {
             return false;
