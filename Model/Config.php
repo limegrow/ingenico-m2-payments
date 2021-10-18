@@ -15,6 +15,8 @@ use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\DataObject;
 use Magento\Sales\Api\Data\OrderInterface;
+use Ingenico\Payment\Model\Email\Template as EmailTemplate;
+use Magento\Framework\View\Asset\Repository as AssetRepository;
 
 class Config extends \Magento\Framework\App\Config
 {
@@ -73,6 +75,16 @@ class Config extends \Magento\Framework\App\Config
     private $storeManager;
 
     /**
+     * @var EmailTemplate
+     */
+    private $template;
+
+    /**
+     * @var AssetRepository
+     */
+    private $assert;
+
+    /**
      * Config constructor.
      *
      * @param ScopeCodeResolver            $scopeCodeResolver
@@ -81,6 +93,8 @@ class Config extends \Magento\Framework\App\Config
      * @param CacheManager                 $cacheManager
      * @param StoreManagerInterface        $storeManager
      * @param OrderStatusCollectionFactory $orderStatusCollectionFactory
+     * @param EmailTemplate                $template
+     * @param AssetRepository              $assert
      * @param array                        $types
      *
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -92,6 +106,8 @@ class Config extends \Magento\Framework\App\Config
         CacheManager $cacheManager,
         StoreManagerInterface $storeManager,
         OrderStatusCollectionFactory $orderStatusCollectionFactory,
+        EmailTemplate $template,
+        AssetRepository $assert,
         array $types = []
     ) {
         $this->configResource = $configResource;
@@ -99,6 +115,8 @@ class Config extends \Magento\Framework\App\Config
         $this->cacheManager = $cacheManager;
         $this->storeManager = $storeManager;
         $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;
+        $this->template = $template;
+        $this->assert = $assert;
 
         return parent::__construct($scopeCodeResolver, $types);
     }
@@ -813,27 +831,20 @@ class Config extends \Magento\Framework\App\Config
      * @param mixed $storeId
      *
      * @return string
-     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     public function getStoreEmailLogo($storeId = null)
     {
-        /** @var \Ingenico\Payment\Model\Email\Template $template */
-        $template = ObjectManager::getInstance()->create(\Ingenico\Payment\Model\Email\Template::class);
-
-        return $template->getLogoUrlCustom($storeId);
+        return $this->template->getLogoUrlCustom($storeId);
     }
 
     /**
      * @param mixed $storeId
      *
      * @return mixed
-     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     public function getIngenicoLogo($storeId = null)
     {
-        $assetRepo = ObjectManager::getInstance()->create(\Magento\Framework\View\Asset\Repository::class);
-
-        return $assetRepo->getUrl('Ingenico_Payment::images/logo_provider.png');
+        return $this->assert->getUrl('Ingenico_Payment::images/logo_provider.png');
     }
 
     public function getBaseHost()

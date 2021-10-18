@@ -1,13 +1,14 @@
 <?php
+// phpcs:ignoreFile An error occurred during processing; checking has been aborted.
 
 namespace Ingenico\Payment\Block\Ideal;
 
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Widget\Block\BlockInterface;
-use Magento\Framework\App\ObjectManager;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Ingenico\Payment\Model\Config;
+use Magento\Framework\View\Element\Context;
+use Ingenico\Payment\Model\Config\Source\Ideal\Banks as BanksSource;
 
 class Banks extends AbstractBlock implements BlockInterface
 {
@@ -17,6 +18,35 @@ class Banks extends AbstractBlock implements BlockInterface
      * @var array
      */
     private $options = [];
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var Config
+     */
+    private $config;
+
+    /**
+     * @var BanksSource
+     */
+    private $banksSource;
+
+    public function __construct(
+        Context $context,
+        StoreManagerInterface $storeManager,
+        Config $config,
+        BanksSource $banksSource,
+        array $data = []
+    ) {
+        $this->storeManager = $storeManager;
+        $this->config = $config;
+        $this->banksSource = $banksSource;
+
+        parent::__construct($context, $data);
+    }
 
     /**
      * Render block HTML
@@ -71,24 +101,10 @@ class Banks extends AbstractBlock implements BlockInterface
      */
     public function getAvailableBanks()
     {
-        // @codingStandardsIgnoreStart
-        /** @var \Magento\Framework\ObjectManagerInterface $om */
-        $om = ObjectManager::getInstance();
-
-        /** @var \Ingenico\Payment\Model\Config $config */
-        $config = $om->get(Config::class);
-
-        /** @var \Magento\Store\Model\StoreManagerInterface $storeManger */
-        $storeManger = $om->get(StoreManagerInterface::class);
-
-        $banks = $config->getIDealBanks($storeManger->getStore()->getId());
-
-        /** @var \Ingenico\Payment\Model\Config\Source\Ideal\Banks $source */
-        $source = $om->get(\Ingenico\Payment\Model\Config\Source\Ideal\Banks::class);
-        // @codingStandardsIgnoreEnd
+        $banks = $this->config->getIDealBanks($this->storeManager->getStore()->getId());
 
         // Get Banks
-        $options = $source->toOptionArray();
+        $options = $this->banksSource->toOptionArray();
 
         $result = [];
         foreach ($options as $option) {

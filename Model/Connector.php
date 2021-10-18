@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile An error occurred during processing; checking has been aborted.
 
 namespace Ingenico\Payment\Model;
 
@@ -52,6 +53,7 @@ use Magento\User\Model\ResourceModel\User\CollectionFactory as UserCollectionFac
 use Magento\Catalog\Api\ProductRepositoryInterfaceFactory;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Ingenico\Payment\Model\Method\AbstractMethod;
 
 /**
  * Class Connector
@@ -1256,6 +1258,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
             }
+
             return $method->getCode();
         } catch (\Exception $exception) {
             return false;
@@ -1283,6 +1286,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
             if ($method instanceof AbstractMethod) {
                 return $method::CORE_CODE;
             }
+
             return $method->getCode();
         } catch (\Exception $exception) {
             return false;
@@ -1387,8 +1391,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
                     // The Magento\Framework\Mail\Template\TransportBuilder
                     // structures were refactored to use this new EmailMessageInterface instead of MessageInterface,
                     // which was previously used.
-                    $transportBuilder = ObjectManager::getInstance()->create(\Ingenico\Payment\Model\Email\Template\TransportBuilder::class);
-                    $transport = $transportBuilder
+                    $transport = $this->transportBuilder
                         ->setTemplateIdentifier($this->getEmailTemplate())
                         ->setTemplateOptions([
                             'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
@@ -2146,6 +2149,7 @@ class Connector extends AbstractConnector implements ConnectorInterface
      * @param \IngenicoClient\Payment $payment
      *
      * @return void
+     * @SuppressWarnings(MEQP2.Classes.ObjectManager.ObjectManagerFound)
      */
     public function showCancellationTemplate(array $fields, \IngenicoClient\Payment $payment)
     {

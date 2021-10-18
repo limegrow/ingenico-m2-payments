@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile UpgradeSchema scripts are obsolete. Please use declarative schema approach in module's etc/db_schema.xml file
 
 namespace Ingenico\Payment\Setup;
 
@@ -8,6 +9,9 @@ use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 
+/**
+ * @codingStandardsIgnoreStart
+ */
 class UpgradeSchema implements UpgradeSchemaInterface
 {
     /**

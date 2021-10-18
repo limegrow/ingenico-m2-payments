@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.10.0] - 2021-11-14
+## Changed
+- Fixed: Undefined class constant 'CORE_CODE'
+- Last_trans_id was empty, fix by persisting the payment
+- Use `payIdSub` in `getPaymentInfo()`
+
 ## [2.9.3] - 2021-08-12
 ## Changed
 - Fixed: Double invoicing
