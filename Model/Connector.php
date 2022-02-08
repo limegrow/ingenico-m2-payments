@@ -1432,17 +1432,14 @@ class Connector extends AbstractConnector implements ConnectorInterface
      */
     public function getLocale($orderId = null)
     {
-        $currentStoreId = $this->storeManager->getStore()->getId();
-        $locale = $this->localeResolver->getLocale();
-
-        if ($orderId) {
-            $order = $this->processor->getOrderByIncrementId($orderId);
-            $orderStoreId = $order->getStoreId();
-            if ($currentStoreId !== $orderStoreId) {
-                $locale = $this->localeResolver->emulate($orderStoreId);
-                $this->localeResolver->revert();
-            }
+        if (!$orderId) {
+            return $this->localeResolver->getLocale();
         }
+        
+        $order = $this->processor->getOrderByIncrementId($orderId);
+        $orderStoreId = $order->getStoreId();
+        $locale = $this->localeResolver->emulate($orderStoreId);
+        $this->localeResolver->revert();
 
         return $locale;
     }
