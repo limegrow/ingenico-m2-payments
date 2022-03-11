@@ -16,4 +16,9 @@
     <type name="Magento\Sales\Controller\Adminhtml\Order\Creditmemo\Save">
         <plugin name="intercept_creditmemo_creation" type="Ingenico\Payment\Plugin\MagentoSalesControllerAdminhtmlOrderCreditmemoSave" />
     </type>
+    <type name="Ingenico\Payment\Block\Adminhtml\System\Config\Connection\Webhook">
+        <arguments>
+            <argument name="frontUrlModel" xsi:type="object" shared="false">Magento\Framework\Url</argument>
+        </arguments>
+    </type>
 </config>
