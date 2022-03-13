@@ -2,16 +2,55 @@
 
 namespace Ingenico\Payment\Block\Adminhtml\System\Config\Connection;
 
+use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Backend\Block\Template\Context;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Data\Form\Element\AbstractElement;
+
 /**
  * Provides field with additional information
  */
-class Webhook extends \Magento\Config\Block\System\Config\Form\Field
+class Webhook extends Field
 {
+    /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
 
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    /**
+     * @var RequestInterface
+     */
+    private $request;
+
+    /**
+     * @param Context      $context
+     * @param UrlInterface $frontUrlModel
+     * @param RequestInterface $request
+     * @param array        $data
+     */
+    public function __construct(
+        Context $context,
+        UrlInterface $frontUrlModel,
+        RequestInterface $request,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+
+        $this->urlBuilder = $frontUrlModel;
+        $this->request = $request;
+    }
+
+    protected function _getElementHtml(AbstractElement $element)
     {
+        $storeId = $this->request->getParam('store');
+        if (!$storeId) {
+            $storeId = $this->_storeManager->getStore()->getId();
+        }
+
         $id = $element->getHtmlId();
-        $link = $this->_storeManager->getStore()->getBaseUrl().'ingenico/payment/webhook';
+        $link = $this->urlBuilder->getUrl('ingenico/payment/webhook', ['_nosid' => true, '_scope' => $storeId]);
+
         return implode('', [
             '<a href="javascript:void(0);" onclick="Ogone.copyLink(\''.$link.'\', \''.$id.'\');">'.$link.'</a>',
             '<div class="copy-response message message-success" data-copy="'.$id.'">'.__('form.connection.label.copied').'</div>',
