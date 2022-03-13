@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.11.0] - 2022-04-13
+## Changed
+- Fixed Store ID Magento problem
+- Fix Webhook URL in multistore configuration
+
 ## [2.10.0] - 2021-11-14
 ## Changed
 - Fixed: Undefined class constant 'CORE_CODE'

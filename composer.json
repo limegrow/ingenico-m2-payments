@@ -6,10 +6,10 @@
         "league/iso3166": "~2.1",
         "graylog2/gelf-php": "~1.5",
         "symfony/translation": ">=4.2",
-        "ingenico/ogone-client": "^6.0.0"
+        "ingenico/ogone-client": "^7.1.0"
     },
     "type": "magento2-module",
-    "version": "2.10.0",
+    "version": "2.11.0",
     "license": [
         "OSL-3.0"
     ],
@@ -42,6 +42,6 @@
         }
     },
     "require-dev": {
-        "magento/magento-coding-standard": "^5.0"
+        "magento/magento-coding-standard": "^6.0"
     }
 }
