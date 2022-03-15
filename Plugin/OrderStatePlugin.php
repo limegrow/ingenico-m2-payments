@@ -52,8 +52,7 @@ class OrderStatePlugin
             if ($this->cnf->getOrderConfirmationEmailMode($storeId) === OrderEmail::STATUS_ONCHANGE) {
                 $targetStatus = $this->cnf->getOrderStatusForConfirmationEmail($storeId);
                 if (!$result->getEmailSent()
-                    && $result->getData('status') == $targetStatus
-                    && $result->getOrigData('status') !== $targetStatus) {
+                    && $result->getData('status') === $targetStatus) {
                     $this->orderNotifier->notify($result);
                 }
             }
