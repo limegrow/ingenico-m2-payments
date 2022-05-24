@@ -3,7 +3,7 @@
     "description": "Ingenico ePayments Module",
     "require": {
         "monolog/monolog": "*",
-        "league/iso3166": "~2.1",
+        "league/iso3166": "~3.0",
         "graylog2/gelf-php": "~1.5",
         "symfony/translation": ">=4.2",
         "ingenico/ogone-client": "^7.1.0"
