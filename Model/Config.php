@@ -252,7 +252,7 @@ class Config extends \Magento\Framework\App\Config
             $scopeId
         );
 
-        return !is_array($methods) ? (array) json_decode($methods, true) : $methods;
+        return is_string($methods) ? (array) json_decode($methods, true) : $methods;
     }
 
     /**
